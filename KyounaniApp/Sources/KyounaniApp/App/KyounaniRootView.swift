@@ -20,32 +20,38 @@ public struct KyounaniRootView: View {
     }
 
     public var body: some View {
-        TabView {
-            NavigationStack {
-                ZStack(alignment: .topTrailing) {
+        ZStack(alignment: .topTrailing) {
+            TabView {
+                NavigationStack {
                     TodayHomeView(calendarVM: calendarVM, speechService: speech, repository: repository)
-                    if appVM.parentModeUnlocked {
-                        Button("親モード") {
-                            showingParentMode = true
-                        }
-                        .font(.caption.bold())
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(.ultraThinMaterial, in: Capsule())
-                        .padding(.trailing, 12)
-                        .padding(.top, 8)
-                    } else {
-                        ParentalGateTriggerArea {
-                            showingGate = true
-                        }
-                        .frame(width: 56, height: 56)
-                        .contentShape(Rectangle())
-                        .padding(.trailing, 8)
-                        .padding(.top, 4)
-                    }
                 }
+                .tabItem { Label("Today", systemImage: "sun.max.fill") }
+
+                NavigationStack {
+                    CalendarRootView(calendarVM: calendarVM, speechService: speech, repository: repository)
+                }
+                .tabItem { Label("Calendar", systemImage: "calendar") }
             }
-            .tabItem { Label("Today", systemImage: "sun.max.fill") }
+
+            if appVM.parentModeUnlocked {
+                Button("親モード") {
+                    showingParentMode = true
+                }
+                .font(.caption.bold())
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(.ultraThinMaterial, in: Capsule())
+                .padding(.trailing, 12)
+                .padding(.top, 8)
+            } else {
+                ParentalGateTriggerArea {
+                    showingGate = true
+                }
+                .frame(width: 56, height: 56)
+                .contentShape(Rectangle())
+                .padding(.trailing, 8)
+                .padding(.top, 4)
+            }
         }
         .environmentObject(appVM)
         .environmentObject(stampStore)

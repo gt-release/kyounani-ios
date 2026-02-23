@@ -247,7 +247,12 @@ public struct DayDetailView: View {
         Group {
             if occurrences.isEmpty {
                 Text("この日の予定はありません")
+                    .font(KidUITheme.Fonts.supporting)
                     .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(KidUITheme.Spacing.cardPadding)
+                    .cardStyle(background: KidUITheme.ColorPalette.emptyCard)
+                    .padding(.horizontal, KidUITheme.Spacing.screenPadding)
             } else {
                 List(occurrences, id: \.id) { occurrence in
                     HStack(spacing: 12) {
@@ -259,9 +264,9 @@ public struct DayDetailView: View {
                                 EventTokenRenderer(event: occurrence.baseEvent, showTitle: false, iconSize: 42)
                                 VStack(alignment: .leading, spacing: 6) {
                                     Text(occurrence.baseEvent.title)
-                                        .font(.headline)
+                                        .font(KidUITheme.Fonts.dayTitle)
                                     Text(timeText(occurrence.displayStart, allDay: occurrence.baseEvent.isAllDay))
-                                        .font(.subheadline)
+                                        .font(KidUITheme.Fonts.supporting)
                                         .foregroundStyle(.secondary)
                                 }
                             }
