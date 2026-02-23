@@ -22,7 +22,7 @@ private struct BuiltinStampDefinition: Codable {
 public final class StampStore: ObservableObject {
     @Published public private(set) var stamps: [Stamp] = []
 
-    public static let fallbackBuiltinDefinitions: [BuiltinStampDefinition] = [
+    private static let fallbackBuiltinDefinitions: [BuiltinStampDefinition] = [
         .init(id: UUID(uuidString: "11111111-1111-1111-1111-111111111111")!, name: "ようちえん", symbolName: "figure.and.child.holdinghands"),
         .init(id: UUID(uuidString: "22222222-2222-2222-2222-222222222222")!, name: "びょういん", symbolName: "cross.case.fill"),
         .init(id: UUID(uuidString: "33333333-3333-3333-3333-333333333333")!, name: "こうえん", symbolName: "leaf.fill"),
@@ -31,6 +31,17 @@ public final class StampStore: ObservableObject {
         .init(id: UUID(uuidString: "66666666-6666-6666-6666-666666666666")!, name: "がいしょく", symbolName: "fork.knife"),
         .init(id: UUID(uuidString: "77777777-7777-7777-7777-777777777777")!, name: "きせい", symbolName: "house.fill"),
         .init(id: UUID(uuidString: "88888888-8888-8888-8888-888888888888")!, name: "たんじょうび", symbolName: "birthday.cake.fill")
+    ]
+
+    private static let legacyBuiltinToSymbol: [String: String] = [
+        "kindergarten": "figure.and.child.holdinghands",
+        "hospital": "cross.case.fill",
+        "park": "leaf.fill",
+        "therapy": "hands.sparkles.fill",
+        "shopping": "cart.fill",
+        "dining": "fork.knife",
+        "homecoming": "house.fill",
+        "birthday": "birthday.cake.fill"
     ]
 
     public var defaultStampId: UUID {
@@ -48,9 +59,16 @@ public final class StampStore: ObservableObject {
     public func image(for stamp: Stamp) -> Image? {
         switch stamp.kind {
         case .builtin:
-            guard stamp.imageLocation.hasPrefix("symbol:") else { return nil }
-            let symbolName = String(stamp.imageLocation.dropFirst("symbol:".count))
-            return Image(systemName: symbolName)
+            if stamp.imageLocation.hasPrefix("symbol:") {
+                let symbolName = String(stamp.imageLocation.dropFirst("symbol:".count))
+                return Image(systemName: symbolName)
+            }
+            if stamp.imageLocation.hasPrefix("builtin:") {
+                let legacyName = String(stamp.imageLocation.dropFirst("builtin:".count))
+                let symbolName = Self.legacyBuiltinToSymbol[legacyName] ?? "questionmark.circle.fill"
+                return Image(systemName: symbolName)
+            }
+            return Image(systemName: "questionmark.circle.fill")
         case .user:
             return imageFromURL(url: userImageURL(filename: stamp.imageLocation))
         }

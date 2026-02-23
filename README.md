@@ -14,6 +14,7 @@
 - スタンプ一覧永続化（Application Support/stamps.json）
 - バイナリ非対応PRツール向けに、初期スタンプはJSON+SF Symbolsで同梱
 - `KyounaniApp` 側にも同じ`builtin_stamps.json`を配置し、Bundle解決を安定化
+- 旧`builtin:<name>`形式も互換表示し、段階移行時の欠けを防止
 - カレンダー日次集約ロジックをViewModelで共通化（Today/Month/Weekで再利用）
 - 祝日/土日色分け（祝日/日曜=赤系、土曜=青系）
 - タップ時の日本語読み上げ（enhanced優先）

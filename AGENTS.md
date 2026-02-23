@@ -82,6 +82,7 @@
 ## 9. スタンプ
 - 初期スタンプセット同梱: **対応済み（Phase 3 最小 / JSON+SF Symbols）**
   - `Kyounani.swiftpm` と `KyounaniApp` の両Resourcesに `builtin_stamps.json` を配置。
+  - 旧 `builtin:<name>` 形式との互換表示を保持。
 - ユーザー追加（Files/Photos→トリミング→保存）: **対応済み（最小）**
 - カレンダートークンの差し替えポイント: **対応済み（Phase 3適用）**
   - `EventTokenRenderer` に描画責務を集約。
