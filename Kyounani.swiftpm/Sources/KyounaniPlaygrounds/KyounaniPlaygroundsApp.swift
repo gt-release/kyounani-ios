@@ -23,7 +23,7 @@ private struct PlaygroundsRootView: View {
         let repository = InMemoryEventRepository(events: Self.seedEvents(), exceptions: [])
         let engine = RecurrenceEngine(holidayService: holidayService)
         _repository = StateObject(wrappedValue: repository)
-        _calendarVM = StateObject(wrappedValue: CalendarViewModel(repository: repository, engine: engine))
+        _calendarVM = StateObject(wrappedValue: CalendarViewModel(repository: repository, engine: engine, holidayService: holidayService))
     }
 
     var body: some View {

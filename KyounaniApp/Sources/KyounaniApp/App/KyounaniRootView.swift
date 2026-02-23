@@ -12,13 +12,15 @@ public struct KyounaniRootView: View {
         let sharedRepository = InMemoryEventRepository()
         let engine = RecurrenceEngine(holidayService: holiday)
         _repository = StateObject(wrappedValue: sharedRepository)
-        _calendarVM = StateObject(wrappedValue: CalendarViewModel(repository: sharedRepository, engine: engine))
+        _calendarVM = StateObject(wrappedValue: CalendarViewModel(repository: sharedRepository, engine: engine, holidayService: holiday))
     }
 
     public var body: some View {
         TabView {
-            TodayHomeView(calendarVM: calendarVM, speechService: speech, repository: repository)
-                .tabItem { Label("Today", systemImage: "sun.max.fill") }
+            NavigationStack {
+                TodayHomeView(calendarVM: calendarVM, speechService: speech, repository: repository)
+            }
+            .tabItem { Label("Today", systemImage: "sun.max.fill") }
 
             if appVM.parentModeUnlocked {
                 ParentModeView(repo: repository)
