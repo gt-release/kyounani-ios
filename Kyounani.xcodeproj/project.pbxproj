@@ -3,18 +3,16 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		42379635325D1D11C0F70E63 /* KyounaniApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C66A8C36A9708D3E4122EABD /* KyounaniApp.swift */; };
 		C388A55BCE799C1179797A33 /* KyounaniApp in Frameworks */ = {isa = PBXBuildFile; productRef = 792E388D12366A64696004CC /* KyounaniApp */; };
-		F74FE00E85EBB11F26FA8064 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E0C09E28BA534999B9DF945 /* Foundation.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		6C51AADB8270665394D7E840 /* Kyounani.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Kyounani.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		6E0C09E28BA534999B9DF945 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		C66A8C36A9708D3E4122EABD /* KyounaniApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KyounaniApp.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -23,7 +21,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F74FE00E85EBB11F26FA8064 /* Foundation.framework in Frameworks */,
 				C388A55BCE799C1179797A33 /* KyounaniApp in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -31,14 +28,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		30B958460DEFD8E75CC700A2 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				F2FFC493C9BF1AF11A63C725 /* iOS */,
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
 		4199D786BA578E326686305F /* Kyounani-iOS */ = {
 			isa = PBXGroup;
 			children = (
@@ -60,7 +49,6 @@
 			isa = PBXGroup;
 			children = (
 				8F9649DAA2BA5ADFF360439B /* Products */,
-				30B958460DEFD8E75CC700A2 /* Frameworks */,
 				4199D786BA578E326686305F /* Kyounani-iOS */,
 			);
 			sourceTree = "<group>";
@@ -72,14 +60,6 @@
 			);
 			name = Kyounani;
 			path = Kyounani;
-			sourceTree = "<group>";
-		};
-		F2FFC493C9BF1AF11A63C725 /* iOS */ = {
-			isa = PBXGroup;
-			children = (
-				6E0C09E28BA534999B9DF945 /* Foundation.framework */,
-			);
-			name = iOS;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -115,7 +95,7 @@
 				LastUpgradeCheck = 1600;
 			};
 			buildConfigurationList = 845401BE905696F33A818FC5 /* Build configuration list for PBXProject "Kyounani" */;
-			compatibilityVersion = "Xcode 3.2";
+			compatibilityVersion = "Xcode 16.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -217,7 +197,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -301,7 +280,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;

@@ -38,6 +38,11 @@ cd KyounaniApp
 swift test
 ```
 
+### iOS Appターゲットのビルド検証（Xcode環境）
+```bash
+xcodebuild -project Kyounani.xcodeproj -scheme Kyounani -destination "generic/platform=iOS" build
+```
+
 ## 今後の拡張
 - SwiftData Repository実装の追加
 - 月/週カレンダー画面の詳細化
