@@ -17,7 +17,7 @@ public struct CalendarRootView: View {
     }
 
     public var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: KidUITheme.Spacing.itemGap) {
             Picker("表示", selection: $mode) {
                 Text("月").tag(CalendarDisplayMode.month)
                 Text("週").tag(CalendarDisplayMode.week)
@@ -31,7 +31,7 @@ public struct CalendarRootView: View {
 
                 Spacer()
                 Text(headerTitle)
-                    .font(.headline)
+                    .font(KidUITheme.Fonts.calendarHeader)
                 Spacer()
 
                 Button { move(by: 1) } label: {
@@ -40,7 +40,10 @@ public struct CalendarRootView: View {
             }
 
             Button("Today") { anchorDate = .now }
-                .font(.caption)
+                .font(KidUITheme.Fonts.supporting)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .cardStyle(background: KidUITheme.ColorPalette.emptyCard)
 
             if mode == .month {
                 MonthView(monthDate: anchorDate, calendarVM: calendarVM, onSelectDate: select(date:))
@@ -50,7 +53,7 @@ public struct CalendarRootView: View {
 
             Spacer(minLength: 0)
         }
-        .padding()
+        .padding(KidUITheme.Spacing.screenPadding)
         .navigationTitle("カレンダー")
         .navigationDestination(isPresented: dayDetailIsPresented) {
             if let date = selectedDate {
