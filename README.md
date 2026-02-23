@@ -55,6 +55,7 @@
 ## CI / 検証方針
 - CIは **macOS GitHub Actions** で `KyounaniApp` の `swift test` を実行（xcodebuildは使わない）。
 - macOSで unavailable な UI API は条件付きコンパイルでガードし、SwiftPMテストを安定化（例: Toolbar placementのOS分岐）。
+- コンパイル負荷の高いViewはsubview分割で type-check timeout を回避し、CI安定性を優先。
 - UIの見た目・操作確認は iPad Swift Playgrounds で行う。
 
 ## 既知の制約

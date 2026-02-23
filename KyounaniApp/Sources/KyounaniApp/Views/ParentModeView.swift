@@ -40,95 +40,111 @@ public struct ParentModeView: View {
     }
 
     private var parentNavigationView: some View {
+        parentDialogsView
+    }
+
+    private var parentBaseView: some View {
         NavigationStack {
             parentList
         }
-        .fileImporter(isPresented: $showingImageImporter, allowedContentTypes: [.image]) { result in
-            guard case .success(let url) = result,
-                  let data = readImportedImageData(from: url) else {
-                return
-            }
-            _ = stampStore.addUserStamp(name: resolvedStampName(prefix: "files"), imageData: data)
-        }
-        .fileExporter(
-            isPresented: $showingBackupExporter,
-            document: backupFileForExport,
-            contentType: .kyounaniBackup,
-            defaultFilename: "kyounani-backup"
-        ) { result in
-            switch result {
-            case .success:
-                showBackupStatus("バックアップを書き出しました")
-            case .failure:
-                showBackupStatus("バックアップの保存に失敗しました")
-            }
-        }
-        .fileImporter(isPresented: $showingBackupImporter, allowedContentTypes: [.kyounaniBackup, .data]) { result in
-            guard case .success(let url) = result,
-                  let data = readImportedImageData(from: url) else {
-                showBackupStatus("バックアップファイルの読み込みに失敗しました")
-                return
-            }
-            importedBackupData = data
-        }
-        .sheet(isPresented: $creatingEvent) {
-            EventEditorView(mode: .create, initialEvent: draftEvent(), onSave: { event in
-                repo.save(event: event)
-                stampStore.markStampUsed(event.stampId)
-            })
-            .environmentObject(stampStore)
-        }
-        .sheet(item: $editingEvent) { event in
-            EventEditorView(mode: .edit, initialEvent: event, onSave: { updated in
-                repo.save(event: updated)
-                stampStore.markStampUsed(updated.stampId)
-            }, onDelete: {
-                repo.delete(eventID: event.id)
-            })
-            .environmentObject(stampStore)
-        }
-        .sheet(isPresented: $showingExportPassphraseSheet) {
-            backupExportPassphraseSheet
-        }
-        .sheet(isPresented: Binding(get: { importedBackupData != nil && pendingImportPayload == nil }, set: { if !$0 { importedBackupData = nil } })) {
-            backupImportPassphraseSheet
-        }
-        .sheet(item: Binding(get: {
-            pendingImportPayload.map { PendingPayloadWrapper(payload: $0) }
-        }, set: { wrapper in
-            pendingImportPayload = wrapper?.payload
-        })) { wrapper in
-            backupImportSummarySheet(payload: wrapper.payload)
-        }
-        .alert("バックアップ", isPresented: $showingBackupStatusAlert) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(backupStatusMessage)
-        }
-        .confirmationDialog("本当にデータを全削除しますか？", isPresented: $showingResetConfirmation, titleVisibility: .visible) {
-            Button("全削除する", role: .destructive) {
-                resetAllData()
-            }
-            Button("キャンセル", role: .cancel) {}
-        } message: {
-            Text("予定・例外・スタンプ（追加画像含む）をすべて削除します")
-        }
-        #if canImport(PhotosUI)
-        .onChange(of: selectedPhotoItem) { item in
-            guard let item else { return }
-            Task {
-                guard let data = try? await item.loadTransferable(type: Data.self) else { return }
-                await MainActor.run {
-                    _ = stampStore.addUserStamp(name: resolvedStampName(prefix: "photo"), imageData: data)
-                    selectedPhotoItem = nil
-                }
-            }
-        }
-        #endif
         .navigationTitle("親モード")
         .toolbar {
             parentToolbar
         }
+    }
+
+    private var parentImportersView: some View {
+        parentBaseView
+            .fileImporter(isPresented: $showingImageImporter, allowedContentTypes: [.image]) { result in
+                guard case .success(let url) = result,
+                      let data = readImportedImageData(from: url) else {
+                    return
+                }
+                _ = stampStore.addUserStamp(name: resolvedStampName(prefix: "files"), imageData: data)
+            }
+            .fileExporter(
+                isPresented: $showingBackupExporter,
+                document: backupFileForExport,
+                contentType: .kyounaniBackup,
+                defaultFilename: "kyounani-backup"
+            ) { result in
+                switch result {
+                case .success:
+                    showBackupStatus("バックアップを書き出しました")
+                case .failure:
+                    showBackupStatus("バックアップの保存に失敗しました")
+                }
+            }
+            .fileImporter(isPresented: $showingBackupImporter, allowedContentTypes: [.kyounaniBackup, .data]) { result in
+                guard case .success(let url) = result,
+                      let data = readImportedImageData(from: url) else {
+                    showBackupStatus("バックアップファイルの読み込みに失敗しました")
+                    return
+                }
+                importedBackupData = data
+            }
+    }
+
+    private var parentSheetsView: some View {
+        parentImportersView
+            .sheet(isPresented: $creatingEvent) {
+                EventEditorView(mode: .create, initialEvent: draftEvent(), onSave: { event in
+                    repo.save(event: event)
+                    stampStore.markStampUsed(event.stampId)
+                })
+                .environmentObject(stampStore)
+            }
+            .sheet(item: $editingEvent) { event in
+                EventEditorView(mode: .edit, initialEvent: event, onSave: { updated in
+                    repo.save(event: updated)
+                    stampStore.markStampUsed(updated.stampId)
+                }, onDelete: {
+                    repo.delete(eventID: event.id)
+                })
+                .environmentObject(stampStore)
+            }
+            .sheet(isPresented: $showingExportPassphraseSheet) {
+                backupExportPassphraseSheet
+            }
+            .sheet(isPresented: Binding(get: { importedBackupData != nil && pendingImportPayload == nil }, set: { if !$0 { importedBackupData = nil } })) {
+                backupImportPassphraseSheet
+            }
+            .sheet(item: Binding(get: {
+                pendingImportPayload.map { PendingPayloadWrapper(payload: $0) }
+            }, set: { wrapper in
+                pendingImportPayload = wrapper?.payload
+            })) { wrapper in
+                backupImportSummarySheet(payload: wrapper.payload)
+            }
+    }
+
+    private var parentDialogsView: some View {
+        parentSheetsView
+            .alert("バックアップ", isPresented: $showingBackupStatusAlert) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(backupStatusMessage)
+            }
+            .confirmationDialog("本当にデータを全削除しますか？", isPresented: $showingResetConfirmation, titleVisibility: .visible) {
+                Button("全削除する", role: .destructive) {
+                    resetAllData()
+                }
+                Button("キャンセル", role: .cancel) {}
+            } message: {
+                Text("予定・例外・スタンプ（追加画像含む）をすべて削除します")
+            }
+            #if canImport(PhotosUI)
+            .onChange(of: selectedPhotoItem) { item in
+                guard let item else { return }
+                Task {
+                    guard let data = try? await item.loadTransferable(type: Data.self) else { return }
+                    await MainActor.run {
+                        _ = stampStore.addUserStamp(name: resolvedStampName(prefix: "photo"), imageData: data)
+                        selectedPhotoItem = nil
+                    }
+                }
+            }
+            #endif
     }
 
     private var parentList: some View {
