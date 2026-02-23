@@ -148,13 +148,17 @@ public struct Stamp: Identifiable, Codable, Equatable {
     public var kind: StampKind
     public var imageLocation: String
     public var isBuiltin: Bool
+    public var lastUsedAt: Date?
+    public var sortOrder: Int?
 
-    public init(id: UUID = UUID(), name: String, kind: StampKind, imageLocation: String, isBuiltin: Bool = false) {
+    public init(id: UUID = UUID(), name: String, kind: StampKind, imageLocation: String, isBuiltin: Bool = false, lastUsedAt: Date? = nil, sortOrder: Int? = nil) {
         self.id = id
         self.name = name
         self.kind = kind
         self.imageLocation = imageLocation
         self.isBuiltin = isBuiltin
+        self.lastUsedAt = lastUsedAt
+        self.sortOrder = sortOrder
     }
 }
 

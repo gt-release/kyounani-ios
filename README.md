@@ -6,6 +6,7 @@
 - ペアレンタルゲート（右上の固定領域で3本指2秒長押し→4点シーケンス、失敗クールダウン、非常用4桁コード）
 - 親モード画面で「ロック」実行時は子どもモードへ戻し、親モードシートを自動で閉じる
 - 親モードの本格CRUD（＋追加 / 一覧タップ編集 / 削除）を実装し、EventEditorViewでイベントの主要項目を編集可能
+- EventEditorViewのスタンプ選択UXを拡張（最近使った / 検索 / 並び替え[最近順・名前順]）
 - Todayホーム（今日の予定、次の予定、先の予定チラ見せ）
 - Today→カレンダー遷移
 - カレンダー（**月/週切替、日曜始まり、日別詳細ドリルダウン**）
@@ -14,7 +15,7 @@
 - 初期スタンプ同梱（Kyounani.swiftpm Resources/Stamps/builtin_stamps.json）
 - 親モードでスタンプ追加（Files / Photos, センター正方形クロップ, PNG保存）
 - Files取り込み時にsecurity-scoped resourceへ対応（iCloud Drive等でも読み込み可能化）
-- イベント/スタンプ永続化（SwiftData Repository, 起動後も保持）
+- イベント/スタンプ永続化（SwiftData Repository, 起動後も保持。スタンプの最終使用時刻 `lastUsedAt` も保持）
 - バイナリ非対応PRツール向けに、初期スタンプはJSON+SF Symbolsで同梱
 - `KyounaniApp` 側にも同じ`builtin_stamps.json`を配置し、Bundle解決を安定化
 - 旧`builtin:<name>`形式も互換表示し、段階移行時の欠けを防止
@@ -55,6 +56,14 @@
 - 旧 `Application Support/Kyounani/stamps.json` が存在し、SwiftData側が空の場合のみ初回インポートします（旧ファイルは削除しません）。
 - SwiftDataが利用できない場合は `FileBackedEventRepository` にフォールバックし、`Application Support/Kyounani/*.json` にイベント/例外/スタンプを保持します。
 
+
+### 親モード: スタンプを素早く選ぶ
+- `＋追加` か既存予定の編集で `EventEditorView` を開く。
+- 「スタンプ」セクションで名前検索が可能（部分一致）。
+- 並び替えを「最近順 / 名前順」で切り替え可能。
+- 「最近使った」セクションには、利用履歴（`lastUsedAt`）があるスタンプの上位10件を表示。
+- 保存時に選択中スタンプの `lastUsedAt` が更新されるため、次回以降は上位に出やすくなる。
+
 ### iPadでのペアレンタルゲート再現手順（Swift Playgrounds）
 1. iPadのSwift Playgroundsで `Kyounani.swiftpm` を起動し、子どもモードのTodayホームを表示する。
 2. 子どもモード画面の右上にある固定領域（見た目は目立たない）を、**3本指で2秒間長押し**する。
@@ -84,5 +93,5 @@ GitHubアプリ/クライアントで「リクエストに問題があります 
 
 ## 今後の拡張
 - 例外編集UIの拡張（削除時確認＋分岐説明＋プレビュー）: 実装済み。次は説明文言や件数精度の改善。
-- スタンプ管理UXの拡張（並び替え・検索・使用頻度表示）
+- スタンプ管理UXの拡張（並び替え・検索・使用頻度表示）: 実装済み（最近使った/検索/最近順・名前順）。
 - 暗号化エクスポート（CryptoKit AES-GCM）
