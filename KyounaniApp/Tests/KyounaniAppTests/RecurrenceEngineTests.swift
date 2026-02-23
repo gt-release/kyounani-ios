@@ -99,6 +99,28 @@ final class RecurrenceEngineTests: XCTestCase {
         XCTAssertFalse(result.contains(where: { formatter.string(from: $0.displayStart) == "2024/04/08 10:00" }))
     }
 
+
+    func testSplitFromPastDateStillAffectsFutureRange() {
+        let engine = RecurrenceEngine(holidayService: MockHoliday(holidayDates: []))
+        let base = makeEvent(start: "2024/04/01 10:00", weekdays: [2])
+        let changed = makeEvent(start: "2024/04/08 16:00", weekdays: [4])
+
+        let exceptions = [
+            EventException(eventId: base.id, occurrenceDate: date("2024/04/08 00:00"), kind: .splitFromThisDate, overrideEvent: changed, splitRule: changed.recurrenceRule)
+        ]
+
+        let result = engine.occurrences(
+            for: [base],
+            exceptions: exceptions,
+            in: DateInterval(start: date("2024/04/15 00:00"), end: date("2024/04/25 00:00")),
+            childFilter: .both,
+            includeDraft: true
+        )
+
+        XCTAssertFalse(result.contains(where: { formatter.string(from: $0.displayStart) == "2024/04/15 10:00" }))
+        XCTAssertTrue(result.contains(where: { formatter.string(from: $0.displayStart) == "2024/04/17 16:00" }))
+    }
+
     private func makeEvent(start: String, weekdays: Set<Int>, skipHolidays: Bool = false) -> Event {
         Event(
             title: "幼稚園",
