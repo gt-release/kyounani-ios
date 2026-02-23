@@ -207,6 +207,33 @@ public final class SwiftDataEventRepository: EventRepositoryBase {
         }
     }
 
+    public override func replaceAll(events: [Event], exceptions: [EventException], stamps: [Stamp]) {
+        objectWillChange.send()
+
+        let existingEvents = (try? context.fetch(FetchDescriptor<PersistentEventSeries>())) ?? []
+        for row in existingEvents { context.delete(row) }
+
+        let existingExceptions = (try? context.fetch(FetchDescriptor<PersistentEventException>())) ?? []
+        for row in existingExceptions { context.delete(row) }
+
+        let existingStamps = (try? context.fetch(FetchDescriptor<PersistentStamp>())) ?? []
+        for row in existingStamps { context.delete(row) }
+
+        for stamp in stamps {
+            context.insert(PersistentStamp(id: stamp.id, name: stamp.name, kindRaw: stamp.kind.rawValue, imageLocation: stamp.imageLocation, isBuiltin: stamp.isBuiltin, lastUsedAt: stamp.lastUsedAt, sortOrder: stamp.sortOrder))
+        }
+
+        for event in events {
+            context.insert(PersistentEventSeries(event: event))
+        }
+
+        for exception in exceptions {
+            context.insert(PersistentEventException(exception: exception))
+        }
+
+        try? context.save()
+    }
+
     private func seedBuiltinStampsIfNeeded() {
         guard UserDefaults.standard.integer(forKey: seedVersionKey) < seedVersion else { return }
         for definition in loadBuiltinDefinitions() {

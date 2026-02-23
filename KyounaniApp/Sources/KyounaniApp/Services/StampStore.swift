@@ -89,6 +89,49 @@ public final class StampStore: ObservableObject {
         reload()
     }
 
+    public func customImageData(filename: String) -> Data? {
+        try? Data(contentsOf: userImageURL(filename: filename))
+    }
+
+    @discardableResult
+    public func storeCustomImageData(_ data: Data, suggestedFilename: String? = nil) -> String? {
+        #if canImport(UIKit)
+        guard let uiImage = UIImage(data: data),
+              let cropped = uiImage.centerCroppedSquare(),
+              let pngData = cropped.pngData() else {
+            return nil
+        }
+
+        let baseName = (suggestedFilename?.isEmpty == false ? suggestedFilename! : UUID().uuidString)
+            .replacingOccurrences(of: ".png", with: "")
+        let filename = "\(baseName).png"
+        let url = userImageURL(filename: filename)
+
+        do {
+            try ensureAppSupportDirectory()
+            try pngData.write(to: url, options: .atomic)
+            return filename
+        } catch {
+            return nil
+        }
+        #else
+        return nil
+        #endif
+    }
+
+    public func removeAllCustomImageFiles() {
+        do {
+            try ensureAppSupportDirectory()
+            let dir = appSupportDirectory()
+            let urls = try FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil)
+            for url in urls where url.pathExtension.lowercased() == "png" {
+                try? FileManager.default.removeItem(at: url)
+            }
+        } catch {
+            return
+        }
+    }
+
     @discardableResult
     public func addUserStamp(name: String, imageData: Data) -> Bool {
         #if canImport(UIKit)
