@@ -8,10 +8,12 @@ public struct CalendarRootView: View {
 
     @ObservedObject var calendarVM: CalendarViewModel
     @ObservedObject var speechService: SpeechService
+    @ObservedObject var repository: InMemoryEventRepository
 
-    public init(calendarVM: CalendarViewModel, speechService: SpeechService) {
+    public init(calendarVM: CalendarViewModel, speechService: SpeechService, repository: InMemoryEventRepository) {
         self.calendarVM = calendarVM
         self.speechService = speechService
+        self.repository = repository
     }
 
     public var body: some View {
@@ -52,7 +54,7 @@ public struct CalendarRootView: View {
         .navigationTitle("カレンダー")
         .navigationDestination(isPresented: dayDetailIsPresented) {
             if let date = selectedDate {
-                DayDetailView(date: date, calendarVM: calendarVM, speechService: speechService)
+                DayDetailView(date: date, calendarVM: calendarVM, speechService: speechService, repository: repository)
             }
         }
     }
