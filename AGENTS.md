@@ -163,6 +163,7 @@
   - macOS unavailable なSwiftUI APIは `#if os(iOS)` でガードし、`swift test` の安定性を優先（UI最終確認はiPad Playgrounds）。
   - `ParentModeView` はツールバー配置をOS分岐（iOS: topBar, macOS: cancellation/confirmation）し、type-check timeout回避のためSubview分割を維持。
   - `ParentModeView` の修飾チェーン（importer/sheet/dialog）も段階的に分割し、Swiftコンパイラの式推論負荷を抑制。
+  - `parentToolbar` は `ToolbarContentBuilder` で定義し、`some ToolbarContent` のopaque returnコンパイルエラーを回避。
 
 ## 13. 受け入れ条件への現状判定
 

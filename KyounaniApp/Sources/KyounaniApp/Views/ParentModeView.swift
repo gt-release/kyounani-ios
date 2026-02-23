@@ -256,7 +256,7 @@ public struct ParentModeView: View {
         }
     }
 
-    @ToolbarContent
+    @ToolbarContentBuilder
     private var parentToolbar: some ToolbarContent {
         #if os(iOS)
         ToolbarItem(placement: .topBarLeading) {

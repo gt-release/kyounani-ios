@@ -58,6 +58,8 @@
 - コンパイル負荷の高いViewはsubview分割で type-check timeout を回避し、CI安定性を優先。
 - UIの見た目・操作確認は iPad Swift Playgrounds で行う。
 
+- macOSビルドで ToolbarContent が不安定な場合に備え、toolbar定義は result builder 解釈できる形（ToolbarContentBuilder）を維持。
+
 ## 既知の制約
 - このリポジトリの実行入口は **iPad Swift Playgrounds (`Kyounani.swiftpm`) 優先**。
 - **Mac / Xcode / xcodebuild 前提手順は採用しない**（検証手順にも含めない）。
