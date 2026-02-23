@@ -59,7 +59,8 @@
 - `Kyounani.swiftpm`: iPad Swift Playgrounds向け App project（実行入口）
 - `KyounaniApp`: ドメイン/サービス/UIを提供する再利用Swift Package
 - `KyounaniApp/Tests/KyounaniAppTests`: 単体テスト
-- CIはGitHub Actionsで `macos-latest` 上から `KyounaniApp` の `swift test` を実行（SwiftPMテストのみ、xcodebuild不使用、arm64 runner含む）。
+- CIはGitHub Actionsで `macos-latest` 上から `KyounaniApp` の `swift test -v` を実行（SwiftPMテストのみ）。
+- ワークフロー内で `setup-xcode` により Xcode を明示選択し、`swift` ツールチェーンのぶれを抑制。
 
 ## ドキュメント一覧
 - [CODE_REVIEW.md](CODE_REVIEW.md)

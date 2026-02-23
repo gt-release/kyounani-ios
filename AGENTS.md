@@ -157,7 +157,9 @@
 
 - `JapaneseHolidayService` 単体テスト: **対応済み**
 - `RecurrenceEngine` 単体テスト（週次/祝日スキップ/override-delete/以降変更）: **対応済み**
-- CI（GitHub Actions `swift-test`）: **対応済み（macos-latest / KyounaniApp / swift test、arm64 macOS runnerで確認）**
+- CI（GitHub Actions `swift-test`）: **対応済み（macos-latest / Xcode明示選択 / KyounaniApp / swift test -v）**
+  - 不安定化要因だったツールチェーン差分を抑えるため、`setup-xcode` で Xcode を明示選択。
+  - CIログの先頭エラー（SwiftDataRepositoryの条件付き束縛）を修正し、macOSでもコンパイル可能な形へ統一。
 
 ## 13. 受け入れ条件への現状判定
 
