@@ -25,75 +25,45 @@ private struct EventEditorContext: Identifiable {
 private struct EventEditSheetView: View {
     @Environment(\.dismiss) private var dismiss
 
+    @EnvironmentObject private var stampStore: StampStore
+
     @ObservedObject var repository: EventRepositoryBase
 
     let context: EventEditorContext
 
-    @State private var title: String
-    @State private var startDateTime: Date
-    @State private var durationMinutes: Int
     @State private var isDeleteForSingle = false
 
     init(context: EventEditorContext, repository: EventRepositoryBase) {
         self.context = context
         self.repository = repository
-        _title = State(initialValue: context.occurrence.baseEvent.title)
-        _startDateTime = State(initialValue: context.occurrence.displayStart)
-        _durationMinutes = State(initialValue: max(5, context.occurrence.baseEvent.durationMinutes ?? 30))
     }
 
     var body: some View {
-        NavigationStack {
-            Form {
-                Section("編集") {
-                    TextField("タイトル", text: $title)
-                    DatePicker("開始", selection: $startDateTime)
-                    Stepper(value: $durationMinutes, in: 5...24*60, step: 5) {
-                        Text("時間: \(durationMinutes)分")
-                    }
-                }
+        VStack {
+            if context.target == .singleOccurrence {
+                Toggle("この日の予定を削除する", isOn: $isDeleteForSingle)
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+            }
 
-                if context.target == .singleOccurrence {
-                    Section("この日だけ") {
-                        Toggle("この日の予定を削除する", isOn: $isDeleteForSingle)
-                    }
-                }
+            EventEditorView(mode: .edit, initialEvent: editingSeedEvent()) { updated in
+                save(with: updated)
             }
-            .navigationTitle(modeTitle)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("キャンセル") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("保存") {
-                        save()
-                        dismiss()
-                    }
-                }
-            }
+            .environmentObject(stampStore)
         }
     }
 
-    private var modeTitle: String {
-        switch context.target {
-        case .singleOccurrence: return "この日だけ編集"
-        case .fromThisDate: return "以降を編集"
-        case .wholeSeries: return "全体を編集"
-        }
+    private func editingSeedEvent() -> Event {
+        var seed = context.occurrence.baseEvent
+        seed.startDateTime = context.occurrence.displayStart
+        return seed
     }
 
-    private func save() {
+    private func save(with updated: Event) {
         let base = context.occurrence.baseEvent
-        let now = Date()
 
         switch context.target {
         case .wholeSeries:
-            var updated = base
-            updated.title = title
-            updated.startDateTime = startDateTime
-            updated.durationMinutes = durationMinutes
-            updated.updatedAt = now
-
             // baseEvent が repository.events に存在しない場合は、
             // 例外（override/split）の payload を更新して重複生成を防ぐ。
             if repository.fetchEvents().contains(where: { $0.id == base.id }) {
@@ -118,13 +88,9 @@ private struct EventEditSheetView: View {
                 return
             }
 
-            var overrideEvent = base
+            var overrideEvent = updated
             overrideEvent.id = UUID()
             overrideEvent.recurrenceRule = nil
-            overrideEvent.title = title
-            overrideEvent.startDateTime = startDateTime
-            overrideEvent.durationMinutes = durationMinutes
-            overrideEvent.updatedAt = now
 
             let exception = EventException(
                 eventId: base.id,
@@ -136,12 +102,8 @@ private struct EventEditSheetView: View {
             repository.save(exception: exception)
 
         case .fromThisDate:
-            var splitEvent = base
+            var splitEvent = updated
             splitEvent.id = UUID()
-            splitEvent.title = title
-            splitEvent.startDateTime = startDateTime
-            splitEvent.durationMinutes = durationMinutes
-            splitEvent.updatedAt = now
             if var rule = splitEvent.recurrenceRule {
                 rule.startDate = context.occurrence.occurrenceDate
                 splitEvent.recurrenceRule = rule
