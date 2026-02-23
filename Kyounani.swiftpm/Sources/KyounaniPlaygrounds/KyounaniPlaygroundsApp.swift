@@ -13,6 +13,7 @@ struct KyounaniPlaygroundsApp: App {
 private struct PlaygroundsRootView: View {
     @StateObject private var appVM = AppViewModel()
     @StateObject private var speechService = SpeechService()
+    @StateObject private var stampStore = StampStore()
     @StateObject private var repository: InMemoryEventRepository
     @StateObject private var calendarVM: CalendarViewModel
     @State private var showingGate = false
@@ -43,6 +44,7 @@ private struct PlaygroundsRootView: View {
                 }
         }
         .environmentObject(appVM)
+        .environmentObject(stampStore)
         .sheet(isPresented: $showingGate) {
             ParentalGateView()
                 .environmentObject(appVM)
@@ -50,6 +52,7 @@ private struct PlaygroundsRootView: View {
         .sheet(isPresented: $showingParentMode) {
             ParentModeView(repo: repository)
                 .environmentObject(appVM)
+                .environmentObject(stampStore)
         }
     }
 
@@ -58,7 +61,7 @@ private struct PlaygroundsRootView: View {
         return [
             Event(
                 title: "ようちえん",
-                stampId: UUID(),
+                stampId: Stamp.defaultStampId,
                 childScope: .both,
                 visibility: .published,
                 isAllDay: false,
@@ -68,7 +71,7 @@ private struct PlaygroundsRootView: View {
             ),
             Event(
                 title: "おやつ",
-                stampId: UUID(),
+                stampId: UUID(uuidString: "55555555-5555-5555-5555-555555555555") ?? Stamp.defaultStampId,
                 childScope: .son,
                 visibility: .published,
                 isAllDay: false,
@@ -78,7 +81,7 @@ private struct PlaygroundsRootView: View {
             ),
             Event(
                 title: "したがき: ほごしゃだけ",
-                stampId: UUID(),
+                stampId: UUID(uuidString: "88888888-8888-8888-8888-888888888888") ?? Stamp.defaultStampId,
                 childScope: .daughter,
                 visibility: .draft,
                 isAllDay: false,

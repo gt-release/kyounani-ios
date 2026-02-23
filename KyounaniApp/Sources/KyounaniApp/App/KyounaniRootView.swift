@@ -4,6 +4,7 @@ import SwiftUI
 public struct KyounaniRootView: View {
     @StateObject private var appVM = AppViewModel()
     @StateObject private var speech = SpeechService()
+    @StateObject private var stampStore = StampStore()
     @StateObject private var repository: InMemoryEventRepository
     @StateObject private var calendarVM: CalendarViewModel
 
@@ -31,6 +32,7 @@ public struct KyounaniRootView: View {
             }
         }
         .environmentObject(appVM)
+        .environmentObject(stampStore)
     }
 }
 

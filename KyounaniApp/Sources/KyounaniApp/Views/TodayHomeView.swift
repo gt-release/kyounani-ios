@@ -56,14 +56,22 @@ public struct TodayHomeView: View {
 
     private var todayStamps: some View {
         let summary = EventListPresenter.summarizeDay(calendarVM.todayOccurrences)
-        return VStack(alignment: .leading) {
+        return VStack(alignment: .leading, spacing: 8) {
             Text("きょうのよてい")
             HStack {
                 ForEach(summary.topOccurrences, id: \.id) { occ in
-                    stampCapsule(title: occ.baseEvent.title)
+                    EventTokenRenderer(event: occ.baseEvent)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 6)
+                        .background(Color.green.opacity(0.12))
+                        .clipShape(Capsule())
                 }
                 if summary.remainingCount > 0 {
-                    stampCapsule(title: "+\(summary.remainingCount)")
+                    Text("+\(summary.remainingCount)")
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Color.green.opacity(0.12))
+                        .clipShape(Capsule())
                 }
             }
         }
@@ -77,9 +85,13 @@ public struct TodayHomeView: View {
                     speechService.speak(next.baseEvent.title)
                     selectedOccurrence = next
                 } label: {
-                    VStack(alignment: .leading) {
-                        Text(next.baseEvent.title).font(.title2.bold())
-                        Text(timeRemainingText(next.displayStart))
+                    HStack(spacing: 12) {
+                        EventTokenRenderer(event: next.baseEvent, showTitle: false, iconSize: 48)
+                        VStack(alignment: .leading) {
+                            Text(next.baseEvent.title).font(.title3.bold())
+                            Text(timeRemainingText(next.displayStart))
+                        }
+                        Spacer()
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()
@@ -96,17 +108,13 @@ public struct TodayHomeView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("あしたから")
             ForEach(calendarVM.weekPeekOccurrences.prefix(2), id: \.id) { occ in
-                stampCapsule(title: occ.baseEvent.title)
+                EventTokenRenderer(event: occ.baseEvent)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 6)
+                    .background(Color.green.opacity(0.12))
+                    .clipShape(Capsule())
             }
         }
-    }
-
-    private func stampCapsule(title: String) -> some View {
-        Text(title)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 10)
-            .background(Color.green.opacity(0.2))
-            .clipShape(Capsule())
     }
 
     private func reload() {
