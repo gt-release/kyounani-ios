@@ -32,7 +32,8 @@
 
 ## Repositoryフォールバック
 - 既定は SwiftData を優先。
-- SwiftData 初期化失敗時は FileBacked にフォールバック。
+- SwiftData 初期化失敗時は FileBacked にフォールバック（**保険目的のみ**）。
+- FileBacked は現行 `Event/EventException/Stamp` 形式のみを扱い、レガシー変換は行わない。
 - （運用上）必要に応じて InMemory 実装を差し替え利用可能。
 
 ## Theme構成

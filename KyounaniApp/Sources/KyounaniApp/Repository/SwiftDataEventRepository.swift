@@ -110,11 +110,6 @@ private struct BuiltinStampDefinition: Codable {
     var symbolName: String
 }
 
-private struct LegacyPersistedStamp: Codable {
-    var id: UUID
-    var name: String
-    var imageFilename: String
-}
 
 @MainActor
 public final class SwiftDataEventRepository: EventRepositoryBase {
@@ -125,7 +120,6 @@ public final class SwiftDataEventRepository: EventRepositoryBase {
     public init(context: ModelContext) {
         self.context = context
         super.init()
-        migrateLegacyUserStampsIfNeeded()
         seedBuiltinStampsIfNeeded()
     }
 
@@ -254,27 +248,6 @@ public final class SwiftDataEventRepository: EventRepositoryBase {
         UserDefaults.standard.set(seedVersion, forKey: seedVersionKey)
     }
 
-    private func migrateLegacyUserStampsIfNeeded() {
-        let existing = (try? context.fetchCount(FetchDescriptor<PersistentStamp>())) ?? 0
-        guard existing == 0 else { return }
-
-        let legacy = loadLegacyPersistedStamps()
-        guard !legacy.isEmpty else { return }
-
-        for stamp in legacy {
-            context.insert(PersistentStamp(
-                id: stamp.id,
-                name: stamp.name,
-                kindRaw: StampKind.customImage.rawValue,
-                imageLocation: stamp.imageFilename,
-                isBuiltin: false,
-                lastUsedAt: nil,
-                sortOrder: nil
-            ))
-        }
-        try? context.save()
-    }
-
     private func loadBuiltinDefinitions() -> [BuiltinStampDefinition] {
         let bundles: [Bundle] = [Bundle.module, .main]
         for bundle in bundles {
@@ -289,17 +262,6 @@ public final class SwiftDataEventRepository: EventRepositoryBase {
         return []
     }
 
-    private func loadLegacyPersistedStamps() -> [LegacyPersistedStamp] {
-        let url = appSupportDirectory().appendingPathComponent("stamps.json")
-        guard let data = try? Data(contentsOf: url) else { return [] }
-        return (try? JSONDecoder().decode([LegacyPersistedStamp].self, from: data)) ?? []
-    }
-
-    private func appSupportDirectory() -> URL {
-        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
-            ?? FileManager.default.temporaryDirectory
-        return base.appendingPathComponent("Kyounani", isDirectory: true)
-    }
 
     private func mapStamp(_ row: PersistentStamp) -> Stamp {
         Stamp(

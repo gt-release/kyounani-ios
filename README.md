@@ -8,7 +8,7 @@
 - 月/週カレンダー、日別詳細、予定タップ時の日本語TTS + TimerRing
 - 親モードでイベントCRUD、繰り返し例外編集（この日だけ / 以降 / 全体）
 - スタンプ管理（初期スタンプ + Files/Photos 追加）
-- ローカル保存（SwiftData優先）と暗号化バックアップ（`.kybk`）
+- ローカル保存（SwiftData優先、障害時のみFileBacked保険）と暗号化バックアップ（`.kybk`）
 
 ## 使い方
 ### 子どもモード
@@ -28,8 +28,14 @@
 
 ### バックアップ
 - 親モードから書き出し / 復元。
-- 形式: `kyounani-backup.kybk`（AES-GCM暗号化）。
+- 形式: `kyounani-backup.kybk`（`formatVersion=2` 固定、`PBKDF2-HMAC-SHA256` + `AES-GCM`）。
+- **現行形式のみ対応**（旧形式バックアップの復元は非対応）。
 - 復元は上書き方式。復号/デコード失敗時は既存データ無変更。
+
+### データリセット（互換削除後の運用）
+- 親モードの「データを全削除（リセット）」で、予定/例外/スタンプを全削除。
+- 追加したカスタム画像（PNG）も同時に削除。
+- 旧互換コードは削除済みのため、必要ならリセットして作り直してください。
 
 ## iPad Swift Playgrounds での起動手順（最短）
 1. iPad でこのリポジトリを取得（Files/Working Copy 等）。
@@ -56,4 +62,5 @@
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - [docs/SECURITY.md](docs/SECURITY.md)
 - [AGENTS.md](AGENTS.md)
+- [LEGACY_REMOVAL.md](LEGACY_REMOVAL.md)
 - [PHASE1-PLAN.md](PHASE1-PLAN.md)
