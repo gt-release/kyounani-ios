@@ -31,6 +31,7 @@ public struct TodayHomeView: View {
         .padding()
         .onAppear { reload() }
         .onChange(of: appVM.filter) { _ in reload() }
+        .onChange(of: appVM.parentModeUnlocked) { _ in reload() }
         .onReceive(repository.objectWillChange) { _ in
             reload()
         }

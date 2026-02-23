@@ -2,6 +2,10 @@
 
 このドキュメントは、`kyounani-ios` の目標設計に対して、現時点実装がどこまで対応しているかを整理したものです。
 
+## 実行環境前提（追記）
+- 開発・検証の実行入口は **iPadのSwift Playgroundsで開ける `.swiftpm`（App project）** を優先する。
+- **Mac / Xcode / xcodebuild 前提の手順は採用しない**（このリポジトリでは検証手順にも含めない）。
+
 ## 1. 目的への対応状況
 - 子どもが当日の予定を自力で把握できる導線: **部分対応**
   - Todayホーム（今日/次/先の予定チラ見せ）を実装。
@@ -14,8 +18,8 @@
 
 ## 2. 技術方針への対応
 - iPad / SwiftUI: **対応済み（最小）**
-  - SwiftUI画面に加えて、`Kyounani` iPadOS Appターゲット（`Kyounani.xcodeproj`）を追加。
-  - 既存Swift Packageをローカル参照し、アプリ起動でTodayホームに接続。
+  - SwiftUI画面に加えて、`Kyounani.swiftpm`（iPad Swift Playgrounds向けApp project）を追加。
+  - 既存Swift Packageをローカル参照し、起動直後にTodayホームへ接続。
 - 永続化Repository分離: **部分対応**
   - Repository抽象とInMemory実装あり。
   - SwiftData実装は未着手。
@@ -96,4 +100,4 @@
 2. 日別詳細と例外編集3択UI（この日だけ/以降/全体）。
 3. スタンプ管理（初期セット、取り込み、正方形トリミング、保存）。
 4. SwiftData Repository実装と移行。
-5. CI上でのiOSターゲットビルド検証（macOSランナーで `xcodebuild` 実行）。
+5. CI上でのSwift Package検証拡充（`swift test` / Playgrounds実行前提チェック）。
