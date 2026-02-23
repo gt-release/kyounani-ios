@@ -29,17 +29,6 @@ public final class StampStore: ObservableObject {
         .init(id: UUID(uuidString: "88888888-8888-8888-8888-888888888888")!, name: "たんじょうび", symbolName: "birthday.cake.fill")
     ]
 
-    private static let legacyBuiltinToSymbol: [String: String] = [
-        "kindergarten": "figure.and.child.holdinghands",
-        "hospital": "cross.case.fill",
-        "park": "leaf.fill",
-        "therapy": "hands.sparkles.fill",
-        "shopping": "cart.fill",
-        "dining": "fork.knife",
-        "homecoming": "house.fill",
-        "birthday": "birthday.cake.fill"
-    ]
-
     public var defaultStampId: UUID {
         Self.fallbackBuiltinDefinitions.first?.id ?? UUID(uuidString: "11111111-1111-1111-1111-111111111111")!
     }
@@ -61,11 +50,6 @@ public final class StampStore: ObservableObject {
                 let symbolName = String(stamp.imageLocation.dropFirst("symbol:".count))
                 return Image(systemName: symbolName)
             }
-            if stamp.imageLocation.hasPrefix("builtin:") {
-                let legacyName = String(stamp.imageLocation.dropFirst("builtin:".count))
-                let symbolName = Self.legacyBuiltinToSymbol[legacyName] ?? "questionmark.circle.fill"
-                return Image(systemName: symbolName)
-            }
             return Image(systemName: "questionmark.circle.fill")
         case .customImage:
             return imageFromURL(url: userImageURL(filename: stamp.imageLocation))
@@ -79,6 +63,10 @@ public final class StampStore: ObservableObject {
 
     public func reload() {
         stamps = repository.fetchStamps().sorted(by: Self.defaultSort)
+    }
+
+    public func reseedBuiltinStampsIfNeeded() {
+        seedBuiltinIfMissing()
     }
 
     public func markStampUsed(_ stampID: UUID, at usedAt: Date = Date()) {

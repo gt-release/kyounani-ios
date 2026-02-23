@@ -22,6 +22,7 @@ public struct ParentModeView: View {
     @State private var pendingImportPayload: BackupPayload?
     @State private var backupStatusMessage = ""
     @State private var showingBackupStatusAlert = false
+    @State private var showingResetConfirmation = false
 
     #if canImport(PhotosUI)
     @State private var selectedPhotoItem: PhotosPickerItem?
@@ -53,6 +54,13 @@ public struct ParentModeView: View {
 
                     Button("バックアップから復元") {
                         showingBackupImporter = true
+                    }
+                }
+
+
+                Section("データ管理") {
+                    Button("データを全削除（リセット）", role: .destructive) {
+                        showingResetConfirmation = true
                     }
                 }
 
@@ -191,6 +199,14 @@ public struct ParentModeView: View {
                 Button("OK", role: .cancel) {}
             } message: {
                 Text(backupStatusMessage)
+            }
+            .confirmationDialog("本当にデータを全削除しますか？", isPresented: $showingResetConfirmation, titleVisibility: .visible) {
+                Button("全削除する", role: .destructive) {
+                    resetAllData()
+                }
+                Button("キャンセル", role: .cancel) {}
+            } message: {
+                Text("予定・例外・スタンプ（追加画像含む）をすべて削除します")
             }
             #if canImport(PhotosUI)
             .onChange(of: selectedPhotoItem) { item in
@@ -433,6 +449,14 @@ public struct ParentModeView: View {
         }
 
         return importedStamps
+    }
+
+    private func resetAllData() {
+        repo.replaceAll(events: [], exceptions: [], stamps: [])
+        stampStore.removeAllCustomImageFiles()
+        stampStore.reseedBuiltinStampsIfNeeded()
+        stampStore.reload()
+        showBackupStatus("データを全削除しました。必要な内容を作り直してください")
     }
 
     private func showBackupStatus(_ message: String) {

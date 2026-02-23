@@ -24,21 +24,6 @@ public enum Visibility: String, Codable, CaseIterable {
 public enum StampKind: String, Codable {
     case systemSymbol
     case customImage
-
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        let raw = try container.decode(String.self)
-        switch raw {
-        case "builtin": self = .systemSymbol
-        case "user": self = .customImage
-        default: self = StampKind(rawValue: raw) ?? .systemSymbol
-        }
-    }
-
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        try container.encode(rawValue)
-    }
 }
 
 public struct WeeklyRecurrenceRule: Codable, Equatable {

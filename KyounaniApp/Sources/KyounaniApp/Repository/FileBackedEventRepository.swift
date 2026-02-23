@@ -1,11 +1,5 @@
 import Foundation
 
-private struct LegacyPersistedStamp: Codable {
-    var id: UUID
-    var name: String
-    var imageFilename: String
-}
-
 @MainActor
 public final class FileBackedEventRepository: EventRepositoryBase {
     private var events: [Event]
@@ -81,23 +75,7 @@ public final class FileBackedEventRepository: EventRepositoryBase {
     private func loadFromDisk() {
         events = decode([Event].self, from: eventsURL()) ?? []
         exceptions = decode([EventException].self, from: exceptionsURL()) ?? []
-        stamps = loadStampsFromDisk()
-    }
-
-    private func loadStampsFromDisk() -> [Stamp] {
-        if let current = decode([Stamp].self, from: stampsURL()) {
-            return current
-        }
-
-        guard let legacy = decode([LegacyPersistedStamp].self, from: stampsURL()) else {
-            return []
-        }
-
-        let migrated = legacy.map {
-            Stamp(id: $0.id, name: $0.name, kind: .customImage, imageLocation: $0.imageFilename, isBuiltin: false)
-        }
-        encode(migrated, to: stampsURL())
-        return migrated
+        stamps = decode([Stamp].self, from: stampsURL()) ?? []
     }
 
     private func persistEvents() {

@@ -39,7 +39,7 @@
   - 既存Swift Packageをローカル参照し、起動直後にTodayホームへ接続。
 - 永続化Repository分離: **対応強化（SwiftData導入）**
   - Repository抽象 + InMemory実装を維持。
-  - `SwiftDataEventRepository` を追加し、`Kyounani.swiftpm` 起動時はSwiftData優先（失敗時はFileBackedフォールバック、最終的にInMemory）。
+  - `SwiftDataEventRepository` を追加し、`Kyounani.swiftpm` 起動時はSwiftData優先（失敗時は保険としてFileBackedフォールバック）。
   - Domain <-> Persistent変換はRepository内のmapperに集約。
 - ネットワーク不要: **対応済み**
 - 通知なし: **対応済み**
@@ -116,7 +116,7 @@
 
 - 初期スタンプセット同梱: **対応済み（Phase 3 最小 / JSON+SF Symbols）**
   - `Kyounani.swiftpm` と `KyounaniApp` の両Resourcesに `builtin_stamps.json` を配置。
-  - 旧 `builtin:<name>` 形式との互換表示を保持。
+  - stamp参照はUUID（現行一意ID）で統一し、旧形式互換は持たない。
 - ユーザー追加（Files/Photos→トリミング→保存）: **対応済み（最小）**
   - Files取り込みは security-scoped resource を考慮。
 - スタンプ選択UX（親モード）: **対応済み（強化）**
@@ -132,19 +132,20 @@
 
 - ローカル永続化（SwiftData）: **対応済み（最小）**
   - イベント/例外/スタンプをSwiftDataに保存し、再起動後も保持。
-  - 旧 `stamps.json` はSwiftData空時のみ初回インポート。
+  - 旧形式移行（`stamps.json` 初回インポート等）は実装しない。
 - iCloud同期なし: **対応済み（未実装）**
 - 暗号化バックアップ（書き出し/復元）: **対応済み（最小）**
   - 親モードに「バックアップを書き出す」「バックアップから復元」を追加。
   - 出力形式は `kyounani-backup.kybk`（1ファイル）。
-  - 中身は AES-GCM（CryptoKit）で暗号化し、平文JSONには stamps/events/exceptions と customImage(Base64) を含める。
+  - 中身は formatVersion=2（PBKDF2-HMAC-SHA256 + AES-GCM）で暗号化し、平文JSONには stamps/events/exceptions と customImage(Base64) を含める。
   - 復元は上書き方式（既存データを置換）で、復元前に件数サマリを確認可能。
+  - 親モードに「データを全削除（リセット）」を追加し、SwiftData/保険Repositoryデータ + customImageファイルを初期化可能。
 
 ## 11. アーキテクチャ
 
 - MVVM: **対応済み（最小構成）**
 - カレンダー日次集約（最大2件+N）の共通化: **対応済み（ViewModel/Presenter）**
-- Repository分離: **対応済み（抽象＋SwiftData＋FileBacked＋InMemory）**
+- Repository分離: **対応済み（抽象＋SwiftData＋FileBacked[保険用途]＋InMemory）**
 - `JapaneseHolidayService` / `RecurrenceEngine`: **対応済み**
 - 日本タイムゾーン前提: **対応済み**
 
