@@ -14,15 +14,16 @@ jobs:
   swift-test:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    container:
+      image: swift:5.9
     defaults:
       run:
-        working-directory: KyounaniApp
+        working-directory: /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}/KyounaniApp
     steps:
       - uses: actions/checkout@v4
-      - uses: swift-actions/setup-swift@v2
-        with:
-          swift-version: "5.9"
       - name: Show Swift version
         run: swift --version
+      - name: Resolve package
+        run: swift package resolve
       - name: Run swift test
         run: swift test

@@ -47,7 +47,7 @@
 - `Kyounani.swiftpm`: iPad Swift Playgrounds向け App project（実行入口）
 - `KyounaniApp`: ドメイン/サービス/UIを提供する再利用Swift Package
 - `KyounaniApp/Tests/KyounaniAppTests`: 単体テスト
-- CIはGitHub Actionsで `KyounaniApp` の `swift test` を実行（`ubuntu-latest` + Swift 5.9）。
+- CIはGitHub Actionsで `swift:5.9` コンテナ上から `KyounaniApp` の `swift test` を実行（runnerは `ubuntu-latest`）。
 
 ## ドキュメント一覧
 - [CODE_REVIEW.md](CODE_REVIEW.md)
