@@ -56,13 +56,14 @@ public final class RecurrenceEngine {
     private func apply(exceptions: [EventException], to occurrences: [EventOccurrence], in range: DateInterval) -> [EventOccurrence] {
         var output = occurrences
         for exception in exceptions {
-            guard range.contains(exception.occurrenceDate) else { continue }
             switch exception.kind {
             case .delete:
+                guard range.contains(exception.occurrenceDate) else { continue }
                 output.removeAll {
                     $0.baseEvent.id == exception.eventId && calendar.isDate($0.occurrenceDate, inSameDayAs: exception.occurrenceDate)
                 }
             case .override:
+                guard range.contains(exception.occurrenceDate) else { continue }
                 output.removeAll {
                     $0.baseEvent.id == exception.eventId && calendar.isDate($0.occurrenceDate, inSameDayAs: exception.occurrenceDate)
                 }

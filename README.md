@@ -26,7 +26,7 @@
 - タップ時の日本語読み上げ（enhanced優先）
 - 残り時間リング（1時間=1周、1時間超は多層リング、VoiceOver向け残り分読み上げに対応）
 - JapaneseHolidayService（同梱CSV読み込み）
-- RecurrenceEngine（週次、祝日スキップ、override/delete/splitFromThisDate）
+- RecurrenceEngine（週次、祝日スキップ、override/delete/splitFromThisDate）。splitFromThisDate は例外日が表示範囲外でも将来日へ継続適用
 - 親モード限定: 日別詳細の繰り返し予定に「この日だけ / 以降すべて / 全体」例外編集UIを実装（各選択肢に影響範囲の説明を表示）
 - 例外由来シリーズを「全体」編集した際に重複予定が増えないよう保存先を補正
 - 例外編集の EventEditorView に影響範囲プレビューを追加（次の3回分の日付 + 概算件数、最大90日/50件で制限）
