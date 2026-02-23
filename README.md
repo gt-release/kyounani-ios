@@ -11,6 +11,7 @@
 - Phase 3: スタンプ中心UI（Today / 月週カレンダー / 日別詳細）
 - 初期スタンプ同梱（Kyounani.swiftpm Resources/Stamps/builtin_stamps.json）
 - 親モードでスタンプ追加（Files / Photos, センター正方形クロップ, PNG保存）
+- Files取り込み時にsecurity-scoped resourceへ対応（iCloud Drive等でも読み込み可能化）
 - スタンプ一覧永続化（Application Support/stamps.json）
 - バイナリ非対応PRツール向けに、初期スタンプはJSON+SF Symbolsで同梱
 - `KyounaniApp` 側にも同じ`builtin_stamps.json`を配置し、Bundle解決を安定化

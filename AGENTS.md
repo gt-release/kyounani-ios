@@ -84,6 +84,7 @@
   - `Kyounani.swiftpm` と `KyounaniApp` の両Resourcesに `builtin_stamps.json` を配置。
   - 旧 `builtin:<name>` 形式との互換表示を保持。
 - ユーザー追加（Files/Photos→トリミング→保存）: **対応済み（最小）**
+  - Files取り込みは security-scoped resource を考慮。
 - カレンダートークンの差し替えポイント: **対応済み（Phase 3適用）**
   - `EventTokenRenderer` に描画責務を集約。
 

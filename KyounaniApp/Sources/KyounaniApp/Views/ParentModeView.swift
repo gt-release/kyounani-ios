@@ -93,7 +93,7 @@ public struct ParentModeView: View {
             }
             .fileImporter(isPresented: $showingFileImporter, allowedContentTypes: [.image]) { result in
                 guard case .success(let url) = result,
-                      let data = try? Data(contentsOf: url) else {
+                      let data = readImportedImageData(from: url) else {
                     return
                 }
                 _ = stampStore.addUserStamp(name: resolvedStampName(prefix: "files"), imageData: data)
@@ -125,12 +125,25 @@ public struct ParentModeView: View {
     }
 
     private func deleteUserStamp(_ indexSet: IndexSet) {
-        for index in indexSet {
+        let targetIDs = indexSet.compactMap { index -> UUID? in
+            guard stampStore.stamps.indices.contains(index) else { return nil }
             let stamp = stampStore.stamps[index]
-            if stamp.kind == .user {
-                _ = stampStore.deleteUserStamp(id: stamp.id)
+            return stamp.kind == .user ? stamp.id : nil
+        }
+
+        for id in targetIDs {
+            _ = stampStore.deleteUserStamp(id: id)
+        }
+    }
+
+    private func readImportedImageData(from url: URL) -> Data? {
+        let needsScopedAccess = url.startAccessingSecurityScopedResource()
+        defer {
+            if needsScopedAccess {
+                url.stopAccessingSecurityScopedResource()
             }
         }
+        return try? Data(contentsOf: url)
     }
 
     private func quickButton(_ name: String, stampId: UUID) -> some View {
