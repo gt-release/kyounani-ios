@@ -13,6 +13,11 @@
   - `Kyounani.swiftpm` から起動して Todayホーム表示を確認。
   - `KyounaniApp` package をローカル参照して再利用。
 - Phase 2 の一部（見通しUI）も実装済み。
+- Phase 3 の一部（スタンプ中心UI）を実装。
+  - 初期スタンプ同梱（Kyounani.swiftpm Resources: JSON+SF Symbols）
+  - EventTokenRenderer に表示責務を集約
+  - 親モードでスタンプ追加（Files/Photos）
+  - stamps.json + 画像ファイルでユーザースタンプ復元
   - 日次集約ロジック共通化（最大2件 +N）
   - Todayホーム→カレンダー遷移
   - 月/週切替

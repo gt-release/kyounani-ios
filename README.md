@@ -8,6 +8,14 @@
 - Today→カレンダー遷移
 - カレンダー（**月/週切替、日曜始まり、日別詳細ドリルダウン**）
 - 日セル「予定最大2件 +N」表示（publishedのみ・childScopeフィルタ反映）
+- Phase 3: スタンプ中心UI（Today / 月週カレンダー / 日別詳細）
+- 初期スタンプ同梱（Kyounani.swiftpm Resources/Stamps/builtin_stamps.json）
+- 親モードでスタンプ追加（Files / Photos, センター正方形クロップ, PNG保存）
+- Files取り込み時にsecurity-scoped resourceへ対応（iCloud Drive等でも読み込み可能化）
+- スタンプ一覧永続化（Application Support/stamps.json）
+- バイナリ非対応PRツール向けに、初期スタンプはJSON+SF Symbolsで同梱
+- `KyounaniApp` 側にも同じ`builtin_stamps.json`を配置し、Bundle解決を安定化
+- 旧`builtin:<name>`形式も互換表示し、段階移行時の欠けを防止
 - カレンダー日次集約ロジックをViewModelで共通化（Today/Month/Weekで再利用）
 - 祝日/土日色分け（祝日/日曜=赤系、土曜=青系）
 - タップ時の日本語読み上げ（enhanced優先）
@@ -40,6 +48,17 @@ cd KyounaniApp
 swift test
 ```
 
+
+## PR作成エラー（400）時の確認
+GitHubアプリ/クライアントで「リクエストに問題があります (400)」が出る場合は、次を確認してください。
+
+1. **先にブランチをPushする**（headブランチがリモートに無いとPR作成APIが失敗）。
+2. **base/headが同じブランチになっていないか**を確認する。
+3. **同じheadブランチのPRが既に開いていないか**を確認する。
+4. 失敗が続く場合は、WebのGitHub画面で作成し、具体的なAPIエラーメッセージを確認する。
+
+推奨順序: `commit -> push -> create PR`。
+
 ## 運用ルール（ドキュメント更新）
 - 実装変更時は、**コード変更と同じPRでドキュメントも更新**してください。
 - 最低限 `README.md` と `AGENTS.md` の該当箇所更新を必須とします。
@@ -47,5 +66,5 @@ swift test
 ## 今後の拡張
 - SwiftData Repository実装の追加
 - 例外編集UI（この日だけ/以降/全体）
-- スタンプ画像インポート＋トリミングUI
+- イベント永続化（SwiftData or JSON）
 - 暗号化エクスポート（CryptoKit AES-GCM）

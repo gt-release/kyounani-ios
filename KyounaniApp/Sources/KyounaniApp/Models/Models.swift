@@ -21,6 +21,11 @@ public enum Visibility: String, Codable, CaseIterable {
     case published
 }
 
+public enum StampKind: String, Codable {
+    case builtin
+    case user
+}
+
 public struct WeeklyRecurrenceRule: Codable, Equatable {
     public var startDate: Date
     public var endDate: Date?
@@ -36,6 +41,9 @@ public struct WeeklyRecurrenceRule: Codable, Equatable {
 }
 
 public struct Event: Identifiable, Codable, Equatable {
+    private enum CodingKeys: String, CodingKey {
+        case id, title, stampId, childScope, visibility, isAllDay, startDateTime, durationMinutes, recurrenceRule, createdAt, updatedAt
+    }
     public var id: UUID
     public var title: String
     public var stampId: UUID
@@ -60,6 +68,36 @@ public struct Event: Identifiable, Codable, Equatable {
         self.recurrenceRule = recurrenceRule
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
+        title = try container.decode(String.self, forKey: .title)
+        stampId = try container.decodeIfPresent(UUID.self, forKey: .stampId) ?? Stamp.defaultStampId
+        childScope = try container.decode(ChildScope.self, forKey: .childScope)
+        visibility = try container.decode(Visibility.self, forKey: .visibility)
+        isAllDay = try container.decode(Bool.self, forKey: .isAllDay)
+        startDateTime = try container.decode(Date.self, forKey: .startDateTime)
+        durationMinutes = try container.decodeIfPresent(Int.self, forKey: .durationMinutes)
+        recurrenceRule = try container.decodeIfPresent(WeeklyRecurrenceRule.self, forKey: .recurrenceRule)
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt) ?? .now
+        updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt) ?? .now
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(title, forKey: .title)
+        try container.encode(stampId, forKey: .stampId)
+        try container.encode(childScope, forKey: .childScope)
+        try container.encode(visibility, forKey: .visibility)
+        try container.encode(isAllDay, forKey: .isAllDay)
+        try container.encode(startDateTime, forKey: .startDateTime)
+        try container.encodeIfPresent(durationMinutes, forKey: .durationMinutes)
+        try container.encodeIfPresent(recurrenceRule, forKey: .recurrenceRule)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
     }
 }
 
@@ -88,14 +126,18 @@ public struct EventException: Identifiable, Codable, Equatable {
 }
 
 public struct Stamp: Identifiable, Codable, Equatable {
+    public static let defaultStampId = UUID(uuidString: "11111111-1111-1111-1111-111111111111")!
+
     public var id: UUID
     public var name: String
-    public var imagePath: String
+    public var kind: StampKind
+    public var imageLocation: String
 
-    public init(id: UUID = UUID(), name: String, imagePath: String) {
+    public init(id: UUID = UUID(), name: String, kind: StampKind, imageLocation: String) {
         self.id = id
         self.name = name
-        self.imagePath = imagePath
+        self.kind = kind
+        self.imageLocation = imageLocation
     }
 }
 

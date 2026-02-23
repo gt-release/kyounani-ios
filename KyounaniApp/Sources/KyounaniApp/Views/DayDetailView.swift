@@ -28,12 +28,15 @@ public struct DayDetailView: View {
                         speechService.speak(occurrence.baseEvent.title)
                         selectedOccurrence = occurrence
                     } label: {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(occurrence.baseEvent.title)
-                                .font(.headline)
-                            Text(timeText(occurrence.displayStart, allDay: occurrence.baseEvent.isAllDay))
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                        HStack(spacing: 12) {
+                            EventTokenRenderer(event: occurrence.baseEvent, showTitle: false, iconSize: 42)
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(occurrence.baseEvent.title)
+                                    .font(.headline)
+                                Text(timeText(occurrence.displayStart, allDay: occurrence.baseEvent.isAllDay))
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
                         .padding(.vertical, 6)
                     }
