@@ -3,13 +3,16 @@ import SwiftUI
 
 public struct WeekView: View {
     @EnvironmentObject private var appVM: AppViewModel
+    @Environment(\.kyounaniTheme) private var theme
     @ObservedObject var calendarVM: CalendarViewModel
 
     let weekStartDate: Date
+    let selectedDate: Date?
     let onSelectDate: (Date) -> Void
 
-    public init(weekStartDate: Date, calendarVM: CalendarViewModel, onSelectDate: @escaping (Date) -> Void) {
+    public init(weekStartDate: Date, selectedDate: Date?, calendarVM: CalendarViewModel, onSelectDate: @escaping (Date) -> Void) {
         self.weekStartDate = weekStartDate
+        self.selectedDate = selectedDate
         self.calendarVM = calendarVM
         self.onSelectDate = onSelectDate
     }
@@ -22,27 +25,29 @@ public struct WeekView: View {
             ForEach(weekDates, id: \.self) { date in
                 let dayStart = calendarVM.startOfDay(for: date)
                 let summary = summaries[dayStart] ?? DayEventSummary(topOccurrences: [], remainingCount: 0)
+                let dayKind = dayKindForDate(date)
                 Button {
                     onSelectDate(date)
                 } label: {
                     VStack(alignment: .leading, spacing: 6) {
                         Text(weekdayAndDay(date))
                             .font(.footnote.bold())
-                            .foregroundStyle(dayNumberColor(date))
+                            .foregroundStyle(theme.dayTextColor(for: dayKind))
 
                         DayCellEventTokensView(summary: summary)
                         Spacer(minLength: 0)
                     }
                     .padding(8)
                     .frame(maxWidth: .infinity, minHeight: 140, alignment: .topLeading)
-                    .background(dayBackgroundColor(date))
+                    .background(theme.dayBackgroundColor(for: dayKind))
                     .overlay(
                         RoundedRectangle(cornerRadius: 10)
-                            .stroke(calendarVM.isToday(date) ? Color.accentColor : Color.clear, lineWidth: 2)
+                            .stroke(dayKind == .today ? theme.colors.accent : Color.clear, lineWidth: 2)
                     )
                     .cornerRadius(10)
                 }
                 .buttonStyle(.plain)
+                .minTapTarget()
             }
         }
     }
@@ -54,17 +59,13 @@ public struct WeekView: View {
         return formatter.string(from: date)
     }
 
-    private func dayNumberColor(_ date: Date) -> Color {
-        if calendarVM.isHoliday(date) || calendarVM.isSunday(date) { return .red }
-        if calendarVM.isSaturday(date) { return .blue }
-        return .primary
-    }
-
-    private func dayBackgroundColor(_ date: Date) -> Color {
-        if calendarVM.isHoliday(date) { return .red.opacity(0.12) }
-        if calendarVM.isSunday(date) { return .red.opacity(0.08) }
-        if calendarVM.isSaturday(date) { return .blue.opacity(0.08) }
-        return Color.gray.opacity(0.08)
+    private func dayKindForDate(_ date: Date) -> KyounaniTheme.DayKind {
+        let dayStart = calendarVM.startOfDay(for: date)
+        if let selectedDate, calendarVM.startOfDay(for: selectedDate) == dayStart { return .selected }
+        if calendarVM.isToday(date) { return .today }
+        if calendarVM.isHoliday(date) { return .holiday }
+        if calendarVM.isSunday(date) || calendarVM.isSaturday(date) { return .weekend }
+        return .weekday
     }
 }
 

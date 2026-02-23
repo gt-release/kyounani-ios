@@ -2,6 +2,7 @@
 import SwiftUI
 
 public struct CalendarRootView: View {
+    @Environment(\.kyounaniTheme) private var theme
     @State private var mode: CalendarDisplayMode = .month
     @State private var anchorDate: Date = .now
     @State private var selectedDate: Date?
@@ -17,7 +18,7 @@ public struct CalendarRootView: View {
     }
 
     public var body: some View {
-        VStack(spacing: KidUITheme.Spacing.itemGap) {
+        VStack(spacing: theme.spacing.itemGap) {
             Picker("表示", selection: $mode) {
                 Text("月").tag(CalendarDisplayMode.month)
                 Text("週").tag(CalendarDisplayMode.week)
@@ -28,32 +29,35 @@ public struct CalendarRootView: View {
                 Button { move(by: -1) } label: {
                     Image(systemName: "chevron.left")
                 }
+                .minTapTarget()
 
                 Spacer()
                 Text(headerTitle)
-                    .font(KidUITheme.Fonts.calendarHeader)
+                    .font(theme.fonts.calendarHeader)
                 Spacer()
 
                 Button { move(by: 1) } label: {
                     Image(systemName: "chevron.right")
                 }
+                .minTapTarget()
             }
 
             Button("Today") { anchorDate = .now }
-                .font(KidUITheme.Fonts.supporting)
+                .font(theme.fonts.supporting)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
-                .cardStyle(background: KidUITheme.ColorPalette.emptyCard)
+                .cardStyle(background: theme.colors.emptyCard)
+                .minTapTarget()
 
             if mode == .month {
-                MonthView(monthDate: anchorDate, calendarVM: calendarVM, onSelectDate: select(date:))
+                MonthView(monthDate: anchorDate, selectedDate: selectedDate, calendarVM: calendarVM, onSelectDate: select(date:))
             } else {
-                WeekView(weekStartDate: anchorDate, calendarVM: calendarVM, onSelectDate: select(date:))
+                WeekView(weekStartDate: anchorDate, selectedDate: selectedDate, calendarVM: calendarVM, onSelectDate: select(date:))
             }
 
             Spacer(minLength: 0)
         }
-        .padding(KidUITheme.Spacing.screenPadding)
+        .padding(theme.spacing.screenPadding)
         .navigationTitle("カレンダー")
         .navigationDestination(isPresented: dayDetailIsPresented) {
             if let date = selectedDate {
@@ -74,7 +78,7 @@ public struct CalendarRootView: View {
     }
 
     private func select(date: Date) {
-        selectedDate = date
+        selectedDate = calendarVM.startOfDay(for: date)
     }
 
     private var headerTitle: String {

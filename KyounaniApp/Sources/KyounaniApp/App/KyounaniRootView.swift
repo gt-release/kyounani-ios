@@ -55,6 +55,9 @@ public struct KyounaniRootView: View {
         }
         .environmentObject(appVM)
         .environmentObject(stampStore)
+        .environment(\.kyounaniTheme, appVM.theme)
+        .tint(appVM.theme.colors.accent)
+        .dynamicTypeSize(.medium ... .accessibility5)
         .onReceive(repository.objectWillChange) { _ in
             stampStore.reload()
         }
