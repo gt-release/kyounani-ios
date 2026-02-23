@@ -286,7 +286,6 @@ public struct EventEditorView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("保存") {
                         let resolvedStampId = stampStore.ensureStampIdForDisplay(stampId)
-                        stampStore.markStampUsed(resolvedStampId)
                         onSave(buildEvent(with: resolvedStampId))
                         if shouldDismissAfterSave {
                             dismiss()

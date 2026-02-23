@@ -172,6 +172,7 @@ private struct EventEditSheetView: View {
             } else {
                 repository.save(event: updated)
             }
+            stampStore.markStampUsed(updated.stampId)
 
         case .singleOccurrence:
             if isDeleteForSingle {
@@ -198,6 +199,7 @@ private struct EventEditSheetView: View {
                 splitRule: nil
             )
             repository.save(exception: exception)
+            stampStore.markStampUsed(updated.stampId)
 
         case .fromThisDate:
             var splitEvent = updated
@@ -215,6 +217,7 @@ private struct EventEditSheetView: View {
                 splitRule: splitEvent.recurrenceRule
             )
             repository.save(exception: exception)
+            stampStore.markStampUsed(updated.stampId)
         }
     }
 }

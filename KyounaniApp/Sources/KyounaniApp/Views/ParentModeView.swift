@@ -133,12 +133,14 @@ public struct ParentModeView: View {
             .sheet(isPresented: $creatingEvent) {
                 EventEditorView(mode: .create, initialEvent: draftEvent(), onSave: { event in
                     repo.save(event: event)
+                    stampStore.markStampUsed(event.stampId)
                 })
                 .environmentObject(stampStore)
             }
             .sheet(item: $editingEvent) { event in
                 EventEditorView(mode: .edit, initialEvent: event, onSave: { updated in
                     repo.save(event: updated)
+                    stampStore.markStampUsed(updated.stampId)
                 }, onDelete: {
                     repo.delete(eventID: event.id)
                 })

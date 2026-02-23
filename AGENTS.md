@@ -99,7 +99,7 @@
   - `EventEditorView` で「最近使った」を表示（`lastUsedAt` 降順、上位10件）。
   - 検索バーで `stamp.name` の部分一致フィルタ。
   - 並び替え切替（最近順 / 名前順）。
-  - 保存時に選択スタンプの `lastUsedAt` を更新し、次回選択を高速化。
+  - 保存確定時にのみ選択スタンプの `lastUsedAt` を更新し、キャンセル時の履歴ずれを防止。
   - `lastUsedAt` / `sortOrder` が `nil` でも安全に動作。
 - カレンダートークンの差し替えポイント: **対応済み（Phase 3適用）**
   - `EventTokenRenderer` に描画責務を集約。
