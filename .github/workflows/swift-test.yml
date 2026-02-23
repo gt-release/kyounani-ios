@@ -2,16 +2,26 @@ name: swift-test
 
 on:
   push:
+    paths:
+      - "KyounaniApp/**"
+      - ".github/workflows/swift-test.yml"
   pull_request:
+    paths:
+      - "KyounaniApp/**"
+      - ".github/workflows/swift-test.yml"
 
 jobs:
   swift-test:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: KyounaniApp
     steps:
       - uses: actions/checkout@v4
+      - uses: swift-actions/setup-swift@v2
+        with:
+          swift-version: "5.9"
       - name: Show Swift version
         run: swift --version
       - name: Run swift test

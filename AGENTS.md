@@ -152,6 +152,7 @@
 
 - `JapaneseHolidayService` 単体テスト: **対応済み**
 - `RecurrenceEngine` 単体テスト（週次/祝日スキップ/override-delete/以降変更）: **対応済み**
+- CI（GitHub Actions `swift-test`）: **対応済み（KyounaniApp / ubuntu-latest / swift test）**
 
 ## 13. 受け入れ条件への現状判定
 
