@@ -10,6 +10,7 @@ public protocol EventRepository: AnyObject {
     func save(stamp: Stamp)
     func delete(eventID: UUID)
     func delete(stampID: UUID)
+    func replaceAll(events: [Event], exceptions: [EventException], stamps: [Stamp])
 }
 
 #if canImport(SwiftUI)
@@ -27,6 +28,7 @@ open class EventRepositoryBase: ObservableObject, EventRepository {
     open func save(stamp: Stamp) {}
     open func delete(eventID: UUID) {}
     open func delete(stampID: UUID) {}
+    open func replaceAll(events: [Event], exceptions: [EventException], stamps: [Stamp]) {}
 }
 #else
 @MainActor
@@ -41,6 +43,7 @@ open class EventRepositoryBase: EventRepository {
     open func save(stamp: Stamp) {}
     open func delete(eventID: UUID) {}
     open func delete(stampID: UUID) {}
+    open func replaceAll(events: [Event], exceptions: [EventException], stamps: [Stamp]) {}
 }
 #endif
 
@@ -107,5 +110,14 @@ public final class InMemoryEventRepository: EventRepositoryBase {
         objectWillChange.send()
         #endif
         stamps.removeAll { $0.id == stampID }
+    }
+
+    public override func replaceAll(events: [Event], exceptions: [EventException], stamps: [Stamp]) {
+        #if canImport(SwiftUI)
+        objectWillChange.send()
+        #endif
+        self.events = events
+        self.exceptions = exceptions
+        self.stamps = stamps
     }
 }

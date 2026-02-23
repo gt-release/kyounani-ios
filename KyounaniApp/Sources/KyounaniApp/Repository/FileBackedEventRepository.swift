@@ -68,6 +68,16 @@ public final class FileBackedEventRepository: EventRepositoryBase {
         persistStamps()
     }
 
+    public override func replaceAll(events: [Event], exceptions: [EventException], stamps: [Stamp]) {
+        notifyChange()
+        self.events = events
+        self.exceptions = exceptions
+        self.stamps = stamps
+        persistEvents()
+        persistExceptions()
+        persistStamps()
+    }
+
     private func loadFromDisk() {
         events = decode([Event].self, from: eventsURL()) ?? []
         exceptions = decode([EventException].self, from: exceptionsURL()) ?? []
