@@ -5,11 +5,13 @@ public struct TodayHomeView: View {
     @EnvironmentObject private var appVM: AppViewModel
     @ObservedObject var calendarVM: CalendarViewModel
     @ObservedObject var speechService: SpeechService
+    @ObservedObject var repository: InMemoryEventRepository
     @State private var selectedOccurrence: EventOccurrence?
 
-    public init(calendarVM: CalendarViewModel, speechService: SpeechService) {
+    public init(calendarVM: CalendarViewModel, speechService: SpeechService, repository: InMemoryEventRepository) {
         self.calendarVM = calendarVM
         self.speechService = speechService
+        self.repository = repository
     }
 
     public var body: some View {
@@ -29,6 +31,9 @@ public struct TodayHomeView: View {
         .padding()
         .onAppear { reload() }
         .onChange(of: appVM.filter) { _ in reload() }
+        .onReceive(repository.objectWillChange) { _ in
+            reload()
+        }
         .sheet(item: $selectedOccurrence) { occ in
             TimerRingView(targetDate: occ.displayStart)
                 .padding()

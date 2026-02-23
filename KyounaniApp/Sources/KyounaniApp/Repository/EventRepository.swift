@@ -10,8 +10,8 @@ public protocol EventRepository {
 }
 
 public final class InMemoryEventRepository: EventRepository, ObservableObject {
-    @Published private var events: [Event]
-    @Published private var exceptions: [EventException]
+    @Published public private(set) var events: [Event]
+    @Published public private(set) var exceptions: [EventException]
 
     public init(events: [Event] = [], exceptions: [EventException] = []) {
         self.events = events

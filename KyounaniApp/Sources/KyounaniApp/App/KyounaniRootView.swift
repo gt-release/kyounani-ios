@@ -4,19 +4,20 @@ import SwiftUI
 public struct KyounaniRootView: View {
     @StateObject private var appVM = AppViewModel()
     @StateObject private var speech = SpeechService()
-    @StateObject private var repository = InMemoryEventRepository()
+    @StateObject private var repository: InMemoryEventRepository
     @StateObject private var calendarVM: CalendarViewModel
 
     public init() {
         let holiday = JapaneseHolidayService.bundled()
-        let repository = InMemoryEventRepository()
+        let sharedRepository = InMemoryEventRepository()
         let engine = RecurrenceEngine(holidayService: holiday)
-        _calendarVM = StateObject(wrappedValue: CalendarViewModel(repository: repository, engine: engine))
+        _repository = StateObject(wrappedValue: sharedRepository)
+        _calendarVM = StateObject(wrappedValue: CalendarViewModel(repository: sharedRepository, engine: engine))
     }
 
     public var body: some View {
         TabView {
-            TodayHomeView(calendarVM: calendarVM, speechService: speech)
+            TodayHomeView(calendarVM: calendarVM, speechService: speech, repository: repository)
                 .tabItem { Label("Today", systemImage: "sun.max.fill") }
 
             if appVM.parentModeUnlocked {
