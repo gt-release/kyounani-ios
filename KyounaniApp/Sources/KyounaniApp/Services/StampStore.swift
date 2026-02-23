@@ -78,12 +78,15 @@ public final class StampStore: ObservableObject {
     }
 
     public func reload() {
-        stamps = repository.fetchStamps().sorted { lhs, rhs in
-            if lhs.isBuiltin != rhs.isBuiltin {
-                return lhs.isBuiltin && !rhs.isBuiltin
-            }
-            return lhs.name < rhs.name
-        }
+        stamps = repository.fetchStamps().sorted(by: Self.defaultSort)
+    }
+
+    public func markStampUsed(_ stampID: UUID, at usedAt: Date = Date()) {
+        guard let existing = stamps.first(where: { $0.id == stampID }) else { return }
+        var updated = existing
+        updated.lastUsedAt = usedAt
+        repository.save(stamp: updated)
+        reload()
     }
 
     @discardableResult
@@ -151,6 +154,17 @@ public final class StampStore: ObservableObject {
             return parsed
         }
         return Self.fallbackBuiltinDefinitions
+    }
+
+
+    private static func defaultSort(lhs: Stamp, rhs: Stamp) -> Bool {
+        if lhs.isBuiltin != rhs.isBuiltin {
+            return lhs.isBuiltin && !rhs.isBuiltin
+        }
+        if lhs.name != rhs.name {
+            return lhs.name.localizedStandardCompare(rhs.name) == .orderedAscending
+        }
+        return lhs.id.uuidString < rhs.id.uuidString
     }
 
     private func imageFromURL(url: URL) -> Image? {

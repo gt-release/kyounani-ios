@@ -59,11 +59,11 @@
 - 日別詳細 + TimerOverlay: **部分対応**
   - 日別詳細一覧を追加。
   - 予定タップで既存TTS + TimerRing表示へ接続。
-- 親モードCRUD/繰り返し例外UI/スタンプ管理/テンプレ: **部分対応（前進）**
+- 親モードCRUD/繰り返し例外UI/スタンプ管理/テンプレ: **対応強化（前進）**
   - イベントの本格CRUD（新規作成 / 一覧タップ編集 / 削除）を実装。
   - `EventEditorView` で title / stamp / childScope / visibility / isAllDay / startDateTime / durationMinutes / recurrenceRule(週次) を編集可能。
   - 日別詳細で繰り返し予定の例外編集3択UI（この日だけ/以降/全体）を維持し、各選択肢に影響範囲の説明を表示。分岐後の編集画面として `EventEditorView` を再利用。
-  - スタンプ管理UX（並び替え・検索等）は未実装。
+  - `EventEditorView` のスタンプ選択UXを拡張（最近使ったセクション / 検索 / 並び替え[最近順・名前順]）。
 
 ## 6. 祝日（日本オフライン）
 - CSV同梱 + `JapaneseHolidayService`: **対応済み（最小）**
@@ -95,6 +95,12 @@
   - 旧 `builtin:<name>` 形式との互換表示を保持。
 - ユーザー追加（Files/Photos→トリミング→保存）: **対応済み（最小）**
   - Files取り込みは security-scoped resource を考慮。
+- スタンプ選択UX（親モード）: **対応済み（強化）**
+  - `EventEditorView` で「最近使った」を表示（`lastUsedAt` 降順、上位10件）。
+  - 検索バーで `stamp.name` の部分一致フィルタ。
+  - 並び替え切替（最近順 / 名前順）。
+  - 保存確定時にのみ選択スタンプの `lastUsedAt` を更新し、キャンセル時の履歴ずれを防止。
+  - `lastUsedAt` / `sortOrder` が `nil` でも安全に動作。
 - カレンダートークンの差し替えポイント: **対応済み（Phase 3適用）**
   - `EventTokenRenderer` に描画責務を集約。
 
@@ -128,7 +134,7 @@
 
 ## 14. 次の優先実装（推奨）
 1. 例外編集UIの拡張（削除時確認、分岐ごとの説明・プレビュー追加）: 対応済み。
-2. スタンプ管理UXの拡張（並び替え・検索・利用頻度表示）。
+2. スタンプ管理UXの拡張（並び替え・検索・利用頻度表示）: 対応済み（最近使った/検索/最近順・名前順）。
 3. 親モードCRUDの入力項目拡張（メモ、場所、色など任意属性）。
 4. 暗号化エクスポート（任意）。
 5. CI（`swift test` 拡充、Playgrounds起動手順チェック）。

@@ -7,6 +7,20 @@ public struct EventEditorView: View {
         case edit
     }
 
+    private enum StampSortMode: String, CaseIterable {
+        case recent
+        case name
+
+        var label: String {
+            switch self {
+            case .recent:
+                return "最近順"
+            case .name:
+                return "名前順"
+            }
+        }
+    }
+
     public struct EditScopeSummary {
         public let title: String
         public let description: String
@@ -47,6 +61,9 @@ public struct EventEditorView: View {
     @State private var recurrenceWeekdays: Set<Int>
     @State private var recurrenceSkipHolidays: Bool
 
+    @State private var stampSearchText = ""
+    @State private var stampSortMode: StampSortMode = .recent
+
     public init(
         mode: Mode,
         initialEvent: Event,
@@ -84,6 +101,53 @@ public struct EventEditorView: View {
         _recurrenceEndDate = State(initialValue: initialEvent.recurrenceRule?.endDate ?? initialEvent.startDateTime)
         _recurrenceWeekdays = State(initialValue: initialEvent.recurrenceRule?.weekdays ?? [Calendar.current.component(.weekday, from: initialEvent.startDateTime)])
         _recurrenceSkipHolidays = State(initialValue: initialEvent.recurrenceRule?.skipHolidays ?? false)
+    }
+
+    private var recentStamps: [Stamp] {
+        stampStore.stamps
+            .filter { $0.lastUsedAt != nil }
+            .sorted { lhs, rhs in
+                guard let lhsDate = lhs.lastUsedAt, let rhsDate = rhs.lastUsedAt else { return false }
+                if lhsDate != rhsDate { return lhsDate > rhsDate }
+                return lhs.name.localizedStandardCompare(rhs.name) == .orderedAscending
+            }
+            .prefix(10)
+            .map { $0 }
+    }
+
+    private var filteredAndSortedStamps: [Stamp] {
+        let normalized = stampSearchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let filtered = stampStore.stamps.filter { stamp in
+            normalized.isEmpty || stamp.name.localizedCaseInsensitiveContains(normalized)
+        }
+
+        switch stampSortMode {
+        case .recent:
+            return filtered.sorted { lhs, rhs in
+                switch (lhs.lastUsedAt, rhs.lastUsedAt) {
+                case let (left?, right?):
+                    if left != right { return left > right }
+                case (_?, nil):
+                    return true
+                case (nil, _?):
+                    return false
+                case (nil, nil):
+                    break
+                }
+
+                if lhs.name != rhs.name {
+                    return lhs.name.localizedStandardCompare(rhs.name) == .orderedAscending
+                }
+                return lhs.id.uuidString < rhs.id.uuidString
+            }
+        case .name:
+            return filtered.sorted { lhs, rhs in
+                if lhs.name != rhs.name {
+                    return lhs.name.localizedStandardCompare(rhs.name) == .orderedAscending
+                }
+                return lhs.id.uuidString < rhs.id.uuidString
+            }
+        }
     }
 
     public var body: some View {
@@ -129,16 +193,6 @@ public struct EventEditorView: View {
                 Section("基本") {
                     TextField("タイトル", text: $title)
 
-                    Picker("スタンプ", selection: $stampId) {
-                        ForEach(stampStore.stamps) { stamp in
-                            HStack {
-                                EventTokenRenderer(event: previewEvent(stampId: stamp.id), showTitle: false, iconSize: 18)
-                                Text(stamp.name)
-                            }
-                            .tag(stamp.id)
-                        }
-                    }
-
                     Picker("子ども対象", selection: $childScope) {
                         Text("息子").tag(ChildScope.son)
                         Text("娘").tag(ChildScope.daughter)
@@ -148,6 +202,34 @@ public struct EventEditorView: View {
                     Picker("公開状態", selection: $visibility) {
                         Text("公開").tag(Visibility.published)
                         Text("下書き").tag(Visibility.draft)
+                    }
+                }
+
+                Section("スタンプ") {
+                    TextField("スタンプを検索", text: $stampSearchText)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+
+                    Picker("並び替え", selection: $stampSortMode) {
+                        ForEach(StampSortMode.allCases, id: \.self) { mode in
+                            Text(mode.label).tag(mode)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
+
+                if !recentStamps.isEmpty {
+                    Section("最近使った") {
+                        stampSelectionRows(recentStamps)
+                    }
+                }
+
+                Section("すべて") {
+                    if filteredAndSortedStamps.isEmpty {
+                        Text("該当するスタンプがありません")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        stampSelectionRows(filteredAndSortedStamps)
                     }
                 }
 
@@ -203,13 +285,34 @@ public struct EventEditorView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("保存") {
-                        onSave(buildEvent())
+                        let resolvedStampId = stampStore.ensureStampIdForDisplay(stampId)
+                        onSave(buildEvent(with: resolvedStampId))
                         if shouldDismissAfterSave {
                             dismiss()
                         }
                     }
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private func stampSelectionRows(_ stamps: [Stamp]) -> some View {
+        ForEach(stamps) { stamp in
+            Button {
+                stampId = stamp.id
+            } label: {
+                HStack(spacing: 12) {
+                    EventTokenRenderer(event: previewEvent(stampId: stamp.id), showTitle: false, iconSize: 22)
+                    Text(stamp.name)
+                    Spacer()
+                    if stamp.id == stampId {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.blue)
+                    }
+                }
+            }
+            .buttonStyle(.plain)
         }
     }
 
@@ -259,7 +362,7 @@ public struct EventEditorView: View {
         )
     }
 
-    private func buildEvent() -> Event {
+    private func buildEvent(with resolvedStampId: UUID) -> Event {
         let resolvedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "よてい" : title
 
         let recurrence: WeeklyRecurrenceRule?
@@ -277,7 +380,7 @@ public struct EventEditorView: View {
         return Event(
             id: eventID,
             title: resolvedTitle,
-            stampId: stampStore.ensureStampIdForDisplay(stampId),
+            stampId: resolvedStampId,
             childScope: childScope,
             visibility: visibility,
             isAllDay: isAllDay,

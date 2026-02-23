@@ -9,13 +9,17 @@ final class PersistentStamp {
     var kindRaw: String
     var imageLocation: String
     var isBuiltin: Bool
+    var lastUsedAt: Date?
+    var sortOrder: Int?
 
-    init(id: UUID, name: String, kindRaw: String, imageLocation: String, isBuiltin: Bool) {
+    init(id: UUID, name: String, kindRaw: String, imageLocation: String, isBuiltin: Bool, lastUsedAt: Date? = nil, sortOrder: Int? = nil) {
         self.id = id
         self.name = name
         self.kindRaw = kindRaw
         self.imageLocation = imageLocation
         self.isBuiltin = isBuiltin
+        self.lastUsedAt = lastUsedAt
+        self.sortOrder = sortOrder
     }
 }
 
@@ -173,8 +177,10 @@ public final class SwiftDataEventRepository: EventRepositoryBase {
             existing.kindRaw = stamp.kind.rawValue
             existing.imageLocation = stamp.imageLocation
             existing.isBuiltin = stamp.isBuiltin
+            existing.lastUsedAt = stamp.lastUsedAt
+            existing.sortOrder = stamp.sortOrder
         } else {
-            context.insert(PersistentStamp(id: stamp.id, name: stamp.name, kindRaw: stamp.kind.rawValue, imageLocation: stamp.imageLocation, isBuiltin: stamp.isBuiltin))
+            context.insert(PersistentStamp(id: stamp.id, name: stamp.name, kindRaw: stamp.kind.rawValue, imageLocation: stamp.imageLocation, isBuiltin: stamp.isBuiltin, lastUsedAt: stamp.lastUsedAt, sortOrder: stamp.sortOrder))
         }
         try? context.save()
     }
@@ -212,7 +218,9 @@ public final class SwiftDataEventRepository: EventRepositoryBase {
                 name: definition.name,
                 kindRaw: StampKind.systemSymbol.rawValue,
                 imageLocation: "symbol:\(definition.symbolName)",
-                isBuiltin: true
+                isBuiltin: true,
+                lastUsedAt: nil,
+                sortOrder: nil
             ))
         }
         try? context.save()
@@ -232,7 +240,9 @@ public final class SwiftDataEventRepository: EventRepositoryBase {
                 name: stamp.name,
                 kindRaw: StampKind.customImage.rawValue,
                 imageLocation: stamp.imageFilename,
-                isBuiltin: false
+                isBuiltin: false,
+                lastUsedAt: nil,
+                sortOrder: nil
             ))
         }
         try? context.save()
@@ -270,7 +280,9 @@ public final class SwiftDataEventRepository: EventRepositoryBase {
             name: row.name,
             kind: StampKind(rawValue: row.kindRaw) ?? .systemSymbol,
             imageLocation: row.imageLocation,
-            isBuiltin: row.isBuiltin
+            isBuiltin: row.isBuiltin,
+            lastUsedAt: row.lastUsedAt,
+            sortOrder: row.sortOrder
         )
     }
 
