@@ -7,12 +7,27 @@ public struct EventEditorView: View {
         case edit
     }
 
+    public struct EditScopeSummary {
+        public let title: String
+        public let description: String
+
+        public init(title: String, description: String) {
+            self.title = title
+            self.description = description
+        }
+    }
+
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var stampStore: StampStore
 
     private let mode: Mode
     private let onSave: (Event) -> Void
     private let onDelete: (() -> Void)?
+    private let shouldDismissAfterSave: Bool
+    private let editScopeSummary: EditScopeSummary?
+    private let impactPreviewDates: [Date]
+    private let impactCountEstimate: Int?
+    private let onReselectScope: (() -> Void)?
 
     private let eventID: UUID
     private let createdAt: Date
@@ -32,10 +47,25 @@ public struct EventEditorView: View {
     @State private var recurrenceWeekdays: Set<Int>
     @State private var recurrenceSkipHolidays: Bool
 
-    public init(mode: Mode, initialEvent: Event, onSave: @escaping (Event) -> Void, onDelete: (() -> Void)? = nil) {
+    public init(
+        mode: Mode,
+        initialEvent: Event,
+        shouldDismissAfterSave: Bool = true,
+        editScopeSummary: EditScopeSummary? = nil,
+        impactPreviewDates: [Date] = [],
+        impactCountEstimate: Int? = nil,
+        onSave: @escaping (Event) -> Void,
+        onDelete: (() -> Void)? = nil,
+        onReselectScope: (() -> Void)? = nil
+    ) {
         self.mode = mode
         self.onSave = onSave
         self.onDelete = onDelete
+        self.shouldDismissAfterSave = shouldDismissAfterSave
+        self.editScopeSummary = editScopeSummary
+        self.impactPreviewDates = impactPreviewDates
+        self.impactCountEstimate = impactCountEstimate
+        self.onReselectScope = onReselectScope
 
         eventID = initialEvent.id
         createdAt = initialEvent.createdAt
@@ -59,6 +89,43 @@ public struct EventEditorView: View {
     public var body: some View {
         NavigationStack {
             Form {
+                if let editScopeSummary {
+                    Section {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Image(systemName: "scope")
+                                    .foregroundStyle(.blue)
+                                Text("編集スコープ: \(editScopeSummary.title)")
+                                    .font(.headline)
+                            }
+
+                            Text(editScopeSummary.description)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+
+                            if let onReselectScope {
+                                Button("範囲を選び直す") {
+                                    onReselectScope()
+                                }
+                                .buttonStyle(.bordered)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+
+                if !impactPreviewDates.isEmpty {
+                    Section("影響範囲プレビュー") {
+                        Text(impactPreviewDescription)
+                            .font(.subheadline)
+                        if let impactCountEstimate {
+                            Text("影響件数（概算）: \(impactCountEstimate)件")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+
                 Section("基本") {
                     TextField("タイトル", text: $title)
 
@@ -137,11 +204,21 @@ public struct EventEditorView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("保存") {
                         onSave(buildEvent())
-                        dismiss()
+                        if shouldDismissAfterSave {
+                            dismiss()
+                        }
                     }
                 }
             }
         }
+    }
+
+    private var impactPreviewDescription: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ja_JP")
+        formatter.dateFormat = "M/d(E)"
+        let previewText = impactPreviewDates.map { formatter.string(from: $0) }.joined(separator: "、")
+        return "この保存で影響する予定日: \(previewText)"
     }
 
     private var weekdaySelector: some View {

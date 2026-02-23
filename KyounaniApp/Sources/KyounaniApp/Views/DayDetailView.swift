@@ -5,6 +5,17 @@ private enum RecurrenceEditTarget {
     case singleOccurrence
     case fromThisDate
     case wholeSeries
+
+    var scopeSummary: EventEditorView.EditScopeSummary {
+        switch self {
+        case .singleOccurrence:
+            return .init(title: "この日だけ", description: "今日（この1回）だけ変更します。")
+        case .fromThisDate:
+            return .init(title: "以降すべて", description: "今日以降の予定をまとめて変更します。")
+        case .wholeSeries:
+            return .init(title: "全体", description: "シリーズ全体（開始〜終了）を変更します。")
+        }
+    }
 }
 
 private struct EventEditorContext: Identifiable {
@@ -22,6 +33,11 @@ private struct EventEditorContext: Identifiable {
     }
 }
 
+private struct EventImpactPreview {
+    let previewDates: [Date]
+    let countEstimate: Int?
+}
+
 private struct EventEditSheetView: View {
     @Environment(\.dismiss) private var dismiss
 
@@ -30,12 +46,17 @@ private struct EventEditSheetView: View {
     @ObservedObject var repository: EventRepositoryBase
 
     let context: EventEditorContext
+    let onReselectScope: () -> Void
 
     @State private var isDeleteForSingle = false
+    @State private var showDeleteConfirmation = false
 
-    init(context: EventEditorContext, repository: EventRepositoryBase) {
+    private let recurrenceEngine = RecurrenceEngine(holidayService: JapaneseHolidayService.bundled())
+
+    init(context: EventEditorContext, repository: EventRepositoryBase, onReselectScope: @escaping () -> Void) {
         self.context = context
         self.repository = repository
+        self.onReselectScope = onReselectScope
     }
 
     var body: some View {
@@ -46,17 +67,94 @@ private struct EventEditSheetView: View {
                     .padding(.top, 8)
             }
 
-            EventEditorView(mode: .edit, initialEvent: editingSeedEvent()) { updated in
-                save(with: updated)
-            }
+            EventEditorView(
+                mode: .edit,
+                initialEvent: editingSeedEvent(),
+                shouldDismissAfterSave: false,
+                editScopeSummary: context.target.scopeSummary,
+                impactPreviewDates: impactPreview.previewDates,
+                impactCountEstimate: impactPreview.countEstimate,
+                onSave: { updated in
+                    attemptSave(with: updated)
+                },
+                onReselectScope: {
+                    dismiss()
+                    onReselectScope()
+                }
+            )
             .environmentObject(stampStore)
         }
+        .alert("この日だけ削除しますか？", isPresented: $showDeleteConfirmation) {
+            Button("キャンセル", role: .cancel) {}
+            Button("削除する", role: .destructive) {
+                save(with: editingSeedEvent())
+                dismiss()
+            }
+        } message: {
+            Text("この操作で選択した日の予定1件だけを削除します。")
+        }
+    }
+
+    private var impactPreview: EventImpactPreview {
+        let base = context.occurrence.baseEvent
+        let calendar = Calendar(identifier: .gregorian)
+        let selectedDay = calendar.startOfDay(for: context.occurrence.occurrenceDate)
+
+        if context.target == .singleOccurrence {
+            return EventImpactPreview(previewDates: [selectedDay], countEstimate: 1)
+        }
+
+        let today = calendar.startOfDay(for: Date())
+        let rangeStart: Date
+        switch context.target {
+        case .singleOccurrence:
+            rangeStart = selectedDay
+        case .fromThisDate:
+            rangeStart = selectedDay
+        case .wholeSeries:
+            rangeStart = max(today, selectedDay)
+        }
+
+        let rangeEnd = calendar.date(byAdding: .day, value: 90, to: rangeStart) ?? rangeStart
+        let range = DateInterval(start: rangeStart, end: rangeEnd)
+
+        var events = repository.fetchEvents()
+        if !events.contains(where: { $0.id == base.id }) {
+            events.append(base)
+        }
+
+        let all = recurrenceEngine
+            .occurrences(
+                for: events,
+                exceptions: repository.fetchExceptions(),
+                in: range,
+                childFilter: .both,
+                includeDraft: true
+            )
+            .filter { occurrence in
+                occurrence.baseEvent.id == base.id || occurrence.baseEvent.id == context.occurrence.baseEvent.id
+            }
+            .map(\.occurrenceDate)
+            .sorted()
+
+        let limited = Array(all.prefix(50))
+        return EventImpactPreview(previewDates: Array(limited.prefix(3)), countEstimate: limited.count)
     }
 
     private func editingSeedEvent() -> Event {
         var seed = context.occurrence.baseEvent
         seed.startDateTime = context.occurrence.displayStart
         return seed
+    }
+
+    private func attemptSave(with updated: Event) {
+        if context.target == .singleOccurrence, isDeleteForSingle {
+            showDeleteConfirmation = true
+            return
+        }
+
+        save(with: updated)
+        dismiss()
     }
 
     private func save(with updated: Event) {
@@ -182,29 +280,34 @@ public struct DayDetailView: View {
         }
         .navigationTitle(titleText)
         .confirmationDialog("どこまで編集しますか？", isPresented: $showingRecurrenceEditTargetDialog, titleVisibility: .visible) {
-            Button("この日だけ") {
+            Button("この日だけ\n今日（この1回）だけ変える") {
                 if let editingOccurrence {
                     editorContext = EventEditorContext(occurrence: editingOccurrence, target: .singleOccurrence)
                 }
             }
-            Button("以降すべて") {
+            Button("以降すべて\n今日以降の予定をまとめて変える") {
                 if let editingOccurrence {
                     editorContext = EventEditorContext(occurrence: editingOccurrence, target: .fromThisDate)
                 }
             }
-            Button("全体") {
+            Button("全体\nシリーズ全体（開始〜終了）を変える") {
                 if let editingOccurrence {
                     editorContext = EventEditorContext(occurrence: editingOccurrence, target: .wholeSeries)
                 }
             }
             Button("キャンセル", role: .cancel) {}
+        } message: {
+            Text("編集・削除の影響範囲を選んでください。")
         }
         .sheet(item: $selectedOccurrence) { occ in
             TimerRingView(targetDate: occ.displayStart)
                 .padding()
         }
         .sheet(item: $editorContext) { context in
-            EventEditSheetView(context: context, repository: repository)
+            EventEditSheetView(context: context, repository: repository) {
+                editingOccurrence = context.occurrence
+                showingRecurrenceEditTargetDialog = true
+            }
         }
     }
 
