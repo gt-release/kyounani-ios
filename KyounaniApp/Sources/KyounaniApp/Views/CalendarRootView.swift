@@ -4,8 +4,7 @@ import SwiftUI
 public struct CalendarRootView: View {
     @State private var mode: CalendarDisplayMode = .month
     @State private var anchorDate: Date = .now
-    @State private var selectedDate: Date = .now
-    @State private var showDayDetail = false
+    @State private var selectedDate: Date?
 
     @ObservedObject var calendarVM: CalendarViewModel
     @ObservedObject var speechService: SpeechService
@@ -47,21 +46,30 @@ public struct CalendarRootView: View {
                 WeekView(weekStartDate: anchorDate, calendarVM: calendarVM, onSelectDate: select(date:))
             }
 
-            NavigationLink(isActive: $showDayDetail) {
-                DayDetailView(date: selectedDate, calendarVM: calendarVM, speechService: speechService)
-            } label: {
-                EmptyView()
-            }
-
             Spacer(minLength: 0)
         }
         .padding()
         .navigationTitle("カレンダー")
+        .navigationDestination(isPresented: dayDetailIsPresented) {
+            if let date = selectedDate {
+                DayDetailView(date: date, calendarVM: calendarVM, speechService: speechService)
+            }
+        }
+    }
+
+    private var dayDetailIsPresented: Binding<Bool> {
+        Binding(
+            get: { selectedDate != nil },
+            set: { isPresented in
+                if !isPresented {
+                    selectedDate = nil
+                }
+            }
+        )
     }
 
     private func select(date: Date) {
         selectedDate = date
-        showDayDetail = true
     }
 
     private var headerTitle: String {

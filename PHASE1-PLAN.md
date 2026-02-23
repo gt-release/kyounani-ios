@@ -13,6 +13,7 @@
   - `Kyounani.swiftpm` から起動して Todayホーム表示を確認。
   - `KyounaniApp` package をローカル参照して再利用。
 - Phase 2 の一部（見通しUI）も実装済み。
+  - 日次集約ロジック共通化（最大2件 +N）
   - Todayホーム→カレンダー遷移
   - 月/週切替
   - 日別詳細への遷移

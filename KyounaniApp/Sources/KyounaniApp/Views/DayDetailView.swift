@@ -18,21 +18,28 @@ public struct DayDetailView: View {
     public var body: some View {
         let occurrences = calendarVM.dayOccurrences(on: date, childFilter: appVM.filter, includeDraft: appVM.parentModeUnlocked)
 
-        List(occurrences, id: \.id) { occurrence in
-            Button {
-                speechService.speak(occurrence.baseEvent.title)
-                selectedOccurrence = occurrence
-            } label: {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(occurrence.baseEvent.title)
-                        .font(.headline)
-                    Text(timeText(occurrence.displayStart, allDay: occurrence.baseEvent.isAllDay))
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+        Group {
+            if occurrences.isEmpty {
+                Text("この日の予定はありません")
+                    .foregroundStyle(.secondary)
+            } else {
+                List(occurrences, id: \.id) { occurrence in
+                    Button {
+                        speechService.speak(occurrence.baseEvent.title)
+                        selectedOccurrence = occurrence
+                    } label: {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(occurrence.baseEvent.title)
+                                .font(.headline)
+                            Text(timeText(occurrence.displayStart, allDay: occurrence.baseEvent.isAllDay))
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.vertical, 6)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .padding(.vertical, 6)
             }
-            .buttonStyle(.plain)
         }
         .navigationTitle(titleText)
         .sheet(item: $selectedOccurrence) { occ in

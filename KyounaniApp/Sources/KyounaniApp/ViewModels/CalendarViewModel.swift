@@ -74,8 +74,20 @@ public final class CalendarViewModel: ObservableObject {
 
     public func dayOccurrences(on date: Date, childFilter: ChildScope, includeDraft: Bool) -> [EventOccurrence] {
         let start = calendar.startOfDay(for: date)
-        let end = calendar.date(byAdding: .day, value: 1, to: start)!
-        return occurrences(in: DateInterval(start: start, end: end), childFilter: childFilter, includeDraft: includeDraft)
+        return groupedOccurrencesByDay(in: DateInterval(start: start, end: endOfDay(from: start)), childFilter: childFilter, includeDraft: includeDraft)[start] ?? []
+    }
+
+    public func monthSummaries(for month: Date, childFilter: ChildScope, includeDraft: Bool) -> [Date: DayEventSummary] {
+        let dates = monthGridDates(for: month)
+        guard let start = dates.first else { return [:] }
+        guard let end = calendar.date(byAdding: .day, value: dates.count, to: start) else { return [:] }
+        return summariesByDay(in: DateInterval(start: start, end: end), childFilter: childFilter, includeDraft: includeDraft)
+    }
+
+    public func weekSummaries(for weekStart: Date, childFilter: ChildScope, includeDraft: Bool) -> [Date: DayEventSummary] {
+        let start = startOfWeek(for: weekStart)
+        let end = calendar.date(byAdding: .day, value: 7, to: start) ?? start
+        return summariesByDay(in: DateInterval(start: start, end: end), childFilter: childFilter, includeDraft: includeDraft)
     }
 
     public func holidayName(for date: Date) -> String? {
@@ -92,6 +104,14 @@ public final class CalendarViewModel: ObservableObject {
 
     public func isSunday(_ date: Date) -> Bool {
         calendar.component(.weekday, from: date) == 1
+    }
+
+    public func dayNumber(_ date: Date) -> Int {
+        calendar.component(.day, from: date)
+    }
+
+    public func startOfDay(for date: Date) -> Date {
+        calendar.startOfDay(for: date)
     }
 
     public func startOfMonth(for date: Date) -> Date {
@@ -144,6 +164,20 @@ public final class CalendarViewModel: ObservableObject {
             childFilter: childFilter,
             includeDraft: includeDraft
         )
+    }
+
+    private func summariesByDay(in range: DateInterval, childFilter: ChildScope, includeDraft: Bool) -> [Date: DayEventSummary] {
+        groupedOccurrencesByDay(in: range, childFilter: childFilter, includeDraft: includeDraft)
+            .mapValues { EventListPresenter.summarizeDay($0) }
+    }
+
+    private func groupedOccurrencesByDay(in range: DateInterval, childFilter: ChildScope, includeDraft: Bool) -> [Date: [EventOccurrence]] {
+        let rows = occurrences(in: range, childFilter: childFilter, includeDraft: includeDraft)
+        return Dictionary(grouping: rows) { calendar.startOfDay(for: $0.displayStart) }
+    }
+
+    private func endOfDay(from start: Date) -> Date {
+        calendar.date(byAdding: .day, value: 1, to: start) ?? start
     }
 }
 

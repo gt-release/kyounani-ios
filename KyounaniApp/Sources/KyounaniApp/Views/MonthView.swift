@@ -16,6 +16,7 @@ public struct MonthView: View {
 
     public var body: some View {
         let dates = calendarVM.monthGridDates(for: monthDate)
+        let summaries = calendarVM.monthSummaries(for: monthDate, childFilter: appVM.filter, includeDraft: appVM.parentModeUnlocked)
 
         VStack(spacing: 8) {
             HStack {
@@ -28,12 +29,13 @@ public struct MonthView: View {
 
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 7), spacing: 8) {
                 ForEach(dates, id: \.self) { date in
-                    let summary = calendarVM.daySummary(on: date, childFilter: appVM.filter, includeDraft: appVM.parentModeUnlocked)
+                    let dayStart = calendarVM.startOfDay(for: date)
+                    let summary = summaries[dayStart] ?? DayEventSummary(topOccurrences: [], remainingCount: 0)
                     Button {
                         onSelectDate(date)
                     } label: {
                         VStack(alignment: .leading, spacing: 6) {
-                            Text(dayNumber(date))
+                            Text("\(calendarVM.dayNumber(date))")
                                 .font(.footnote.bold())
                                 .foregroundStyle(dayNumberColor(date))
 
@@ -54,11 +56,6 @@ public struct MonthView: View {
                 }
             }
         }
-    }
-
-    private func dayNumber(_ date: Date) -> String {
-        let day = Calendar(identifier: .gregorian).component(.day, from: date)
-        return "\(day)"
     }
 
     private func dayNumberColor(_ date: Date) -> Color {

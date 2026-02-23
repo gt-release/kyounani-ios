@@ -16,10 +16,12 @@ public struct WeekView: View {
 
     public var body: some View {
         let weekDates = calendarVM.weekDates(for: weekStartDate)
+        let summaries = calendarVM.weekSummaries(for: weekStartDate, childFilter: appVM.filter, includeDraft: appVM.parentModeUnlocked)
 
         HStack(alignment: .top, spacing: 8) {
             ForEach(weekDates, id: \.self) { date in
-                let summary = calendarVM.daySummary(on: date, childFilter: appVM.filter, includeDraft: appVM.parentModeUnlocked)
+                let dayStart = calendarVM.startOfDay(for: date)
+                let summary = summaries[dayStart] ?? DayEventSummary(topOccurrences: [], remainingCount: 0)
                 Button {
                     onSelectDate(date)
                 } label: {

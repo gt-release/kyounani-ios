@@ -89,6 +89,7 @@
 
 ## 11. アーキテクチャ
 - MVVM: **対応済み（最小構成）**
+- カレンダー日次集約（最大2件+N）の共通化: **対応済み（ViewModel/Presenter）**
 - Repository分離: **対応済み（抽象＋InMemory）**
 - `JapaneseHolidayService` / `RecurrenceEngine`: **対応済み**
 - 日本タイムゾーン前提: **対応済み**

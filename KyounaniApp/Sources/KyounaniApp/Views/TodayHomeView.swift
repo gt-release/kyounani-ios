@@ -15,7 +15,8 @@ public struct TodayHomeView: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
                 Picker("対象", selection: $appVM.filter) {
                     Text("息子").tag(ChildScope.son)
                     Text("娘").tag(ChildScope.daughter)
@@ -37,9 +38,9 @@ public struct TodayHomeView: View {
                 todayStamps
                 nextCard
                 peeks
-                Spacer()
+            }
+            .padding()
         }
-        .padding()
         .navigationTitle("きょう")
         .onAppear { reload() }
         .onChange(of: appVM.filter) { _ in reload() }
