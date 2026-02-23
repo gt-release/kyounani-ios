@@ -16,6 +16,8 @@ public struct ParentModeView: View {
     @State private var selectedPhotoItem: PhotosPickerItem?
     #endif
     @State private var newStampName = ""
+    @State private var creatingEvent = false
+    @State private var editingEvent: Event?
 
     public init(repo: EventRepositoryBase) {
         self.repo = repo
@@ -72,19 +74,26 @@ public struct ParentModeView: View {
                 }
 
                 Section("予定") {
-                    ForEach(repo.fetchEvents()) { event in
-                        HStack {
-                            EventTokenRenderer(event: event, showTitle: false, iconSize: 24)
-                            VStack(alignment: .leading) {
-                                Text(event.title)
-                                Text(event.visibility == .published ? "公開" : "下書き")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                    ForEach(repo.fetchEvents().sorted(by: { $0.startDateTime < $1.startDateTime })) { event in
+                        Button {
+                            editingEvent = event
+                        } label: {
+                            HStack {
+                                EventTokenRenderer(event: event, showTitle: false, iconSize: 24)
+                                VStack(alignment: .leading) {
+                                    Text(event.title)
+                                    Text(event.visibility == .published ? "公開" : "下書き")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
                             }
+                            .contentShape(Rectangle())
                         }
+                        .buttonStyle(.plain)
                     }
                     .onDelete { indexSet in
-                        let events = repo.fetchEvents()
+                        let events = repo.fetchEvents().sorted(by: { $0.startDateTime < $1.startDateTime })
                         for i in indexSet {
                             repo.delete(eventID: events[i].id)
                         }
@@ -112,9 +121,28 @@ public struct ParentModeView: View {
             #endif
             .navigationTitle("親モード")
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("＋追加") {
+                        creatingEvent = true
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("ロック") { appVM.lockToChildMode() }
                 }
+            }
+            .sheet(isPresented: $creatingEvent) {
+                EventEditorView(mode: .create, initialEvent: draftEvent()) { event in
+                    repo.save(event: event)
+                }
+                .environmentObject(stampStore)
+            }
+            .sheet(item: $editingEvent) { event in
+                EventEditorView(mode: .edit, initialEvent: event) { updated in
+                    repo.save(event: updated)
+                } onDelete: {
+                    repo.delete(eventID: event.id)
+                }
+                .environmentObject(stampStore)
             }
         }
     }
@@ -160,6 +188,19 @@ public struct ParentModeView: View {
             )
             repo.save(event: event)
         }
+    }
+
+    private func draftEvent() -> Event {
+        Event(
+            title: "",
+            stampId: stampStore.defaultStampId,
+            childScope: .both,
+            visibility: .published,
+            isAllDay: false,
+            startDateTime: Date(),
+            durationMinutes: 60,
+            recurrenceRule: nil
+        )
     }
 }
 

@@ -5,6 +5,7 @@
 - 子どもモード起動 + フィルタ（息子/娘/両方）
 - ペアレンタルゲート（右上の固定領域で3本指2秒長押し→4点シーケンス、失敗クールダウン、非常用4桁コード）
 - 親モード画面で「ロック」実行時は子どもモードへ戻し、親モードシートを自動で閉じる
+- 親モードの本格CRUD（＋追加 / 一覧タップ編集 / 削除）を実装し、EventEditorViewでイベントの主要項目を編集可能
 - Todayホーム（今日の予定、次の予定、先の予定チラ見せ）
 - Today→カレンダー遷移
 - カレンダー（**月/週切替、日曜始まり、日別詳細ドリルダウン**）
@@ -25,6 +26,7 @@
 - RecurrenceEngine（週次、祝日スキップ、override/delete/splitFromThisDate）
 - 親モード限定: 日別詳細の繰り返し予定に「この日だけ / 以降すべて / 全体」例外編集UIを実装
 - 例外由来シリーズを「全体」編集した際に重複予定が増えないよう保存先を補正
+- 日別詳細の例外編集でも同じ EventEditorView を再利用し、分岐（この日だけ / 以降すべて / 全体）を維持
 - Repository層で永続化を抽象化（SwiftData優先 + FileBacked fallback + InMemory実装）
 - 単体テスト（祝日/繰り返し）
 
@@ -35,7 +37,7 @@
 - `KyounaniApp/Sources/KyounaniApp/Services` : 祝日・繰り返し・音声
 - `KyounaniApp/Sources/KyounaniApp/Repository` : Repository抽象
 - `KyounaniApp/Sources/KyounaniApp/ViewModels` : MVVM ViewModel
-- `KyounaniApp/Sources/KyounaniApp/Views` : SwiftUI画面（Today / CalendarRoot / Month / Week / DayDetail）
+- `KyounaniApp/Sources/KyounaniApp/Views` : SwiftUI画面（Today / CalendarRoot / Month / Week / DayDetail / ParentMode / EventEditor）
 - `KyounaniApp/Tests/KyounaniAppTests` : 単体テスト
 
 ## 実行方法（Mac / Xcode不要）
@@ -79,6 +81,6 @@ GitHubアプリ/クライアントで「リクエストに問題があります 
 - 最低限 `README.md` と `AGENTS.md` の該当箇所更新を必須とします。
 
 ## 今後の拡張
-- 例外編集UIの拡張（delete導線や入力項目拡充）
-- SwiftDataスキーマのマイグレーション運用強化
+- 例外編集UIの拡張（例外編集専用のプレビュー最適化、削除確認UXの改善）
+- スタンプ管理UXの拡張（並び替え・検索・使用頻度表示）
 - 暗号化エクスポート（CryptoKit AES-GCM）
