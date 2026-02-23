@@ -16,19 +16,31 @@ public struct TodayHomeView: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Picker("対象", selection: $appVM.filter) {
-                Text("息子").tag(ChildScope.son)
-                Text("娘").tag(ChildScope.daughter)
-                Text("両方").tag(ChildScope.both)
-            }
-            .pickerStyle(.segmented)
+                Picker("対象", selection: $appVM.filter) {
+                    Text("息子").tag(ChildScope.son)
+                    Text("娘").tag(ChildScope.daughter)
+                    Text("両方").tag(ChildScope.both)
+                }
+                .pickerStyle(.segmented)
 
-            todayStamps
-            nextCard
-            peeks
-            Spacer()
+                NavigationLink {
+                    CalendarRootView(calendarVM: calendarVM, speechService: speechService)
+                } label: {
+                    Label("カレンダー", systemImage: "calendar")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(Color.blue.opacity(0.15))
+                        .cornerRadius(12)
+                }
+
+                todayStamps
+                nextCard
+                peeks
+                Spacer()
         }
         .padding()
+        .navigationTitle("きょう")
         .onAppear { reload() }
         .onChange(of: appVM.filter) { _ in reload() }
         .onChange(of: appVM.parentModeUnlocked) { _ in reload() }
@@ -42,14 +54,15 @@ public struct TodayHomeView: View {
     }
 
     private var todayStamps: some View {
-        VStack(alignment: .leading) {
+        let summary = EventListPresenter.summarizeDay(calendarVM.todayOccurrences)
+        return VStack(alignment: .leading) {
             Text("きょうのよてい")
             HStack {
-                ForEach(calendarVM.todayOccurrences.prefix(2), id: \.id) { occ in
+                ForEach(summary.topOccurrences, id: \.id) { occ in
                     stampCapsule(title: occ.baseEvent.title)
                 }
-                if calendarVM.todayOccurrences.count > 2 {
-                    stampCapsule(title: "+\(calendarVM.todayOccurrences.count - 2)")
+                if summary.remainingCount > 0 {
+                    stampCapsule(title: "+\(summary.remainingCount)")
                 }
             }
         }

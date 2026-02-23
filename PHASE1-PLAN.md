@@ -8,6 +8,15 @@
   - 日本語 TTS
   - 残り時間リング
 
+## 完了状況（更新）
+- Phase 1 の起動導線は完了。
+  - `Kyounani.swiftpm` から起動して Todayホーム表示を確認。
+  - `KyounaniApp` package をローカル参照して再利用。
+- Phase 2 の一部（見通しUI）も実装済み。
+  - Todayホーム→カレンダー遷移
+  - 月/週切替
+  - 日別詳細への遷移
+
 ## 既存資産の再利用方針
 - ドメイン/ロジックは既存 `KyounaniApp` package を再利用。
   - `Models`（Visibility, ChildScope など）
@@ -15,15 +24,14 @@
   - `JapaneseHolidayService`
   - `InMemoryEventRepository`
   - `TodayHomeView`, `ParentalGateView`, `ParentModeView`, `TimerRingView`
-- 新規 `Kyounani.swiftpm` は executable target として、`KyounaniApp` に依存。
 
 ## 接続設計（Phase 1）
 1. `Kyounani.swiftpm` に `@main App` を追加し、root で `TodayHomeView` を表示。
 2. Root 側で `AppViewModel`, `SpeechService`, `InMemoryEventRepository`, `CalendarViewModel` を組み立てる。
-3. 祝日 CSV は `Kyounani.swiftpm` の resources に同梱し、`Bundle.module` から読み込んで `JapaneseHolidayService(csvText:)` に渡す。
-4. 親導線は Phase 1 では簡易導線（解除ボタン→既存 `ParentalGateView` / `ParentModeView`）を接続。
+3. 祝日 CSV は resources から読み込み `JapaneseHolidayService` へ渡す。
+4. 親導線は簡易導線（解除ボタン→既存 `ParentalGateView` / `ParentModeView`）を接続。
 
-## 非スコープ（Phase 2 以降）
-- 月/週カレンダー
-- スタンプ管理
+## 次フェーズ（未完）
 - 例外編集UI（この日だけ/以降/全体）
+- スタンプ管理
+- SwiftData Repository
