@@ -2,6 +2,7 @@
 import SwiftUI
 
 public struct TimerRingView: View {
+    @Environment(\.kyounaniTheme) private var theme
     public let targetDate: Date
     @State private var now = Date()
 
@@ -15,18 +16,22 @@ public struct TimerRingView: View {
                 ForEach(0..<ringCount, id: \.self) { idx in
                     let fraction = progressForRing(index: idx)
                     Circle()
-                        .stroke(Color.blue.opacity(0.15 + Double(idx) * 0.15), lineWidth: 16)
+                        .stroke(theme.colors.accent.opacity(0.15 + Double(idx) * 0.15), lineWidth: 16)
                         .frame(width: 200 - CGFloat(idx * 18), height: 200 - CGFloat(idx * 18))
                     Circle()
                         .trim(from: 0, to: fraction)
-                        .stroke(Color.blue, style: StrokeStyle(lineWidth: 16, lineCap: .round))
+                        .stroke(theme.colors.accent, style: StrokeStyle(lineWidth: 16, lineCap: .round))
                         .rotationEffect(.degrees(-90))
                         .frame(width: 200 - CGFloat(idx * 18), height: 200 - CGFloat(idx * 18))
                 }
             }
             Text(labelText)
-                .font(.title3.bold())
+                .font(theme.fonts.dayTitle)
+                .foregroundStyle(theme.colors.primaryText)
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("開始までの残り時間")
+        .accessibilityValue(accessibilityValue)
         .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { value in
             now = value
         }
@@ -50,6 +55,11 @@ public struct TimerRingView: View {
         if remaining <= 0 { return "はじまった！" }
         let minutes = Int(remaining / 60)
         return "あと \(minutes)分"
+    }
+
+    private var accessibilityValue: String {
+        if remaining <= 0 { return "開始済み" }
+        return "あと\(Int(remaining / 60))ふん"
     }
 }
 

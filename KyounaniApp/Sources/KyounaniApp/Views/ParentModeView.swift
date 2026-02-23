@@ -37,6 +37,15 @@ public struct ParentModeView: View {
     public var body: some View {
         NavigationStack {
             List {
+                Section("見やすさ") {
+                    Picker("テーマ", selection: $appVM.themePreset) {
+                        ForEach(ThemePreset.allCases) { preset in
+                            Text(preset.displayName).tag(preset)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
+
                 Section("バックアップ") {
                     Button("バックアップを書き出す") {
                         showingExportPassphraseSheet = true

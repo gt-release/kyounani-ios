@@ -224,6 +224,7 @@ private struct EventEditSheetView: View {
 
 public struct DayDetailView: View {
     @EnvironmentObject private var appVM: AppViewModel
+    @Environment(\.kyounaniTheme) private var theme
     @ObservedObject var calendarVM: CalendarViewModel
     @ObservedObject var speechService: SpeechService
     @ObservedObject var repository: EventRepositoryBase
@@ -247,12 +248,12 @@ public struct DayDetailView: View {
         Group {
             if occurrences.isEmpty {
                 Text("この日の予定はありません")
-                    .font(KidUITheme.Fonts.supporting)
+                     .font(theme.fonts.supporting)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(KidUITheme.Spacing.cardPadding)
-                    .cardStyle(background: KidUITheme.ColorPalette.emptyCard)
-                    .padding(.horizontal, KidUITheme.Spacing.screenPadding)
+                    .padding(theme.spacing.cardPadding)
+                    .cardStyle(background: theme.colors.emptyCard)
+                    .padding(.horizontal, theme.spacing.screenPadding)
             } else {
                 List(occurrences, id: \.id) { occurrence in
                     HStack(spacing: 12) {
@@ -261,18 +262,19 @@ public struct DayDetailView: View {
                             selectedOccurrence = occurrence
                         } label: {
                             HStack(spacing: 12) {
-                                EventTokenRenderer(event: occurrence.baseEvent, showTitle: false, iconSize: 42)
+                                EventTokenRenderer(event: occurrence.baseEvent, showTitle: false, iconSize: 42, occurrenceDate: occurrence.occurrenceDate)
                                 VStack(alignment: .leading, spacing: 6) {
                                     Text(occurrence.baseEvent.title)
-                                        .font(KidUITheme.Fonts.dayTitle)
+                                        .font(theme.fonts.dayTitle)
                                     Text(timeText(occurrence.displayStart, allDay: occurrence.baseEvent.isAllDay))
-                                        .font(KidUITheme.Fonts.supporting)
+                                         .font(theme.fonts.supporting)
                                         .foregroundStyle(.secondary)
                                 }
                             }
                             .padding(.vertical, 6)
                         }
                         .buttonStyle(.plain)
+                        .minTapTarget()
 
                         Spacer()
 

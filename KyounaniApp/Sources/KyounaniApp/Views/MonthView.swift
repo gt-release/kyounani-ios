@@ -3,13 +3,16 @@ import SwiftUI
 
 public struct MonthView: View {
     @EnvironmentObject private var appVM: AppViewModel
+    @Environment(\.kyounaniTheme) private var theme
     @ObservedObject var calendarVM: CalendarViewModel
 
     let monthDate: Date
+    let selectedDate: Date?
     let onSelectDate: (Date) -> Void
 
-    public init(monthDate: Date, calendarVM: CalendarViewModel, onSelectDate: @escaping (Date) -> Void) {
+    public init(monthDate: Date, selectedDate: Date?, calendarVM: CalendarViewModel, onSelectDate: @escaping (Date) -> Void) {
         self.monthDate = monthDate
+        self.selectedDate = selectedDate
         self.calendarVM = calendarVM
         self.onSelectDate = onSelectDate
     }
@@ -31,44 +34,42 @@ public struct MonthView: View {
                 ForEach(dates, id: \.self) { date in
                     let dayStart = calendarVM.startOfDay(for: date)
                     let summary = summaries[dayStart] ?? DayEventSummary(topOccurrences: [], remainingCount: 0)
+                    let dayKind = dayKindForDate(date)
                     Button {
                         onSelectDate(date)
                     } label: {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("\(calendarVM.dayNumber(date))")
                                 .font(.footnote.bold())
-                                .foregroundStyle(dayNumberColor(date))
+                                .foregroundStyle(theme.dayTextColor(for: dayKind))
 
                             DayCellEventTokensView(summary: summary)
                             Spacer(minLength: 0)
                         }
                         .padding(6)
                         .frame(maxWidth: .infinity, minHeight: 92, alignment: .topLeading)
-                        .background(dayBackgroundColor(date))
+                        .background(theme.dayBackgroundColor(for: dayKind))
                         .overlay(
                             RoundedRectangle(cornerRadius: 10)
-                                .stroke(calendarVM.isToday(date) ? Color.accentColor : Color.clear, lineWidth: 2)
+                                .stroke(dayKind == .today ? theme.colors.accent : Color.clear, lineWidth: 2)
                         )
                         .cornerRadius(10)
                         .opacity(calendarVM.isSameMonth(date, monthDate) ? 1.0 : 0.45)
                     }
                     .buttonStyle(.plain)
+                    .minTapTarget()
                 }
             }
         }
     }
 
-    private func dayNumberColor(_ date: Date) -> Color {
-        if calendarVM.isHoliday(date) || calendarVM.isSunday(date) { return .red }
-        if calendarVM.isSaturday(date) { return .blue }
-        return .primary
-    }
-
-    private func dayBackgroundColor(_ date: Date) -> Color {
-        if calendarVM.isHoliday(date) { return .red.opacity(0.12) }
-        if calendarVM.isSunday(date) { return .red.opacity(0.08) }
-        if calendarVM.isSaturday(date) { return .blue.opacity(0.08) }
-        return Color.gray.opacity(0.08)
+    private func dayKindForDate(_ date: Date) -> KyounaniTheme.DayKind {
+        let dayStart = calendarVM.startOfDay(for: date)
+        if let selectedDate, calendarVM.startOfDay(for: selectedDate) == dayStart { return .selected }
+        if calendarVM.isToday(date) { return .today }
+        if calendarVM.isHoliday(date) { return .holiday }
+        if calendarVM.isSunday(date) || calendarVM.isSaturday(date) { return .weekend }
+        return .weekday
     }
 }
 

@@ -3,6 +3,7 @@ import SwiftUI
 
 public struct TodayHomeView: View {
     @EnvironmentObject private var appVM: AppViewModel
+    @Environment(\.kyounaniTheme) private var theme
     @ObservedObject var calendarVM: CalendarViewModel
     @ObservedObject var speechService: SpeechService
     @ObservedObject var repository: EventRepositoryBase
@@ -16,13 +17,13 @@ public struct TodayHomeView: View {
 
     public var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: KidUITheme.Spacing.sectionGap) {
+            VStack(alignment: .leading, spacing: theme.spacing.sectionGap) {
                 childFilter
                 todaySection
                 nextSection
                 tomorrowSection
             }
-            .padding(KidUITheme.Spacing.screenPadding)
+            .padding(theme.spacing.screenPadding)
         }
         .navigationTitle("Today")
         .onAppear { reload() }
@@ -48,26 +49,26 @@ public struct TodayHomeView: View {
     private var todaySection: some View {
         let summary = EventListPresenter.summarizeDay(calendarVM.todayOccurrences)
 
-        return VStack(alignment: .leading, spacing: KidUITheme.Spacing.itemGap) {
+        return VStack(alignment: .leading, spacing: theme.spacing.itemGap) {
             sectionHeader("きょう")
 
             if summary.topOccurrences.isEmpty {
                 emptyCard(icon: "sun.max", message: "きょうのよていは ないよ")
             } else {
-                HStack(spacing: KidUITheme.Spacing.itemGap) {
+                HStack(spacing: theme.spacing.itemGap) {
                     ForEach(summary.topOccurrences, id: \.id) { occ in
-                        EventTokenRenderer(event: occ.baseEvent, showTitle: false, iconSize: KidUITheme.Size.largeStamp)
+                        EventTokenRenderer(event: occ.baseEvent, showTitle: false, iconSize: theme.stampLarge, occurrenceDate: occ.occurrenceDate)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 18)
-                            .cardStyle(background: KidUITheme.ColorPalette.todayCard)
+                            .cardStyle(background: theme.colors.todayCard)
                     }
 
                     if summary.remainingCount > 0 {
                         Text("+\(summary.remainingCount)")
-                            .font(KidUITheme.Fonts.plusCount)
+                            .font(theme.fonts.plusCount)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 28)
-                            .cardStyle(background: KidUITheme.ColorPalette.todayCard)
+                            .cardStyle(background: theme.colors.todayCard)
                     }
                 }
             }
@@ -75,7 +76,7 @@ public struct TodayHomeView: View {
     }
 
     private var nextSection: some View {
-        VStack(alignment: .leading, spacing: KidUITheme.Spacing.itemGap) {
+        VStack(alignment: .leading, spacing: theme.spacing.itemGap) {
             sectionHeader("つぎ")
 
             if let next = calendarVM.todayOccurrences.first(where: { $0.displayStart >= .now }) {
@@ -83,25 +84,26 @@ public struct TodayHomeView: View {
                     speechService.speak(next.baseEvent.title)
                     selectedOccurrence = next
                 } label: {
-                    HStack(spacing: KidUITheme.Spacing.itemGap) {
-                        EventTokenRenderer(event: next.baseEvent, showTitle: false, iconSize: KidUITheme.Size.nextCardStamp)
+                    HStack(spacing: theme.spacing.itemGap) {
+                        EventTokenRenderer(event: next.baseEvent, showTitle: false, iconSize: theme.stampNext, occurrenceDate: next.occurrenceDate)
 
                         VStack(alignment: .leading, spacing: 6) {
                             Text(next.baseEvent.title)
-                                .font(KidUITheme.Fonts.cardTitle)
-                                .foregroundStyle(.primary)
+                                .font(theme.fonts.cardTitle)
+                                .foregroundStyle(theme.colors.primaryText)
                             Text("\(timeText(next.displayStart)) ・ \(timeRemainingText(next.displayStart))")
-                                .font(KidUITheme.Fonts.supporting)
-                                .foregroundStyle(.secondary)
+                                .font(theme.fonts.supporting)
+                                .foregroundStyle(theme.colors.secondaryText)
                         }
 
                         Spacer()
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(KidUITheme.Spacing.cardPadding)
-                    .cardStyle(background: KidUITheme.ColorPalette.nextCard)
+                    .padding(theme.spacing.cardPadding)
+                    .cardStyle(background: theme.colors.nextCard)
                 }
                 .buttonStyle(.plain)
+                .minTapTarget()
             } else {
                 emptyCard(icon: "moon.stars.fill", message: "きょうは おしまい")
             }
@@ -110,16 +112,16 @@ public struct TodayHomeView: View {
 
     private var tomorrowSection: some View {
         let hasTomorrow = !calendarVM.weekPeekOccurrences.isEmpty
-        return VStack(alignment: .leading, spacing: KidUITheme.Spacing.itemGap) {
+        return VStack(alignment: .leading, spacing: theme.spacing.itemGap) {
             sectionHeader("あした")
 
             if hasTomorrow {
-                HStack(spacing: KidUITheme.Spacing.itemGap) {
+                HStack(spacing: theme.spacing.itemGap) {
                     ForEach(calendarVM.weekPeekOccurrences.prefix(2), id: \.id) { occ in
-                        EventTokenRenderer(event: occ.baseEvent, showTitle: false, iconSize: KidUITheme.Size.largeStamp)
+                        EventTokenRenderer(event: occ.baseEvent, showTitle: false, iconSize: theme.stampLarge, occurrenceDate: occ.occurrenceDate)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 18)
-                            .cardStyle(background: KidUITheme.ColorPalette.peekCard)
+                            .cardStyle(background: theme.colors.peekCard)
                     }
                 }
             } else {
@@ -130,7 +132,8 @@ public struct TodayHomeView: View {
 
     private func sectionHeader(_ title: String) -> some View {
         Text(title)
-            .font(KidUITheme.Fonts.sectionHeader)
+            .font(theme.fonts.sectionHeader)
+            .foregroundStyle(theme.colors.primaryText)
             .padding(.bottom, 2)
     }
 
@@ -139,11 +142,13 @@ public struct TodayHomeView: View {
             Image(systemName: icon)
                 .font(.system(size: 34, weight: .semibold))
             Text(message)
-                .font(KidUITheme.Fonts.cardTitle)
+                .font(theme.fonts.cardTitle)
         }
+        .foregroundStyle(theme.colors.primaryText)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(KidUITheme.Spacing.cardPadding)
-        .cardStyle(background: KidUITheme.ColorPalette.emptyCard)
+        .padding(theme.spacing.cardPadding)
+        .cardStyle(background: theme.colors.emptyCard)
+        .minTapTarget()
     }
 
     private func reload() {
