@@ -22,8 +22,23 @@ public enum Visibility: String, Codable, CaseIterable {
 }
 
 public enum StampKind: String, Codable {
-    case builtin
-    case user
+    case systemSymbol
+    case customImage
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let raw = try container.decode(String.self)
+        switch raw {
+        case "builtin": self = .systemSymbol
+        case "user": self = .customImage
+        default: self = StampKind(rawValue: raw) ?? .systemSymbol
+        }
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
 public struct WeeklyRecurrenceRule: Codable, Equatable {
@@ -132,12 +147,14 @@ public struct Stamp: Identifiable, Codable, Equatable {
     public var name: String
     public var kind: StampKind
     public var imageLocation: String
+    public var isBuiltin: Bool
 
-    public init(id: UUID = UUID(), name: String, kind: StampKind, imageLocation: String) {
+    public init(id: UUID = UUID(), name: String, kind: StampKind, imageLocation: String, isBuiltin: Bool = false) {
         self.id = id
         self.name = name
         self.kind = kind
         self.imageLocation = imageLocation
+        self.isBuiltin = isBuiltin
     }
 }
 

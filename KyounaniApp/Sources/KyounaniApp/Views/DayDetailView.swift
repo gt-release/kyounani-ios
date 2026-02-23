@@ -25,7 +25,7 @@ private struct EventEditorContext: Identifiable {
 private struct EventEditSheetView: View {
     @Environment(\.dismiss) private var dismiss
 
-    @ObservedObject var repository: InMemoryEventRepository
+    @ObservedObject var repository: EventRepositoryBase
 
     let context: EventEditorContext
 
@@ -34,7 +34,7 @@ private struct EventEditSheetView: View {
     @State private var durationMinutes: Int
     @State private var isDeleteForSingle = false
 
-    init(context: EventEditorContext, repository: InMemoryEventRepository) {
+    init(context: EventEditorContext, repository: EventRepositoryBase) {
         self.context = context
         self.repository = repository
         _title = State(initialValue: context.occurrence.baseEvent.title)
@@ -163,7 +163,7 @@ public struct DayDetailView: View {
     @EnvironmentObject private var appVM: AppViewModel
     @ObservedObject var calendarVM: CalendarViewModel
     @ObservedObject var speechService: SpeechService
-    @ObservedObject var repository: InMemoryEventRepository
+    @ObservedObject var repository: EventRepositoryBase
 
     let date: Date
     @State private var selectedOccurrence: EventOccurrence?
@@ -171,7 +171,7 @@ public struct DayDetailView: View {
     @State private var editorContext: EventEditorContext?
     @State private var showingRecurrenceEditTargetDialog = false
 
-    public init(date: Date, calendarVM: CalendarViewModel, speechService: SpeechService, repository: InMemoryEventRepository) {
+    public init(date: Date, calendarVM: CalendarViewModel, speechService: SpeechService, repository: EventRepositoryBase) {
         self.date = date
         self.calendarVM = calendarVM
         self.speechService = speechService

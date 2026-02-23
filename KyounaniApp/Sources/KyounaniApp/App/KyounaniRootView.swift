@@ -4,16 +4,17 @@ import SwiftUI
 public struct KyounaniRootView: View {
     @StateObject private var appVM = AppViewModel()
     @StateObject private var speech = SpeechService()
-    @StateObject private var stampStore = StampStore()
-    @StateObject private var repository: InMemoryEventRepository
+    @StateObject private var repository: EventRepositoryBase
     @StateObject private var calendarVM: CalendarViewModel
+    @StateObject private var stampStore: StampStore
 
     public init() {
         let holiday = JapaneseHolidayService.bundled()
-        let sharedRepository = InMemoryEventRepository()
+        let sharedRepository = RepositoryFactory.makeDefaultRepository()
         let engine = RecurrenceEngine(holidayService: holiday)
         _repository = StateObject(wrappedValue: sharedRepository)
         _calendarVM = StateObject(wrappedValue: CalendarViewModel(repository: sharedRepository, engine: engine, holidayService: holiday))
+        _stampStore = StateObject(wrappedValue: StampStore(repository: sharedRepository))
     }
 
     public var body: some View {
@@ -33,6 +34,9 @@ public struct KyounaniRootView: View {
         }
         .environmentObject(appVM)
         .environmentObject(stampStore)
+        .onReceive(repository.objectWillChange) { _ in
+            stampStore.reload()
+        }
     }
 }
 
