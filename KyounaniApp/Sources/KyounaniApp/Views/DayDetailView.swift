@@ -97,16 +97,22 @@ private struct EventEditSheetView: View {
 
     private var impactPreview: EventImpactPreview {
         let base = context.occurrence.baseEvent
-        let now = context.occurrence.occurrenceDate
         let calendar = Calendar(identifier: .gregorian)
-        let start = calendar.startOfDay(for: now)
+        let selectedDay = calendar.startOfDay(for: context.occurrence.occurrenceDate)
 
+        if context.target == .singleOccurrence {
+            return EventImpactPreview(previewDates: [selectedDay], countEstimate: 1)
+        }
+
+        let today = calendar.startOfDay(for: Date())
         let rangeStart: Date
         switch context.target {
-        case .singleOccurrence, .fromThisDate:
-            rangeStart = start
+        case .singleOccurrence:
+            rangeStart = selectedDay
+        case .fromThisDate:
+            rangeStart = selectedDay
         case .wholeSeries:
-            rangeStart = calendar.startOfDay(for: base.recurrenceRule?.startDate ?? base.startDateTime)
+            rangeStart = max(today, selectedDay)
         }
 
         let rangeEnd = calendar.date(byAdding: .day, value: 90, to: rangeStart) ?? rangeStart
@@ -132,7 +138,7 @@ private struct EventEditSheetView: View {
             .sorted()
 
         let limited = Array(all.prefix(50))
-        return EventImpactPreview(previewDates: Array(limited.prefix(3)), countEstimate: limited.isEmpty ? 0 : limited.count)
+        return EventImpactPreview(previewDates: Array(limited.prefix(3)), countEstimate: limited.count)
     }
 
     private func editingSeedEvent() -> Event {
