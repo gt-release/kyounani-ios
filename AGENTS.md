@@ -18,8 +18,8 @@
 
 ## 2. 技術方針への対応
 - iPad / SwiftUI: **対応済み（最小）**
-  - SwiftUI画面に加えて、`Kyounani` iPadOS Appターゲット（`Kyounani.xcodeproj`）を追加。
-  - 既存Swift Packageをローカル参照し、アプリ起動でTodayホームに接続。
+  - SwiftUI画面に加えて、`Kyounani.swiftpm`（iPad Swift Playgrounds向けApp project）を追加。
+  - 既存Swift Packageをローカル参照し、起動直後にTodayホームへ接続。
 - 永続化Repository分離: **部分対応**
   - Repository抽象とInMemory実装あり。
   - SwiftData実装は未着手。
@@ -100,4 +100,4 @@
 2. 日別詳細と例外編集3択UI（この日だけ/以降/全体）。
 3. スタンプ管理（初期セット、取り込み、正方形トリミング、保存）。
 4. SwiftData Repository実装と移行。
-5. CI上でのiOSターゲットビルド検証（macOSランナーで `xcodebuild` 実行）。
+5. CI上でのSwift Package検証拡充（`swift test` / Playgrounds実行前提チェック）。

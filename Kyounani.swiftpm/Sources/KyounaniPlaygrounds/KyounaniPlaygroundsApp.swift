@@ -19,8 +19,7 @@ private struct PlaygroundsRootView: View {
     @State private var showingParentMode = false
 
     init() {
-        let holidayCSV = Self.loadHolidayCSV()
-        let holidayService = JapaneseHolidayService(csvText: holidayCSV)
+        let holidayService = JapaneseHolidayService.bundled()
         let repository = InMemoryEventRepository(events: Self.seedEvents(), exceptions: [])
         let engine = RecurrenceEngine(holidayService: holidayService)
         _repository = StateObject(wrappedValue: repository)
@@ -52,14 +51,6 @@ private struct PlaygroundsRootView: View {
             ParentModeView(repo: repository)
                 .environmentObject(appVM)
         }
-    }
-
-    private static func loadHolidayCSV() -> String {
-        guard let url = Bundle.module.url(forResource: "syukujitsu", withExtension: "csv"),
-              let csv = try? String(contentsOf: url, encoding: .utf8) else {
-            return ""
-        }
-        return csv
     }
 
     private static func seedEvents() -> [Event] {
