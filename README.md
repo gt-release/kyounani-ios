@@ -24,7 +24,7 @@
 - RecurrenceEngine（週次、祝日スキップ、override/delete/splitFromThisDate）
 - 親モード限定: 日別詳細の繰り返し予定に「この日だけ / 以降すべて / 全体」例外編集UIを実装
 - 例外由来シリーズを「全体」編集した際に重複予定が増えないよう保存先を補正
-- Repository層で永続化を抽象化（InMemory + SwiftData実装、Playgrounds起動時はSwiftData優先）
+- Repository層で永続化を抽象化（SwiftData優先 + FileBacked fallback + InMemory実装）
 - 単体テスト（祝日/繰り返し）
 
 ## 構成
@@ -48,6 +48,7 @@
 - Swift Playgrounds版（`Kyounani.swiftpm`）では、`SwiftDataEventRepository` を使用してイベント/スタンプを永続化します。
 - ユーザー追加スタンプ画像（PNG）は `Application Support/Kyounani/` 配下に保存されます。
 - 旧 `Application Support/Kyounani/stamps.json` が存在し、SwiftData側が空の場合のみ初回インポートします（旧ファイルは削除しません）。
+- SwiftDataが利用できない場合は `FileBackedEventRepository` にフォールバックし、`Application Support/Kyounani/*.json` にイベント/例外/スタンプを保持します。
 
 ## Swift Packageのローカル検証（任意）
 ```bash

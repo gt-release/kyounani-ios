@@ -13,10 +13,10 @@ public enum RepositoryFactory {
             let container = try ModelContainer(for: schema)
             return SwiftDataEventRepository(context: ModelContext(container))
         } catch {
-            return InMemoryEventRepository()
+            return FileBackedEventRepository()
         }
         #else
-        return InMemoryEventRepository()
+        return FileBackedEventRepository()
         #endif
     }
 }

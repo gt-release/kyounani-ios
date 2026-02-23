@@ -30,7 +30,7 @@
   - 既存Swift Packageをローカル参照し、起動直後にTodayホームへ接続。
 - 永続化Repository分離: **対応強化（SwiftData導入）**
   - Repository抽象 + InMemory実装を維持。
-  - `SwiftDataEventRepository` を追加し、`Kyounani.swiftpm` 起動時はSwiftData優先（失敗時はInMemoryフォールバック）。
+  - `SwiftDataEventRepository` を追加し、`Kyounani.swiftpm` 起動時はSwiftData優先（失敗時はFileBackedフォールバック、最終的にInMemory）。
   - Domain <-> Persistent変換はRepository内のmapperに集約。
 - ネットワーク不要: **対応済み**
 - 通知なし: **対応済み**
@@ -101,7 +101,7 @@
 ## 11. アーキテクチャ
 - MVVM: **対応済み（最小構成）**
 - カレンダー日次集約（最大2件+N）の共通化: **対応済み（ViewModel/Presenter）**
-- Repository分離: **対応済み（抽象＋InMemory）**
+- Repository分離: **対応済み（抽象＋SwiftData＋FileBacked＋InMemory）**
 - `JapaneseHolidayService` / `RecurrenceEngine`: **対応済み**
 - 日本タイムゾーン前提: **対応済み**
 
