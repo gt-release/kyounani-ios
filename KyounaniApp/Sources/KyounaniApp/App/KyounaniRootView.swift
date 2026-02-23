@@ -7,6 +7,8 @@ public struct KyounaniRootView: View {
     @StateObject private var repository: EventRepositoryBase
     @StateObject private var calendarVM: CalendarViewModel
     @StateObject private var stampStore: StampStore
+    @State private var showingGate = false
+    @State private var showingParentMode = false
 
     public init() {
         let holiday = JapaneseHolidayService.bundled()
@@ -20,22 +22,41 @@ public struct KyounaniRootView: View {
     public var body: some View {
         TabView {
             NavigationStack {
-                TodayHomeView(calendarVM: calendarVM, speechService: speech, repository: repository)
+                ZStack(alignment: .topTrailing) {
+                    TodayHomeView(calendarVM: calendarVM, speechService: speech, repository: repository)
+                    if appVM.parentModeUnlocked {
+                        Button("親モード") {
+                            showingParentMode = true
+                        }
+                        .font(.caption.bold())
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(.ultraThinMaterial, in: Capsule())
+                        .padding(.trailing, 12)
+                        .padding(.top, 8)
+                    } else {
+                        ParentalGateTriggerArea {
+                            showingGate = true
+                        }
+                        .frame(width: 56, height: 56)
+                        .contentShape(Rectangle())
+                        .padding(.trailing, 8)
+                        .padding(.top, 4)
+                    }
+                }
             }
             .tabItem { Label("Today", systemImage: "sun.max.fill") }
-
-            if appVM.parentModeUnlocked {
-                ParentModeView(repo: repository)
-                    .tabItem { Label("親", systemImage: "person.crop.circle.badge.checkmark") }
-            } else {
-                ParentalGateView()
-                    .tabItem { Label("解除", systemImage: "lock.fill") }
-            }
         }
         .environmentObject(appVM)
         .environmentObject(stampStore)
         .onReceive(repository.objectWillChange) { _ in
             stampStore.reload()
+        }
+        .sheet(isPresented: $showingGate) {
+            ParentalGateView()
+        }
+        .sheet(isPresented: $showingParentMode) {
+            ParentModeView(repo: repository)
         }
     }
 }

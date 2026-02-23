@@ -30,19 +30,12 @@ private struct PlaygroundsRootView: View {
 
     var body: some View {
         NavigationStack {
-            TodayHomeView(calendarVM: calendarVM, speechService: speechService, repository: repository)
-                .navigationTitle("きょうなに")
-                .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button(appVM.parentModeUnlocked ? "親モード" : "解除") {
-                            if appVM.parentModeUnlocked {
-                                showingParentMode = true
-                            } else {
-                                showingGate = true
-                            }
-                        }
-                    }
-                }
+            ZStack(alignment: .topTrailing) {
+                TodayHomeView(calendarVM: calendarVM, speechService: speechService, repository: repository)
+                    .navigationTitle("きょうなに")
+
+                gateEntryView
+            }
         }
         .environmentObject(appVM)
         .environmentObject(stampStore)
@@ -57,6 +50,31 @@ private struct PlaygroundsRootView: View {
             ParentModeView(repo: repository)
                 .environmentObject(appVM)
                 .environmentObject(stampStore)
+        }
+    }
+
+    @ViewBuilder
+    private var gateEntryView: some View {
+        if appVM.parentModeUnlocked {
+            Button("親モード") {
+                showingParentMode = true
+            }
+            .font(.caption.bold())
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(.ultraThinMaterial, in: Capsule())
+            .padding(.trailing, 12)
+            .padding(.top, 8)
+        } else {
+            ParentalGateTriggerArea {
+                showingGate = true
+            }
+            .frame(width: 56, height: 56)
+            .contentShape(Rectangle())
+            .padding(.trailing, 8)
+            .padding(.top, 4)
+            .accessibilityLabel("親モード解除ジェスチャー領域")
+            .accessibilityHint("右上で3本指で2秒長押しするとペアレンタルゲートが開きます")
         }
     }
 }
