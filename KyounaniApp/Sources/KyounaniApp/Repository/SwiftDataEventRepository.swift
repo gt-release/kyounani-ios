@@ -144,7 +144,7 @@ public final class SwiftDataEventRepository: EventRepositoryBase {
     public override func save(event: Event) {
         objectWillChange.send()
         let descriptor = FetchDescriptor<PersistentEventSeries>(predicate: #Predicate { $0.id == event.id })
-        if let existing = try? context.fetch(descriptor).first, let existing {
+        if let existing = (try? context.fetch(descriptor))?.first {
             existing.apply(event)
         } else {
             context.insert(PersistentEventSeries(event: event))
@@ -160,7 +160,7 @@ public final class SwiftDataEventRepository: EventRepositoryBase {
     public override func save(exception: EventException) {
         objectWillChange.send()
         let descriptor = FetchDescriptor<PersistentEventException>(predicate: #Predicate { $0.id == exception.id })
-        if let existing = try? context.fetch(descriptor).first, let existing {
+        if let existing = (try? context.fetch(descriptor))?.first {
             existing.apply(exception)
         } else {
             context.insert(PersistentEventException(exception: exception))
@@ -176,7 +176,7 @@ public final class SwiftDataEventRepository: EventRepositoryBase {
     public override func save(stamp: Stamp) {
         objectWillChange.send()
         let descriptor = FetchDescriptor<PersistentStamp>(predicate: #Predicate { $0.id == stamp.id })
-        if let existing = try? context.fetch(descriptor).first, let existing {
+        if let existing = (try? context.fetch(descriptor))?.first {
             existing.name = stamp.name
             existing.kindRaw = stamp.kind.rawValue
             existing.imageLocation = stamp.imageLocation
@@ -197,7 +197,7 @@ public final class SwiftDataEventRepository: EventRepositoryBase {
     public override func delete(eventID: UUID) {
         objectWillChange.send()
         let eventDescriptor = FetchDescriptor<PersistentEventSeries>(predicate: #Predicate { $0.id == eventID })
-        if let existing = try? context.fetch(eventDescriptor).first, let existing {
+        if let existing = (try? context.fetch(eventDescriptor))?.first {
             context.delete(existing)
         }
 
@@ -215,7 +215,7 @@ public final class SwiftDataEventRepository: EventRepositoryBase {
     public override func delete(stampID: UUID) {
         objectWillChange.send()
         let descriptor = FetchDescriptor<PersistentStamp>(predicate: #Predicate { $0.id == stampID })
-        if let existing = try? context.fetch(descriptor).first, let existing {
+        if let existing = (try? context.fetch(descriptor))?.first {
             context.delete(existing)
             do {
                 try context.save()

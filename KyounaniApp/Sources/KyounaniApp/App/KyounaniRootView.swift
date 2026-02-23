@@ -61,8 +61,8 @@ public struct KyounaniRootView: View {
         .onReceive(repository.objectWillChange) { _ in
             stampStore.reload()
         }
-        .onChange(of: appVM.parentModeUnlocked) { unlocked in
-            if !unlocked {
+        .onChange(of: appVM.parentModeUnlocked) {
+            if !appVM.parentModeUnlocked {
                 showingParentMode = false
             }
         }
