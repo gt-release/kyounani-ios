@@ -102,8 +102,7 @@ public final class StampStore: ObservableObject {
             return nil
         }
 
-        let baseName = (suggestedFilename?.isEmpty == false ? suggestedFilename! : UUID().uuidString)
-            .replacingOccurrences(of: ".png", with: "")
+        let baseName = sanitizedBaseFilename(from: suggestedFilename)
         let filename = "\(baseName).png"
         let url = userImageURL(filename: filename)
 
@@ -233,7 +232,28 @@ public final class StampStore: ObservableObject {
     }
 
     private func userImageURL(filename: String) -> URL {
-        appSupportDirectory().appendingPathComponent(filename)
+        appSupportDirectory().appendingPathComponent(sanitizedFilename(filename))
+    }
+
+    private func sanitizedBaseFilename(from suggestedFilename: String?) -> String {
+        let fallback = UUID().uuidString
+        guard let suggestedFilename,
+              !suggestedFilename.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return fallback
+        }
+
+        let withoutExtension = (suggestedFilename as NSString).deletingPathExtension
+        let safe = sanitizedFilename(withoutExtension)
+        return safe.isEmpty ? fallback : safe
+    }
+
+    private func sanitizedFilename(_ filename: String) -> String {
+        let leaf = URL(fileURLWithPath: filename).lastPathComponent
+        let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-_"))
+        let sanitizedScalars = leaf.unicodeScalars.map { allowed.contains($0) ? Character($0) : "_" }
+        let sanitized = String(sanitizedScalars)
+            .trimmingCharacters(in: CharacterSet(charactersIn: "._"))
+        return sanitized.isEmpty ? UUID().uuidString : sanitized
     }
 }
 

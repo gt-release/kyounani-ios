@@ -1,0 +1,16 @@
+name: swift-test
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  swift-test:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run swift test (KyounaniApp)
+        run: |
+          cd KyounaniApp
+          swift test
