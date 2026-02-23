@@ -6,12 +6,6 @@ import SwiftUI
 import UIKit
 #endif
 
-private struct PersistedStamp: Codable {
-    var id: UUID
-    var name: String
-    var imageFilename: String
-}
-
 private struct BuiltinStampDefinition: Codable {
     var id: UUID
     var name: String
@@ -21,6 +15,8 @@ private struct BuiltinStampDefinition: Codable {
 @MainActor
 public final class StampStore: ObservableObject {
     @Published public private(set) var stamps: [Stamp] = []
+
+    private let repository: EventRepositoryBase
 
     private static let fallbackBuiltinDefinitions: [BuiltinStampDefinition] = [
         .init(id: UUID(uuidString: "11111111-1111-1111-1111-111111111111")!, name: "ようちえん", symbolName: "figure.and.child.holdinghands"),
@@ -48,17 +44,19 @@ public final class StampStore: ObservableObject {
         Self.fallbackBuiltinDefinitions.first?.id ?? UUID(uuidString: "11111111-1111-1111-1111-111111111111")!
     }
 
-    public init() {
+    public init(repository: EventRepositoryBase) {
+        self.repository = repository
         reload()
+        seedBuiltinIfMissing()
     }
 
     public func stamp(for id: UUID) -> Stamp {
-        stamps.first(where: { $0.id == id }) ?? Stamp(id: defaultStampId, name: "デフォルト", kind: .builtin, imageLocation: "symbol:questionmark.circle.fill")
+        stamps.first(where: { $0.id == id }) ?? Stamp(id: defaultStampId, name: "デフォルト", kind: .systemSymbol, imageLocation: "symbol:questionmark.circle.fill", isBuiltin: true)
     }
 
     public func image(for stamp: Stamp) -> Image? {
         switch stamp.kind {
-        case .builtin:
+        case .systemSymbol:
             if stamp.imageLocation.hasPrefix("symbol:") {
                 let symbolName = String(stamp.imageLocation.dropFirst("symbol:".count))
                 return Image(systemName: symbolName)
@@ -69,7 +67,7 @@ public final class StampStore: ObservableObject {
                 return Image(systemName: symbolName)
             }
             return Image(systemName: "questionmark.circle.fill")
-        case .user:
+        case .customImage:
             return imageFromURL(url: userImageURL(filename: stamp.imageLocation))
         }
     }
@@ -80,11 +78,12 @@ public final class StampStore: ObservableObject {
     }
 
     public func reload() {
-        let definitions = loadBuiltinDefinitions()
-        let builtin = definitions.map {
-            Stamp(id: $0.id, name: $0.name, kind: .builtin, imageLocation: "symbol:\($0.symbolName)")
+        stamps = repository.fetchStamps().sorted { lhs, rhs in
+            if lhs.isBuiltin != rhs.isBuiltin {
+                return lhs.isBuiltin && !rhs.isBuiltin
+            }
+            return lhs.name < rhs.name
         }
-        stamps = builtin + loadUserStamps()
     }
 
     @discardableResult
@@ -103,9 +102,7 @@ public final class StampStore: ObservableObject {
         do {
             try ensureAppSupportDirectory()
             try pngData.write(to: url, options: .atomic)
-            var userStamps = loadPersistedUserStamps()
-            userStamps.append(PersistedStamp(id: id, name: name, imageFilename: filename))
-            try savePersistedUserStamps(userStamps)
+            repository.save(stamp: Stamp(id: id, name: name, kind: .customImage, imageLocation: filename, isBuiltin: false))
             reload()
             return true
         } catch {
@@ -118,13 +115,11 @@ public final class StampStore: ObservableObject {
 
     @discardableResult
     public func deleteUserStamp(id: UUID) -> Bool {
-        var userStamps = loadPersistedUserStamps()
-        guard let index = userStamps.firstIndex(where: { $0.id == id }) else { return false }
-        let removed = userStamps.remove(at: index)
+        guard let stamp = stamps.first(where: { $0.id == id }), !stamp.isBuiltin else { return false }
 
         do {
-            try savePersistedUserStamps(userStamps)
-            let imageURL = userImageURL(filename: removed.imageFilename)
+            repository.delete(stampID: id)
+            let imageURL = userImageURL(filename: stamp.imageLocation)
             if FileManager.default.fileExists(atPath: imageURL.path) {
                 try FileManager.default.removeItem(at: imageURL)
             }
@@ -133,6 +128,15 @@ public final class StampStore: ObservableObject {
         } catch {
             return false
         }
+    }
+
+    private func seedBuiltinIfMissing() {
+        guard repository.fetchStamps().isEmpty else { return }
+        let definitions = loadBuiltinDefinitions()
+        for definition in definitions {
+            repository.save(stamp: Stamp(id: definition.id, name: definition.name, kind: .systemSymbol, imageLocation: "symbol:\(definition.symbolName)", isBuiltin: true))
+        }
+        reload()
     }
 
     private func loadBuiltinDefinitions() -> [BuiltinStampDefinition] {
@@ -171,30 +175,8 @@ public final class StampStore: ObservableObject {
         return base.appendingPathComponent("Kyounani", isDirectory: true)
     }
 
-    private func jsonURL() -> URL {
-        appSupportDirectory().appendingPathComponent("stamps.json")
-    }
-
     private func userImageURL(filename: String) -> URL {
         appSupportDirectory().appendingPathComponent(filename)
-    }
-
-    private func loadUserStamps() -> [Stamp] {
-        loadPersistedUserStamps().map {
-            Stamp(id: $0.id, name: $0.name, kind: .user, imageLocation: $0.imageFilename)
-        }
-    }
-
-    private func loadPersistedUserStamps() -> [PersistedStamp] {
-        let url = jsonURL()
-        guard let data = try? Data(contentsOf: url) else { return [] }
-        return (try? JSONDecoder().decode([PersistedStamp].self, from: data)) ?? []
-    }
-
-    private func savePersistedUserStamps(_ stamps: [PersistedStamp]) throws {
-        try ensureAppSupportDirectory()
-        let data = try JSONEncoder().encode(stamps)
-        try data.write(to: jsonURL(), options: .atomic)
     }
 }
 

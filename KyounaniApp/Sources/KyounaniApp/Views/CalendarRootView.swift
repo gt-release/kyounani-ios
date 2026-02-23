@@ -8,9 +8,9 @@ public struct CalendarRootView: View {
 
     @ObservedObject var calendarVM: CalendarViewModel
     @ObservedObject var speechService: SpeechService
-    @ObservedObject var repository: InMemoryEventRepository
+    @ObservedObject var repository: EventRepositoryBase
 
-    public init(calendarVM: CalendarViewModel, speechService: SpeechService, repository: InMemoryEventRepository) {
+    public init(calendarVM: CalendarViewModel, speechService: SpeechService, repository: EventRepositoryBase) {
         self.calendarVM = calendarVM
         self.speechService = speechService
         self.repository = repository

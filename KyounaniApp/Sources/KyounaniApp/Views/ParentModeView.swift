@@ -9,7 +9,7 @@ import PhotosUI
 public struct ParentModeView: View {
     @EnvironmentObject private var appVM: AppViewModel
     @EnvironmentObject private var stampStore: StampStore
-    @ObservedObject var repo: InMemoryEventRepository
+    @ObservedObject var repo: EventRepositoryBase
 
     @State private var showingFileImporter = false
     #if canImport(PhotosUI)
@@ -17,7 +17,7 @@ public struct ParentModeView: View {
     #endif
     @State private var newStampName = ""
 
-    public init(repo: InMemoryEventRepository) {
+    public init(repo: EventRepositoryBase) {
         self.repo = repo
     }
 
@@ -62,7 +62,7 @@ public struct ParentModeView: View {
 
                             VStack(alignment: .leading) {
                                 Text(stamp.name)
-                                Text(stamp.kind == .builtin ? "builtin" : "user")
+                                Text(stamp.kind == .systemSymbol ? "builtin" : "user")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
@@ -128,7 +128,7 @@ public struct ParentModeView: View {
         let targetIDs = indexSet.compactMap { index -> UUID? in
             guard stampStore.stamps.indices.contains(index) else { return nil }
             let stamp = stampStore.stamps[index]
-            return stamp.kind == .user ? stamp.id : nil
+            return stamp.kind == .customImage ? stamp.id : nil
         }
 
         for id in targetIDs {

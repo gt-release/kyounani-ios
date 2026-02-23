@@ -28,9 +28,10 @@
 - iPad / SwiftUI: **対応済み（最小）**
   - SwiftUI画面に加えて、`Kyounani.swiftpm`（iPad Swift Playgrounds向けApp project）を追加。
   - 既存Swift Packageをローカル参照し、起動直後にTodayホームへ接続。
-- 永続化Repository分離: **部分対応**
-  - Repository抽象とInMemory実装あり。
-  - SwiftData実装は未着手。
+- 永続化Repository分離: **対応強化（SwiftData導入）**
+  - Repository抽象 + InMemory実装を維持。
+  - `SwiftDataEventRepository` を追加し、`Kyounani.swiftpm` 起動時はSwiftData優先（失敗時はInMemoryフォールバック）。
+  - Domain <-> Persistent変換はRepository内のmapperに集約。
 - ネットワーク不要: **対応済み**
 - 通知なし: **対応済み**
 
@@ -91,6 +92,9 @@
   - `EventTokenRenderer` に描画責務を集約。
 
 ## 10. 保存/バックアップ
+- ローカル永続化（SwiftData）: **対応済み（最小）**
+  - イベント/例外/スタンプをSwiftDataに保存し、再起動後も保持。
+  - 旧 `stamps.json` はSwiftData空時のみ初回インポート。
 - iCloud同期なし: **対応済み（未実装）**
 - 暗号化エクスポート: **未対応**
 

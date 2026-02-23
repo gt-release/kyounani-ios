@@ -12,7 +12,7 @@
 - 初期スタンプ同梱（Kyounani.swiftpm Resources/Stamps/builtin_stamps.json）
 - 親モードでスタンプ追加（Files / Photos, センター正方形クロップ, PNG保存）
 - Files取り込み時にsecurity-scoped resourceへ対応（iCloud Drive等でも読み込み可能化）
-- スタンプ一覧永続化（Application Support/stamps.json）
+- イベント/スタンプ永続化（SwiftData Repository, 起動後も保持）
 - バイナリ非対応PRツール向けに、初期スタンプはJSON+SF Symbolsで同梱
 - `KyounaniApp` 側にも同じ`builtin_stamps.json`を配置し、Bundle解決を安定化
 - 旧`builtin:<name>`形式も互換表示し、段階移行時の欠けを防止
@@ -24,7 +24,7 @@
 - RecurrenceEngine（週次、祝日スキップ、override/delete/splitFromThisDate）
 - 親モード限定: 日別詳細の繰り返し予定に「この日だけ / 以降すべて / 全体」例外編集UIを実装
 - 例外由来シリーズを「全体」編集した際に重複予定が増えないよう保存先を補正
-- Repository層で永続化を抽象化（InMemory実装）
+- Repository層で永続化を抽象化（InMemory + SwiftData実装、Playgrounds起動時はSwiftData優先）
 - 単体テスト（祝日/繰り返し）
 
 ## 構成
@@ -43,6 +43,11 @@
 3. Run を押す。
 
 起動直後に子ども向け Today ホームが表示され、カレンダー画面へ遷移できます。
+
+### データ保存場所（SwiftData）
+- Swift Playgrounds版（`Kyounani.swiftpm`）では、`SwiftDataEventRepository` を使用してイベント/スタンプを永続化します。
+- ユーザー追加スタンプ画像（PNG）は `Application Support/Kyounani/` 配下に保存されます。
+- 旧 `Application Support/Kyounani/stamps.json` が存在し、SwiftData側が空の場合のみ初回インポートします（旧ファイルは削除しません）。
 
 ## Swift Packageのローカル検証（任意）
 ```bash
@@ -66,7 +71,6 @@ GitHubアプリ/クライアントで「リクエストに問題があります 
 - 最低限 `README.md` と `AGENTS.md` の該当箇所更新を必須とします。
 
 ## 今後の拡張
-- SwiftData Repository実装の追加
 - 例外編集UIの拡張（delete導線や入力項目拡充）
-- イベント永続化（SwiftData or JSON）
+- SwiftDataスキーマのマイグレーション運用強化
 - 暗号化エクスポート（CryptoKit AES-GCM）

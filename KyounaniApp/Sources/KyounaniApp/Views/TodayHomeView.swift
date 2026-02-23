@@ -5,10 +5,10 @@ public struct TodayHomeView: View {
     @EnvironmentObject private var appVM: AppViewModel
     @ObservedObject var calendarVM: CalendarViewModel
     @ObservedObject var speechService: SpeechService
-    @ObservedObject var repository: InMemoryEventRepository
+    @ObservedObject var repository: EventRepositoryBase
     @State private var selectedOccurrence: EventOccurrence?
 
-    public init(calendarVM: CalendarViewModel, speechService: SpeechService, repository: InMemoryEventRepository) {
+    public init(calendarVM: CalendarViewModel, speechService: SpeechService, repository: EventRepositoryBase) {
         self.calendarVM = calendarVM
         self.speechService = speechService
         self.repository = repository

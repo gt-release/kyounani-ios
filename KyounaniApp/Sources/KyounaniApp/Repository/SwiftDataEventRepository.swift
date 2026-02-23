@@ -1,0 +1,320 @@
+#if canImport(SwiftData) && canImport(SwiftUI)
+import Foundation
+import SwiftData
+
+@Model
+final class PersistentStamp {
+    @Attribute(.unique) var id: UUID
+    var name: String
+    var kindRaw: String
+    var imageLocation: String
+    var isBuiltin: Bool
+
+    init(id: UUID, name: String, kindRaw: String, imageLocation: String, isBuiltin: Bool) {
+        self.id = id
+        self.name = name
+        self.kindRaw = kindRaw
+        self.imageLocation = imageLocation
+        self.isBuiltin = isBuiltin
+    }
+}
+
+@Model
+final class PersistentEventSeries {
+    @Attribute(.unique) var id: UUID
+    var title: String
+    var stampId: UUID
+    var childScopeRaw: String
+    var visibilityRaw: String
+    var isAllDay: Bool
+    var startDateTime: Date
+    var durationMinutes: Int?
+    var createdAt: Date
+    var updatedAt: Date
+
+    var recurrenceStartDate: Date?
+    var recurrenceEndDate: Date?
+    var recurrenceWeekdays: [Int]
+    var recurrenceSkipHolidays: Bool
+
+    init(event: Event) {
+        id = event.id
+        title = event.title
+        stampId = event.stampId
+        childScopeRaw = event.childScope.rawValue
+        visibilityRaw = event.visibility.rawValue
+        isAllDay = event.isAllDay
+        startDateTime = event.startDateTime
+        durationMinutes = event.durationMinutes
+        createdAt = event.createdAt
+        updatedAt = event.updatedAt
+        recurrenceStartDate = event.recurrenceRule?.startDate
+        recurrenceEndDate = event.recurrenceRule?.endDate
+        recurrenceWeekdays = event.recurrenceRule.map { Array($0.weekdays).sorted() } ?? []
+        recurrenceSkipHolidays = event.recurrenceRule?.skipHolidays ?? false
+    }
+
+    func apply(_ event: Event) {
+        title = event.title
+        stampId = event.stampId
+        childScopeRaw = event.childScope.rawValue
+        visibilityRaw = event.visibility.rawValue
+        isAllDay = event.isAllDay
+        startDateTime = event.startDateTime
+        durationMinutes = event.durationMinutes
+        createdAt = event.createdAt
+        updatedAt = event.updatedAt
+        recurrenceStartDate = event.recurrenceRule?.startDate
+        recurrenceEndDate = event.recurrenceRule?.endDate
+        recurrenceWeekdays = event.recurrenceRule.map { Array($0.weekdays).sorted() } ?? []
+        recurrenceSkipHolidays = event.recurrenceRule?.skipHolidays ?? false
+    }
+}
+
+@Model
+final class PersistentEventException {
+    @Attribute(.unique) var id: UUID
+    var eventId: UUID
+    var occurrenceDate: Date
+    var kindRaw: String
+    var overrideEventData: Data?
+    var splitRuleData: Data?
+
+    init(exception: EventException) {
+        id = exception.id
+        eventId = exception.eventId
+        occurrenceDate = exception.occurrenceDate
+        kindRaw = exception.kind.rawValue
+        let encoder = JSONEncoder()
+        overrideEventData = try? encoder.encode(exception.overrideEvent)
+        splitRuleData = try? encoder.encode(exception.splitRule)
+    }
+
+    func apply(_ exception: EventException) {
+        eventId = exception.eventId
+        occurrenceDate = exception.occurrenceDate
+        kindRaw = exception.kind.rawValue
+        let encoder = JSONEncoder()
+        overrideEventData = try? encoder.encode(exception.overrideEvent)
+        splitRuleData = try? encoder.encode(exception.splitRule)
+    }
+}
+
+private struct BuiltinStampDefinition: Codable {
+    var id: UUID
+    var name: String
+    var symbolName: String
+}
+
+private struct LegacyPersistedStamp: Codable {
+    var id: UUID
+    var name: String
+    var imageFilename: String
+}
+
+@MainActor
+public final class SwiftDataEventRepository: EventRepositoryBase {
+    private let context: ModelContext
+    private let seedVersionKey = "kyounani.seed.version"
+    private let seedVersion = 1
+
+    public init(context: ModelContext) {
+        self.context = context
+        super.init()
+        migrateLegacyUserStampsIfNeeded()
+        seedBuiltinStampsIfNeeded()
+    }
+
+    public override func fetchEvents() -> [Event] {
+        let descriptor = FetchDescriptor<PersistentEventSeries>(sortBy: [SortDescriptor(\.startDateTime)])
+        let rows = (try? context.fetch(descriptor)) ?? []
+        return rows.map(mapEvent)
+    }
+
+    public override func fetchExceptions() -> [EventException] {
+        let descriptor = FetchDescriptor<PersistentEventException>(sortBy: [SortDescriptor(\.occurrenceDate)])
+        let rows = (try? context.fetch(descriptor)) ?? []
+        return rows.map(mapException)
+    }
+
+    public override func fetchStamps() -> [Stamp] {
+        let descriptor = FetchDescriptor<PersistentStamp>(sortBy: [SortDescriptor(\.name)])
+        let rows = (try? context.fetch(descriptor)) ?? []
+        return rows.map(mapStamp)
+    }
+
+    public override func save(event: Event) {
+        objectWillChange.send()
+        let descriptor = FetchDescriptor<PersistentEventSeries>(predicate: #Predicate { $0.id == event.id })
+        if let existing = try? context.fetch(descriptor).first, let existing {
+            existing.apply(event)
+        } else {
+            context.insert(PersistentEventSeries(event: event))
+        }
+        try? context.save()
+    }
+
+    public override func save(exception: EventException) {
+        objectWillChange.send()
+        let descriptor = FetchDescriptor<PersistentEventException>(predicate: #Predicate { $0.id == exception.id })
+        if let existing = try? context.fetch(descriptor).first, let existing {
+            existing.apply(exception)
+        } else {
+            context.insert(PersistentEventException(exception: exception))
+        }
+        try? context.save()
+    }
+
+    public override func save(stamp: Stamp) {
+        objectWillChange.send()
+        let descriptor = FetchDescriptor<PersistentStamp>(predicate: #Predicate { $0.id == stamp.id })
+        if let existing = try? context.fetch(descriptor).first, let existing {
+            existing.name = stamp.name
+            existing.kindRaw = stamp.kind.rawValue
+            existing.imageLocation = stamp.imageLocation
+            existing.isBuiltin = stamp.isBuiltin
+        } else {
+            context.insert(PersistentStamp(id: stamp.id, name: stamp.name, kindRaw: stamp.kind.rawValue, imageLocation: stamp.imageLocation, isBuiltin: stamp.isBuiltin))
+        }
+        try? context.save()
+    }
+
+    public override func delete(eventID: UUID) {
+        objectWillChange.send()
+        let eventDescriptor = FetchDescriptor<PersistentEventSeries>(predicate: #Predicate { $0.id == eventID })
+        if let existing = try? context.fetch(eventDescriptor).first, let existing {
+            context.delete(existing)
+        }
+
+        let exceptionDescriptor = FetchDescriptor<PersistentEventException>(predicate: #Predicate { $0.eventId == eventID })
+        let exceptions = (try? context.fetch(exceptionDescriptor)) ?? []
+        for row in exceptions { context.delete(row) }
+        try? context.save()
+    }
+
+    public override func delete(stampID: UUID) {
+        objectWillChange.send()
+        let descriptor = FetchDescriptor<PersistentStamp>(predicate: #Predicate { $0.id == stampID })
+        if let existing = try? context.fetch(descriptor).first, let existing {
+            context.delete(existing)
+            try? context.save()
+        }
+    }
+
+    private func seedBuiltinStampsIfNeeded() {
+        guard UserDefaults.standard.integer(forKey: seedVersionKey) < seedVersion else { return }
+        for definition in loadBuiltinDefinitions() {
+            let descriptor = FetchDescriptor<PersistentStamp>(predicate: #Predicate { $0.id == definition.id })
+            let exists = ((try? context.fetch(descriptor)) ?? []).isEmpty == false
+            guard !exists else { continue }
+            context.insert(PersistentStamp(
+                id: definition.id,
+                name: definition.name,
+                kindRaw: StampKind.systemSymbol.rawValue,
+                imageLocation: "symbol:\(definition.symbolName)",
+                isBuiltin: true
+            ))
+        }
+        try? context.save()
+        UserDefaults.standard.set(seedVersion, forKey: seedVersionKey)
+    }
+
+    private func migrateLegacyUserStampsIfNeeded() {
+        let existing = (try? context.fetchCount(FetchDescriptor<PersistentStamp>())) ?? 0
+        guard existing == 0 else { return }
+
+        let legacy = loadLegacyPersistedStamps()
+        guard !legacy.isEmpty else { return }
+
+        for stamp in legacy {
+            context.insert(PersistentStamp(
+                id: stamp.id,
+                name: stamp.name,
+                kindRaw: StampKind.customImage.rawValue,
+                imageLocation: stamp.imageFilename,
+                isBuiltin: false
+            ))
+        }
+        try? context.save()
+    }
+
+    private func loadBuiltinDefinitions() -> [BuiltinStampDefinition] {
+        let bundles: [Bundle] = [Bundle.module, .main]
+        for bundle in bundles {
+            guard let url = bundle.url(forResource: "builtin_stamps", withExtension: "json", subdirectory: "Stamps"),
+                  let data = try? Data(contentsOf: url),
+                  let definitions = try? JSONDecoder().decode([BuiltinStampDefinition].self, from: data),
+                  !definitions.isEmpty else {
+                continue
+            }
+            return definitions
+        }
+        return []
+    }
+
+    private func loadLegacyPersistedStamps() -> [LegacyPersistedStamp] {
+        let url = appSupportDirectory().appendingPathComponent("stamps.json")
+        guard let data = try? Data(contentsOf: url) else { return [] }
+        return (try? JSONDecoder().decode([LegacyPersistedStamp].self, from: data)) ?? []
+    }
+
+    private func appSupportDirectory() -> URL {
+        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+            ?? FileManager.default.temporaryDirectory
+        return base.appendingPathComponent("Kyounani", isDirectory: true)
+    }
+
+    private func mapStamp(_ row: PersistentStamp) -> Stamp {
+        Stamp(
+            id: row.id,
+            name: row.name,
+            kind: StampKind(rawValue: row.kindRaw) ?? .systemSymbol,
+            imageLocation: row.imageLocation,
+            isBuiltin: row.isBuiltin
+        )
+    }
+
+    private func mapEvent(_ row: PersistentEventSeries) -> Event {
+        let rule: WeeklyRecurrenceRule?
+        if let recurrenceStartDate = row.recurrenceStartDate {
+            rule = WeeklyRecurrenceRule(
+                startDate: recurrenceStartDate,
+                endDate: row.recurrenceEndDate,
+                weekdays: Set(row.recurrenceWeekdays),
+                skipHolidays: row.recurrenceSkipHolidays
+            )
+        } else {
+            rule = nil
+        }
+
+        return Event(
+            id: row.id,
+            title: row.title,
+            stampId: row.stampId,
+            childScope: ChildScope(rawValue: row.childScopeRaw) ?? .both,
+            visibility: Visibility(rawValue: row.visibilityRaw) ?? .published,
+            isAllDay: row.isAllDay,
+            startDateTime: row.startDateTime,
+            durationMinutes: row.durationMinutes,
+            recurrenceRule: rule,
+            createdAt: row.createdAt,
+            updatedAt: row.updatedAt
+        )
+    }
+
+    private func mapException(_ row: PersistentEventException) -> EventException {
+        let decoder = JSONDecoder()
+        let overrideEvent = row.overrideEventData.flatMap { try? decoder.decode(Event.self, from: $0) }
+        let splitRule = row.splitRuleData.flatMap { try? decoder.decode(WeeklyRecurrenceRule.self, from: $0) }
+        return EventException(
+            id: row.id,
+            eventId: row.eventId,
+            occurrenceDate: row.occurrenceDate,
+            kind: ExceptionKind(rawValue: row.kindRaw) ?? .override,
+            overrideEvent: overrideEvent,
+            splitRule: splitRule
+        )
+    }
+}
+
+#endif
