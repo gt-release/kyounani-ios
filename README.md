@@ -13,8 +13,8 @@
 - 単体テスト（祝日/繰り返し）
 
 ## 構成
-- `Kyounani.xcodeproj` : iOS/iPadOS Appターゲット（`Kyounani`）
-- `Kyounani-iOS/Kyounani` : Appエントリポイント（`KyounaniRootView` を起動）
+- `Kyounani.swiftpm` : iPad Swift Playgrounds で実行する App project（Phase 1 実行入口）
+- `KyounaniApp` : ドメイン・サービス・View群の再利用Swift Package
 - `KyounaniApp/Sources/KyounaniApp/Models` : ドメインモデル
 - `KyounaniApp/Sources/KyounaniApp/Services` : 祝日・繰り返し・音声
 - `KyounaniApp/Sources/KyounaniApp/Repository` : Repository抽象
@@ -22,25 +22,17 @@
 - `KyounaniApp/Sources/KyounaniApp/Views` : SwiftUI画面
 - `KyounaniApp/Tests/KyounaniAppTests` : 単体テスト
 
-## 開き方 / 実行方法
+## 実行方法（Mac / Xcode不要）
+1. iPad の Files か Working Copy でこのリポジトリを取得する。
+2. Swift Playgrounds で `Kyounani.swiftpm` を開く。
+3. Run を押す。
 
-### XcodeでiPadアプリとして実行
-1. Xcodeで `Kyounani.xcodeproj` を開く。
-2. Schemeで `Kyounani` を選ぶ。
-3. 実行先を iPad Simulator または実機 iPad に設定する。
-4. `Run`（⌘R）で起動する。
+起動直後に子ども向け Today ホームが表示されます。
 
-アプリ起動後は、Swift Packageで実装済みの `KyounaniRootView` が表示され、Todayホームから開始します。
-
-### Swift Packageのローカル検証
+## Swift Packageのローカル検証（任意）
 ```bash
 cd KyounaniApp
 swift test
-```
-
-### iOS Appターゲットのビルド検証（Xcode環境）
-```bash
-xcodebuild -project Kyounani.xcodeproj -scheme Kyounani -destination "generic/platform=iOS" build
 ```
 
 ## 今後の拡張

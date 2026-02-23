@@ -23,10 +23,20 @@ public final class JapaneseHolidayService: HolidayService {
     }
 
     public static func bundled() -> JapaneseHolidayService {
-        let bundle = Bundle.module
-        let url = bundle.url(forResource: "syukujitsu_sample", withExtension: "csv")
-        let csv = (try? url.flatMap { try String(contentsOf: $0) }) ?? ""
-        return JapaneseHolidayService(csvText: csv)
+        let candidateBundles: [Bundle] = [Bundle.module, .main]
+        let candidateNames = ["syukujitsu", "syukujitsu_sample"]
+
+        for bundle in candidateBundles {
+            for name in candidateNames {
+                guard let url = bundle.url(forResource: name, withExtension: "csv"),
+                      let csv = try? String(contentsOf: url) else {
+                    continue
+                }
+                return JapaneseHolidayService(csvText: csv)
+            }
+        }
+
+        return JapaneseHolidayService(csvText: "")
     }
 
     public func holidayName(on date: Date) -> String? {
