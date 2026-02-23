@@ -131,17 +131,17 @@ public struct ParentModeView: View {
                 }
             }
             .sheet(isPresented: $creatingEvent) {
-                EventEditorView(mode: .create, initialEvent: draftEvent()) { event in
+                EventEditorView(mode: .create, initialEvent: draftEvent(), onSave: { event in
                     repo.save(event: event)
-                }
+                })
                 .environmentObject(stampStore)
             }
             .sheet(item: $editingEvent) { event in
-                EventEditorView(mode: .edit, initialEvent: event) { updated in
+                EventEditorView(mode: .edit, initialEvent: event, onSave: { updated in
                     repo.save(event: updated)
-                } onDelete: {
+                }, onDelete: {
                     repo.delete(eventID: event.id)
-                }
+                })
                 .environmentObject(stampStore)
             }
         }
