@@ -7,6 +7,7 @@
 - Today / Calendar の常設2タブ導線
 - 月/週カレンダー、日別詳細、予定タップ時の日本語TTS + TimerRing
 - 親モードでイベントCRUD、繰り返し例外編集（この日だけ / 以降 / 全体）
+- 親モード Diagnostics（Repository種別 / lastError / セルフテスト）
 - スタンプ管理（初期スタンプ + Files/Photos 追加）
 - ローカル保存（SwiftData優先、障害時のみFileBacked保険）と暗号化バックアップ（`.kybk`）
 
@@ -32,6 +33,11 @@
 - **現行形式のみ対応**（旧形式バックアップの復元は非対応）。
 - 復元は上書き方式。復号/デコード失敗時は既存データ無変更。
 
+### Diagnostics（親向け診断）
+- 親モードの Diagnostics で、現在有効なRepository（SwiftData / FileBacked / InMemory）と `lastError` を確認可能。
+- セルフテストで、祝日CSV読込 / RecurrenceEngine生成 / バックアップround-trip（メモリ上）を実行。
+- 失敗時は赤バナー表示で気づける（子どもモードには表示しない）。
+
 ### データリセット（互換削除後の運用）
 - 親モードの「データを全削除（リセット）」で、予定/例外/スタンプを全削除。
 - 追加したカスタム画像（PNG）も同時に削除。
@@ -53,7 +59,7 @@
 - `Kyounani.swiftpm`: iPad Swift Playgrounds向け App project（実行入口）
 - `KyounaniApp`: ドメイン/サービス/UIを提供する再利用Swift Package
 - `KyounaniApp/Tests/KyounaniAppTests`: 単体テスト
-- CIはGitHub Actionsで `swift:5.9` コンテナ上から `KyounaniApp` の `swift test` を実行（runnerは `ubuntu-latest`）。
+- CIはGitHub Actionsで `macos-latest` 上から `KyounaniApp` の `swift test` を実行（SwiftPMテストのみ、xcodebuild不使用）。
 
 ## ドキュメント一覧
 - [CODE_REVIEW.md](CODE_REVIEW.md)

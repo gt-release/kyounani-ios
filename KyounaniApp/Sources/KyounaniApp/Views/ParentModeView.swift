@@ -64,6 +64,12 @@ public struct ParentModeView: View {
                     }
                 }
 
+                Section("診断") {
+                    NavigationLink("Diagnostics") {
+                        DiagnosticsView(repo: repo)
+                    }
+                }
+
                 Section("クイック追加") {
                     quickButton("幼稚園", stampId: stampStore.defaultStampId)
                     quickButton("病院", stampId: UUID(uuidString: "22222222-2222-2222-2222-222222222222") ?? stampStore.defaultStampId)

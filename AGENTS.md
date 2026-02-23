@@ -78,11 +78,14 @@
 - 日別詳細 + TimerOverlay: **部分対応**
   - 日別詳細一覧を追加。
   - 予定タップで既存TTS + TimerRing表示へ接続。
-- 親モードCRUD/繰り返し例外UI/スタンプ管理/テンプレ: **対応強化（前進）**
+- 親モードCRUD/繰り返し例外UI/スタンプ管理/診断: **対応強化（前進）**
   - イベントの本格CRUD（新規作成 / 一覧タップ編集 / 削除）を実装。
   - `EventEditorView` で title / stamp / childScope / visibility / isAllDay / startDateTime / durationMinutes / recurrenceRule(週次) を編集可能。
   - 日別詳細で繰り返し予定の例外編集3択UI（この日だけ/以降/全体）を維持し、各選択肢に影響範囲の説明を表示。分岐後の編集画面として `EventEditorView` を再利用。
   - `EventEditorView` のスタンプ選択UXを拡張（最近使ったセクション / 検索 / 並び替え[最近順・名前順]）。
+  - Diagnostics画面を追加し、有効Repository種別・lastError・バックアップ仕様（formatVersion=2 / PBKDF2-HMAC-SHA256 / AES-GCM）を表示。
+  - Diagnosticsのセルフテストで、祝日CSV読込 / RecurrenceEngineの次3回生成 / バックアップround-trip（メモリ上）を実行可能。
+  - セルフテスト失敗時は親モード内で赤バナー表示（子どもモードには非表示）。
 
 ## 6. 祝日（日本オフライン）
 
@@ -139,6 +142,7 @@
   - 出力形式は `kyounani-backup.kybk`（1ファイル）。
   - 中身は formatVersion=2（PBKDF2-HMAC-SHA256 + AES-GCM）で暗号化し、平文JSONには stamps/events/exceptions と customImage(Base64) を含める。
   - 復元は上書き方式（既存データを置換）で、復元前に件数サマリを確認可能。
+  - 旧形式バックアップの復元は非対応（formatVersion=2のみ）。
   - 親モードに「データを全削除（リセット）」を追加し、SwiftData/保険Repositoryデータ + customImageファイルを初期化可能。
 
 ## 11. アーキテクチャ
@@ -153,7 +157,7 @@
 
 - `JapaneseHolidayService` 単体テスト: **対応済み**
 - `RecurrenceEngine` 単体テスト（週次/祝日スキップ/override-delete/以降変更）: **対応済み**
-- CI（GitHub Actions `swift-test`）: **対応済み（ubuntu-latest + swift:5.9コンテナ / KyounaniApp / swift test）**
+- CI（GitHub Actions `swift-test`）: **対応済み（macos-latest / KyounaniApp / swift test）**
 
 ## 13. 受け入れ条件への現状判定
 
@@ -171,5 +175,5 @@
 1. 視覚テーマの追加拡張（配色プリセット追加、画面別コントラスト評価、アクセシビリティサイズ段階の微調整）。
 2. 親モードCRUDの入力項目拡張（メモ、場所、色など任意属性）。
 3. 暗号化バックアップの改善（KDF強化、ZIPコンテナ化、差分/選択復元）。
-4. CI（`swift test` 拡充、Playgrounds起動手順チェック）。
+4. CI（`swift test` 拡充、Playgrounds起動手順チェック、診断セルフテスト運用の文書化）。
 5. 子ども向け空状態イラスト/文言の差し替え容易化（ローカライズ含む）。

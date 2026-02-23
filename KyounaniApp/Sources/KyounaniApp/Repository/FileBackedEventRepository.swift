@@ -6,11 +6,11 @@ public final class FileBackedEventRepository: EventRepositoryBase {
     private var exceptions: [EventException]
     private var stamps: [Stamp]
 
-    public override init() {
+    public init() {
         self.events = []
         self.exceptions = []
         self.stamps = []
-        super.init()
+        super.init(repositoryKind: .fileBacked)
         loadFromDisk()
     }
 
@@ -100,7 +100,9 @@ public final class FileBackedEventRepository: EventRepositoryBase {
             try ensureAppSupportDirectory()
             let data = try JSONEncoder().encode(value)
             try data.write(to: url, options: .atomic)
+            clearLastError()
         } catch {
+            recordError(error)
             // Keep app usable in fallback mode even if persistence fails.
         }
     }

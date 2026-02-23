@@ -119,7 +119,7 @@ public final class SwiftDataEventRepository: EventRepositoryBase {
 
     public init(context: ModelContext) {
         self.context = context
-        super.init()
+        super.init(repositoryKind: .swiftData)
         seedBuiltinStampsIfNeeded()
     }
 
@@ -149,7 +149,12 @@ public final class SwiftDataEventRepository: EventRepositoryBase {
         } else {
             context.insert(PersistentEventSeries(event: event))
         }
-        try? context.save()
+        do {
+            try context.save()
+            clearLastError()
+        } catch {
+            recordError(error)
+        }
     }
 
     public override func save(exception: EventException) {
@@ -160,7 +165,12 @@ public final class SwiftDataEventRepository: EventRepositoryBase {
         } else {
             context.insert(PersistentEventException(exception: exception))
         }
-        try? context.save()
+        do {
+            try context.save()
+            clearLastError()
+        } catch {
+            recordError(error)
+        }
     }
 
     public override func save(stamp: Stamp) {
@@ -176,7 +186,12 @@ public final class SwiftDataEventRepository: EventRepositoryBase {
         } else {
             context.insert(PersistentStamp(id: stamp.id, name: stamp.name, kindRaw: stamp.kind.rawValue, imageLocation: stamp.imageLocation, isBuiltin: stamp.isBuiltin, lastUsedAt: stamp.lastUsedAt, sortOrder: stamp.sortOrder))
         }
-        try? context.save()
+        do {
+            try context.save()
+            clearLastError()
+        } catch {
+            recordError(error)
+        }
     }
 
     public override func delete(eventID: UUID) {
@@ -189,7 +204,12 @@ public final class SwiftDataEventRepository: EventRepositoryBase {
         let exceptionDescriptor = FetchDescriptor<PersistentEventException>(predicate: #Predicate { $0.eventId == eventID })
         let exceptions = (try? context.fetch(exceptionDescriptor)) ?? []
         for row in exceptions { context.delete(row) }
-        try? context.save()
+        do {
+            try context.save()
+            clearLastError()
+        } catch {
+            recordError(error)
+        }
     }
 
     public override func delete(stampID: UUID) {
@@ -197,7 +217,12 @@ public final class SwiftDataEventRepository: EventRepositoryBase {
         let descriptor = FetchDescriptor<PersistentStamp>(predicate: #Predicate { $0.id == stampID })
         if let existing = try? context.fetch(descriptor).first, let existing {
             context.delete(existing)
-            try? context.save()
+            do {
+                try context.save()
+                clearLastError()
+            } catch {
+                recordError(error)
+            }
         }
     }
 
@@ -225,7 +250,12 @@ public final class SwiftDataEventRepository: EventRepositoryBase {
             context.insert(PersistentEventException(exception: exception))
         }
 
-        try? context.save()
+        do {
+            try context.save()
+            clearLastError()
+        } catch {
+            recordError(error)
+        }
     }
 
     private func seedBuiltinStampsIfNeeded() {
@@ -244,7 +274,12 @@ public final class SwiftDataEventRepository: EventRepositoryBase {
                 sortOrder: nil
             ))
         }
-        try? context.save()
+        do {
+            try context.save()
+            clearLastError()
+        } catch {
+            recordError(error)
+        }
         UserDefaults.standard.set(seedVersion, forKey: seedVersionKey)
     }
 
