@@ -93,7 +93,17 @@ private struct EventEditSheetView: View {
             updated.startDateTime = startDateTime
             updated.durationMinutes = durationMinutes
             updated.updatedAt = now
-            repository.save(event: updated)
+
+            // baseEvent が repository.events に存在しない場合は、
+            // 例外（override/split）の payload を更新して重複生成を防ぐ。
+            if repository.fetchEvents().contains(where: { $0.id == base.id }) {
+                repository.save(event: updated)
+            } else if var sourceException = repository.fetchExceptions().first(where: { $0.overrideEvent?.id == base.id }) {
+                sourceException.overrideEvent = updated
+                repository.save(exception: sourceException)
+            } else {
+                repository.save(event: updated)
+            }
 
         case .singleOccurrence:
             if isDeleteForSingle {

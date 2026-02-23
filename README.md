@@ -23,6 +23,7 @@
 - JapaneseHolidayService（同梱CSV読み込み）
 - RecurrenceEngine（週次、祝日スキップ、override/delete/splitFromThisDate）
 - 親モード限定: 日別詳細の繰り返し予定に「この日だけ / 以降すべて / 全体」例外編集UIを実装
+- 例外由来シリーズを「全体」編集した際に重複予定が増えないよう保存先を補正
 - Repository層で永続化を抽象化（InMemory実装）
 - 単体テスト（祝日/繰り返し）
 
