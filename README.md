@@ -13,12 +13,30 @@
 - 単体テスト（祝日/繰り返し）
 
 ## 構成
+- `Kyounani.xcodeproj` : iOS/iPadOS Appターゲット（`Kyounani`）
+- `Kyounani-iOS/Kyounani` : Appエントリポイント（`KyounaniRootView` を起動）
 - `KyounaniApp/Sources/KyounaniApp/Models` : ドメインモデル
 - `KyounaniApp/Sources/KyounaniApp/Services` : 祝日・繰り返し・音声
 - `KyounaniApp/Sources/KyounaniApp/Repository` : Repository抽象
 - `KyounaniApp/Sources/KyounaniApp/ViewModels` : MVVM ViewModel
 - `KyounaniApp/Sources/KyounaniApp/Views` : SwiftUI画面
 - `KyounaniApp/Tests/KyounaniAppTests` : 単体テスト
+
+## 開き方 / 実行方法
+
+### XcodeでiPadアプリとして実行
+1. Xcodeで `Kyounani.xcodeproj` を開く。
+2. Schemeで `Kyounani` を選ぶ。
+3. 実行先を iPad Simulator または実機 iPad に設定する。
+4. `Run`（⌘R）で起動する。
+
+アプリ起動後は、Swift Packageで実装済みの `KyounaniRootView` が表示され、Todayホームから開始します。
+
+### Swift Packageのローカル検証
+```bash
+cd KyounaniApp
+swift test
+```
 
 ## 今後の拡張
 - SwiftData Repository実装の追加
