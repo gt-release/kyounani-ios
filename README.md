@@ -34,6 +34,8 @@
 - 復元は上書き方式。復号/デコード失敗時は既存データ無変更。
 
 ### Diagnostics（親向け診断）
+- CIの検証は `macos-latest` の `swift test -v` を基準に実施。
+- 画面の最終動作確認は iPad Swift Playgrounds (`Kyounani.swiftpm`) で実施。
 - 親モードの Diagnostics で、現在有効なRepository（SwiftData / FileBacked / InMemory）と `lastError` を確認可能。
 - セルフテストで、祝日CSV読込 / RecurrenceEngine生成 / バックアップround-trip（メモリ上）を実行。
 - 失敗時は赤バナー表示で気づける（子どもモードには表示しない）。
@@ -49,6 +51,11 @@
 3. Run を押す。
 
 > 詳細: [docs/PLAYGROUNDS_QUICKSTART.md](docs/PLAYGROUNDS_QUICKSTART.md)
+
+## CI / 検証方針
+- CIは **macOS GitHub Actions** で `KyounaniApp` の `swift test` を実行（xcodebuildは使わない）。
+- macOSで unavailable な UI API は条件付きコンパイルでガードし、SwiftPMテストを安定化。
+- UIの見た目・操作確認は iPad Swift Playgrounds で行う。
 
 ## 既知の制約
 - このリポジトリの実行入口は **iPad Swift Playgrounds (`Kyounani.swiftpm`) 優先**。

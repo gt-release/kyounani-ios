@@ -228,12 +228,12 @@ public struct ParentModeView: View {
             #endif
             .navigationTitle("親モード")
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItem(placement: .toolbarLeadingPlacement) {
                     Button("＋追加") {
                         creatingEvent = true
                     }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .toolbarTrailingPlacement) {
                     Button("ロック") { appVM.lockToChildMode() }
                 }
             }
@@ -253,13 +253,13 @@ public struct ParentModeView: View {
             }
             .navigationTitle("バックアップ書き出し")
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItem(placement: .toolbarLeadingPlacement) {
                     Button("キャンセル") {
                         showingExportPassphraseSheet = false
                         backupExportPassphrase = ""
                     }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .toolbarTrailingPlacement) {
                     Button("書き出し") {
                         showingExportPassphraseSheet = false
                         prepareBackupFileForExport()
@@ -278,13 +278,13 @@ public struct ParentModeView: View {
             }
             .navigationTitle("バックアップ復号")
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItem(placement: .toolbarLeadingPlacement) {
                     Button("キャンセル") {
                         importedBackupData = nil
                         backupImportPassphrase = ""
                     }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .toolbarTrailingPlacement) {
                     Button("次へ") {
                         decodeImportedBackup()
                     }
@@ -310,20 +310,37 @@ public struct ParentModeView: View {
             }
             .navigationTitle("復元確認")
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItem(placement: .toolbarLeadingPlacement) {
                     Button("キャンセル") {
                         pendingImportPayload = nil
                         importedBackupData = nil
                         backupImportPassphrase = ""
                     }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .toolbarTrailingPlacement) {
                     Button("復元実行") {
                         runImport(payload: payload)
                     }
                 }
             }
         }
+    }
+
+
+    private var toolbarLeadingPlacement: ToolbarItemPlacement {
+        #if os(iOS)
+        return .topBarLeading
+        #else
+        return .cancellationAction
+        #endif
+    }
+
+    private var toolbarTrailingPlacement: ToolbarItemPlacement {
+        #if os(iOS)
+        return .topBarTrailing
+        #else
+        return .confirmationAction
+        #endif
     }
 
     private func resolvedStampName(prefix: String) -> String {

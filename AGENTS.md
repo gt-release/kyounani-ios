@@ -160,6 +160,7 @@
 - CI（GitHub Actions `swift-test`）: **対応済み（macos-latest / Xcode明示選択 / KyounaniApp / swift test -v）**
   - 不安定化要因だったツールチェーン差分を抑えるため、`setup-xcode` で Xcode を明示選択。
   - CIログの先頭エラー（SwiftDataRepositoryの条件付き束縛）を修正し、macOSでもコンパイル可能な形へ統一。
+  - macOS unavailable なSwiftUI APIは `#if os(iOS)` でガードし、`swift test` の安定性を優先（UI最終確認はiPad Playgrounds）。
 
 ## 13. 受け入れ条件への現状判定
 
