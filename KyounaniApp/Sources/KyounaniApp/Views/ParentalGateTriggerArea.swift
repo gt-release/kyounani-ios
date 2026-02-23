@@ -4,14 +4,18 @@ import SwiftUI
 #if canImport(UIKit)
 import UIKit
 
-struct ParentalGateTriggerArea: UIViewRepresentable {
-    let onTriggered: () -> Void
+public struct ParentalGateTriggerArea: UIViewRepresentable {
+    private let onTriggered: () -> Void
 
-    func makeCoordinator() -> Coordinator {
+    public init(onTriggered: @escaping () -> Void) {
+        self.onTriggered = onTriggered
+    }
+
+    public func makeCoordinator() -> Coordinator {
         Coordinator(onTriggered: onTriggered)
     }
 
-    func makeUIView(context: Context) -> UIView {
+    public func makeUIView(context: Context) -> UIView {
         let view = UIView()
         view.backgroundColor = .clear
 
@@ -27,9 +31,9 @@ struct ParentalGateTriggerArea: UIViewRepresentable {
         return view
     }
 
-    func updateUIView(_ uiView: UIView, context: Context) {}
+    public func updateUIView(_ uiView: UIView, context: Context) {}
 
-    final class Coordinator: NSObject {
+    public final class Coordinator: NSObject {
         private let onTriggered: () -> Void
 
         init(onTriggered: @escaping () -> Void) {
@@ -44,10 +48,14 @@ struct ParentalGateTriggerArea: UIViewRepresentable {
     }
 }
 #else
-struct ParentalGateTriggerArea: View {
-    let onTriggered: () -> Void
+public struct ParentalGateTriggerArea: View {
+    private let onTriggered: () -> Void
 
-    var body: some View {
+    public init(onTriggered: @escaping () -> Void) {
+        self.onTriggered = onTriggered
+    }
+
+    public var body: some View {
         Color.clear
     }
 }

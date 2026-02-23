@@ -52,6 +52,11 @@ public struct KyounaniRootView: View {
         .onReceive(repository.objectWillChange) { _ in
             stampStore.reload()
         }
+        .onChange(of: appVM.parentModeUnlocked) { unlocked in
+            if !unlocked {
+                showingParentMode = false
+            }
+        }
         .sheet(isPresented: $showingGate) {
             ParentalGateView()
         }
