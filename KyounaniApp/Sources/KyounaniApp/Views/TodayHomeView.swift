@@ -25,7 +25,7 @@ public struct TodayHomeView: View {
                 .pickerStyle(.segmented)
 
                 NavigationLink {
-                    CalendarRootView(calendarVM: calendarVM, speechService: speechService)
+                    CalendarRootView(calendarVM: calendarVM, speechService: speechService, repository: repository)
                 } label: {
                     Label("カレンダー", systemImage: "calendar")
                         .font(.headline)

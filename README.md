@@ -22,6 +22,7 @@
 - 残り時間リング（1時間=1周、1時間超は多層リング）
 - JapaneseHolidayService（同梱CSV読み込み）
 - RecurrenceEngine（週次、祝日スキップ、override/delete/splitFromThisDate）
+- 親モード限定: 日別詳細の繰り返し予定に「この日だけ / 以降すべて / 全体」例外編集UIを実装
 - Repository層で永続化を抽象化（InMemory実装）
 - 単体テスト（祝日/繰り返し）
 
@@ -65,6 +66,6 @@ GitHubアプリ/クライアントで「リクエストに問題があります 
 
 ## 今後の拡張
 - SwiftData Repository実装の追加
-- 例外編集UI（この日だけ/以降/全体）
+- 例外編集UIの拡張（delete導線や入力項目拡充）
 - イベント永続化（SwiftData or JSON）
 - 暗号化エクスポート（CryptoKit AES-GCM）
