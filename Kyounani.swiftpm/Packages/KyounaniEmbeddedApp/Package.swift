@@ -2,7 +2,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "KyounaniApp",
+    name: "KyounaniEmbeddedAppPackage",
     platforms: [
         .iOS(.v17),
         .macOS(.v14)

@@ -11,7 +11,8 @@
 ## 完了状況（更新）
 - Phase 1 の起動導線は完了。
   - `Kyounani.swiftpm` から起動して Todayホーム表示を確認。
-  - `Kyounani.swiftpm/Packages/KyounaniApp` に同梱した package を参照して再利用（Playgrounds の path dependency 制約回避）。
+  - `Kyounani.swiftpm/Packages/KyounaniEmbeddedApp` に同梱した package を参照して再利用（Playgrounds の path dependency 制約回避）。
+  - 同梱 package 名を `KyounaniEmbeddedAppPackage` として分離し、依存解決の誤参照を抑制。
 - Phase 2 の一部（見通しUI）も実装済み。
 - Phase 3 の一部（スタンプ中心UI）を実装。
   - 初期スタンプ同梱（Kyounani.swiftpm Resources: JSON+SF Symbols）
@@ -24,7 +25,7 @@
   - 日別詳細への遷移
 
 ## 既存資産の再利用方針
-- ドメイン/ロジックは `KyounaniApp` package を再利用（Playgrounds 実行時は `Kyounani.swiftpm/Packages/KyounaniApp` 同梱版を参照）。
+- ドメイン/ロジックは `KyounaniApp` package を再利用（Playgrounds 実行時は `Kyounani.swiftpm/Packages/KyounaniEmbeddedApp` 同梱版を参照）。
   - `Models`（Visibility, ChildScope など）
   - `RecurrenceEngine`
   - `JapaneseHolidayService`
