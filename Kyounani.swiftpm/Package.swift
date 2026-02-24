@@ -7,13 +7,13 @@ let package = Package(
         .iOS(.v17)
     ],
     dependencies: [
-        .package(path: "Packages/KyounaniApp")
+        .package(name: "KyounaniEmbeddedAppPackage", path: "Packages/KyounaniEmbeddedApp")
     ],
     targets: [
         .executableTarget(
             name: "KyounaniPlaygrounds",
             dependencies: [
-                .product(name: "KyounaniApp", package: "KyounaniApp")
+                .product(name: "KyounaniApp", package: "KyounaniEmbeddedAppPackage")
             ],
             resources: [
                 .process("Resources")

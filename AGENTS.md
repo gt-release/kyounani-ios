@@ -25,7 +25,8 @@
 
 - iPad 起動直後に無表示クラッシュする報告に対応。
   - 追加原因: Playgrounds が `../KyounaniApp` を参照できず、package読込段階で `NSCocoaErrorDomain Code=257`（Operation not permitted）が発生する端末差異を確認。
-  - 追加対策: `Kyounani.swiftpm/Packages/KyounaniApp` 同梱へ切替し、Playgrounds から親ディレクトリ参照しない構成へ変更。
+  - 追加対策: `Kyounani.swiftpm/Packages/KyounaniEmbeddedApp` 同梱へ切替し、Playgrounds から親ディレクトリ参照しない構成へ変更。
+  - 再発予防: 同梱 package 名を `KyounaniEmbeddedAppPackage` に分離し、Playgrounds の依存解決が上位 `KyounaniApp` を誤参照しにくい構成へ変更。
   - 原因: Playgrounds の実行環境によって `Bundle.module` 参照が期待通りにならず、起動時リソース解決が不安定。
   - 対策: `ResourceBundleLocator` を導入し、祝日CSV/初期スタンプJSONの探索を複数bundle横断に変更。
   - 影響: `JapaneseHolidayService` / `StampStore` / `SwiftDataEventRepository` の初期読込経路。
