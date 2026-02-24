@@ -284,7 +284,7 @@ public final class SwiftDataEventRepository: EventRepositoryBase {
     }
 
     private func loadBuiltinDefinitions() -> [BuiltinStampDefinition] {
-        let bundles: [Bundle] = [Bundle.module, .main]
+        let bundles = ResourceBundleLocator.candidateBundles()
         for bundle in bundles {
             guard let url = bundle.url(forResource: "builtin_stamps", withExtension: "json", subdirectory: "Stamps"),
                   let data = try? Data(contentsOf: url),
