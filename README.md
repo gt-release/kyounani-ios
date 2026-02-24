@@ -53,7 +53,7 @@
 > 詳細: [docs/PLAYGROUNDS_QUICKSTART.md](docs/PLAYGROUNDS_QUICKSTART.md)
 
 ## CI / 検証方針
-- CIは **macOS GitHub Actions** で `KyounaniApp` の `swift test` を実行（xcodebuildは使わない）。
+- CIは **macOS GitHub Actions** で `Kyounani.swiftpm` の `swift package dump-package`（Manifest評価）と `KyounaniApp` の `swift test` を実行（xcodebuildは使わない）。
 - macOSで unavailable な UI API は条件付きコンパイルでガードし、SwiftPMテストを安定化（例: Toolbar placementのOS分岐）。
 - コンパイル負荷の高いViewはsubview分割で type-check timeout を回避し、CI安定性を優先。
 - UIの見た目・操作確認は iPad Swift Playgrounds で行う。
@@ -67,7 +67,7 @@
 - 併せて `ResourceBundleLocator` を追加し、`Bundle.module` 依存ではなく `.main` / 実行時に見える bundle 群（allBundles/allFrameworks）を横断して `syukujitsu*.csv` / `builtin_stamps.json` を探索する方式に変更。
 - これにより Playgrounds のサンドボックス制約と bundle 構成差の両方で起動失敗リスクを低減。
 - さらに `Kyounani.swiftpm/Package.swift` に `iOSApplication` product を明示し、Playgrounds の「アプリターゲットの説明を読み込めませんでした（適切なアプリターゲットが見つからない）」エラーを回避。
-- ただし `iOSApplication` API を持たないツールチェーン（例: 旧Swift Playgrounds）でも Manifest 評価が失敗しないよう、`#if os(iOS) && compiler(>=6.0)` のときだけ `iOSApplication` を有効化し、それ以外は通常の `targets` 定義へ自動フォールバックする。
+- ただし `iOSApplication` / `AppleProductTypes` API を持たないツールチェーンでも Manifest 評価が失敗しないよう、`#if canImport(AppleProductTypes)` のときだけ `iOSApplication`（`appIcon` / `accentColor` / `supportedDeviceFamilies` / `supportedInterfaceOrientations` を含む）を有効化し、それ以外は `.executable` product へ自動フォールバックする。
 
 ## 既知の制約
 - このリポジトリの実行入口は **iPad Swift Playgrounds (`Kyounani.swiftpm`) 優先**。
@@ -78,7 +78,7 @@
 - `Kyounani.swiftpm`: iPad Swift Playgrounds向け App project（実行入口）
 - `KyounaniApp`: ドメイン/サービス/UIを提供する再利用Swift Package
 - `KyounaniApp/Tests/KyounaniAppTests`: 単体テスト
-- CIはGitHub Actionsで `macos-latest` 上から `KyounaniApp` の `swift test -v` を実行（SwiftPMテストのみ）。
+- CIはGitHub Actionsで `macos-latest` 上から `Kyounani.swiftpm` の `swift package dump-package` と `KyounaniApp` の `swift test -v` を実行。
 - ワークフロー内で `setup-xcode` により Xcode を明示選択し、`swift` ツールチェーンのぶれを抑制。
 
 ## ドキュメント一覧
