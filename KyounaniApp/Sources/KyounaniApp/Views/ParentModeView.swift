@@ -36,108 +36,25 @@ public struct ParentModeView: View {
     }
 
     public var body: some View {
+        parentNavigationView
+    }
+
+    private var parentNavigationView: some View {
+        parentDialogsView
+    }
+
+    private var parentBaseView: some View {
         NavigationStack {
-            List {
-                Section("見やすさ") {
-                    Picker("テーマ", selection: $appVM.themePreset) {
-                        ForEach(ThemePreset.allCases) { preset in
-                            Text(preset.displayName).tag(preset)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                }
+            parentList
+        }
+        .navigationTitle("親モード")
+        .toolbar {
+            parentToolbar
+        }
+    }
 
-                Section("バックアップ") {
-                    Button("バックアップを書き出す") {
-                        showingExportPassphraseSheet = true
-                    }
-
-                    Button("バックアップから復元") {
-                        showingBackupImporter = true
-                    }
-                }
-
-
-                Section("データ管理") {
-                    Button("データを全削除（リセット）", role: .destructive) {
-                        showingResetConfirmation = true
-                    }
-                }
-
-                Section("クイック追加") {
-                    quickButton("幼稚園", stampId: stampStore.defaultStampId)
-                    quickButton("病院", stampId: UUID(uuidString: "22222222-2222-2222-2222-222222222222") ?? stampStore.defaultStampId)
-                    quickButton("公園", stampId: UUID(uuidString: "33333333-3333-3333-3333-333333333333") ?? stampStore.defaultStampId)
-                    quickButton("療育", stampId: UUID(uuidString: "44444444-4444-4444-4444-444444444444") ?? stampStore.defaultStampId)
-                }
-
-                Section("スタンプ追加") {
-                    TextField("スタンプ名", text: $newStampName)
-
-                    Button("Files から取り込み") {
-                        showingImageImporter = true
-                    }
-
-                    #if canImport(PhotosUI)
-                    PhotosPicker(selection: $selectedPhotoItem, matching: .images, photoLibrary: .shared()) {
-                        Text("Photos から取り込み")
-                    }
-                    #endif
-                }
-
-                Section("スタンプ一覧") {
-                    ForEach(stampStore.stamps) { stamp in
-                        HStack(spacing: 12) {
-                            if let image = stampStore.image(for: stamp) {
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 32, height: 32)
-                                    .clipShape(RoundedRectangle(cornerRadius: 7))
-                            } else {
-                                RoundedRectangle(cornerRadius: 7)
-                                    .fill(Color.gray.opacity(0.2))
-                                    .frame(width: 32, height: 32)
-                            }
-
-                            VStack(alignment: .leading) {
-                                Text(stamp.name)
-                                Text(stamp.kind == .systemSymbol ? "builtin" : "user")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    }
-                    .onDelete(perform: deleteUserStamp)
-                }
-
-                Section("予定") {
-                    ForEach(repo.fetchEvents().sorted(by: { $0.startDateTime < $1.startDateTime })) { event in
-                        Button {
-                            editingEvent = event
-                        } label: {
-                            HStack {
-                                EventTokenRenderer(event: event, showTitle: false, iconSize: 24)
-                                VStack(alignment: .leading) {
-                                    Text(event.title)
-                                    Text(event.visibility == .published ? "公開" : "下書き")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                                Spacer()
-                            }
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                    }
-                    .onDelete { indexSet in
-                        let events = repo.fetchEvents().sorted(by: { $0.startDateTime < $1.startDateTime })
-                        for i in indexSet {
-                            repo.delete(eventID: events[i].id)
-                        }
-                    }
-                }
-            }
+    private var parentImportersView: some View {
+        parentBaseView
             .fileImporter(isPresented: $showingImageImporter, allowedContentTypes: [.image]) { result in
                 guard case .success(let url) = result,
                       let data = readImportedImageData(from: url) else {
@@ -166,6 +83,10 @@ public struct ParentModeView: View {
                 }
                 importedBackupData = data
             }
+    }
+
+    private var parentSheetsView: some View {
+        parentImportersView
             .sheet(isPresented: $creatingEvent) {
                 EventEditorView(mode: .create, initialEvent: draftEvent(), onSave: { event in
                     repo.save(event: event)
@@ -195,6 +116,10 @@ public struct ParentModeView: View {
             })) { wrapper in
                 backupImportSummarySheet(payload: wrapper.payload)
             }
+    }
+
+    private var parentDialogsView: some View {
+        parentSheetsView
             .alert("バックアップ", isPresented: $showingBackupStatusAlert) {
                 Button("OK", role: .cancel) {}
             } message: {
@@ -220,21 +145,139 @@ public struct ParentModeView: View {
                 }
             }
             #endif
-            .navigationTitle("親モード")
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("＋追加") {
-                        creatingEvent = true
+    }
+
+    private var parentList: some View {
+        List {
+            Section("見やすさ") {
+                Picker("テーマ", selection: $appVM.themePreset) {
+                    ForEach(ThemePreset.allCases) { preset in
+                        Text(preset.displayName).tag(preset)
                     }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("ロック") { appVM.lockToChildMode() }
+                .pickerStyle(.segmented)
+            }
+
+            Section("バックアップ") {
+                Button("バックアップを書き出す") {
+                    showingExportPassphraseSheet = true
+                }
+
+                Button("バックアップから復元") {
+                    showingBackupImporter = true
+                }
+            }
+
+            Section("データ管理") {
+                Button("データを全削除（リセット）", role: .destructive) {
+                    showingResetConfirmation = true
+                }
+            }
+
+            Section("診断") {
+                NavigationLink("Diagnostics") {
+                    DiagnosticsView(repo: repo)
+                }
+            }
+
+            Section("クイック追加") {
+                quickButton("幼稚園", stampId: stampStore.defaultStampId)
+                quickButton("病院", stampId: UUID(uuidString: "22222222-2222-2222-2222-222222222222") ?? stampStore.defaultStampId)
+                quickButton("公園", stampId: UUID(uuidString: "33333333-3333-3333-3333-333333333333") ?? stampStore.defaultStampId)
+                quickButton("療育", stampId: UUID(uuidString: "44444444-4444-4444-4444-444444444444") ?? stampStore.defaultStampId)
+            }
+
+            Section("スタンプ追加") {
+                TextField("スタンプ名", text: $newStampName)
+
+                Button("Files から取り込み") {
+                    showingImageImporter = true
+                }
+
+                #if canImport(PhotosUI)
+                PhotosPicker(selection: $selectedPhotoItem, matching: .images, photoLibrary: .shared()) {
+                    Text("Photos から取り込み")
+                }
+                #endif
+            }
+
+            Section("スタンプ一覧") {
+                ForEach(stampStore.stamps) { stamp in
+                    HStack(spacing: 12) {
+                        if let image = stampStore.image(for: stamp) {
+                            image
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 32, height: 32)
+                                .clipShape(RoundedRectangle(cornerRadius: 7))
+                        } else {
+                            RoundedRectangle(cornerRadius: 7)
+                                .fill(Color.gray.opacity(0.2))
+                                .frame(width: 32, height: 32)
+                        }
+
+                        VStack(alignment: .leading) {
+                            Text(stamp.name)
+                            Text(stamp.kind == .systemSymbol ? "builtin" : "user")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                .onDelete(perform: deleteUserStamp)
+            }
+
+            Section("予定") {
+                ForEach(repo.fetchEvents().sorted(by: { $0.startDateTime < $1.startDateTime })) { event in
+                    Button {
+                        editingEvent = event
+                    } label: {
+                        HStack {
+                            EventTokenRenderer(event: event, showTitle: false, iconSize: 24)
+                            VStack(alignment: .leading) {
+                                Text(event.title)
+                                Text(event.visibility == .published ? "公開" : "下書き")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
+                .onDelete { indexSet in
+                    let events = repo.fetchEvents().sorted(by: { $0.startDateTime < $1.startDateTime })
+                    for i in indexSet {
+                        repo.delete(eventID: events[i].id)
+                    }
                 }
             }
         }
     }
 
-
+    @ToolbarContentBuilder
+    private var parentToolbar: some ToolbarContent {
+        #if os(iOS)
+        ToolbarItem(placement: .topBarLeading) {
+            Button("＋追加") {
+                creatingEvent = true
+            }
+        }
+        ToolbarItem(placement: .topBarTrailing) {
+            Button("ロック") { appVM.lockToChildMode() }
+        }
+        #else
+        ToolbarItem(placement: .cancellationAction) {
+            Button("＋追加") {
+                creatingEvent = true
+            }
+        }
+        ToolbarItem(placement: .confirmationAction) {
+            Button("ロック") { appVM.lockToChildMode() }
+        }
+        #endif
+    }
     private var backupExportPassphraseSheet: some View {
         NavigationStack {
             Form {
@@ -247,13 +290,13 @@ public struct ParentModeView: View {
             }
             .navigationTitle("バックアップ書き出し")
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItem(placement: .cancellationAction) {
                     Button("キャンセル") {
                         showingExportPassphraseSheet = false
                         backupExportPassphrase = ""
                     }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .confirmationAction) {
                     Button("書き出し") {
                         showingExportPassphraseSheet = false
                         prepareBackupFileForExport()
@@ -272,13 +315,13 @@ public struct ParentModeView: View {
             }
             .navigationTitle("バックアップ復号")
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItem(placement: .cancellationAction) {
                     Button("キャンセル") {
                         importedBackupData = nil
                         backupImportPassphrase = ""
                     }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .confirmationAction) {
                     Button("次へ") {
                         decodeImportedBackup()
                     }
@@ -304,14 +347,14 @@ public struct ParentModeView: View {
             }
             .navigationTitle("復元確認")
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItem(placement: .cancellationAction) {
                     Button("キャンセル") {
                         pendingImportPayload = nil
                         importedBackupData = nil
                         backupImportPassphrase = ""
                     }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .confirmationAction) {
                     Button("復元実行") {
                         runImport(payload: payload)
                     }
@@ -319,6 +362,7 @@ public struct ParentModeView: View {
             }
         }
     }
+
 
     private func resolvedStampName(prefix: String) -> String {
         let trimmed = newStampName.trimmingCharacters(in: .whitespacesAndNewlines)

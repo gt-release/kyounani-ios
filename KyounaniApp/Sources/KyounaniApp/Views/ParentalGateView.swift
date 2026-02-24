@@ -33,9 +33,14 @@ public struct ParentalGateView: View {
             }
 
             if appVM.emergencyCodeEnabled {
+                #if os(iOS)
                 TextField("緊急コード", text: $emergencyCode)
                     .textFieldStyle(.roundedBorder)
                     .keyboardType(.numberPad)
+                #else
+                TextField("緊急コード", text: $emergencyCode)
+                    .textFieldStyle(.roundedBorder)
+                #endif
                 Button("コードで解除") {
                     _ = appVM.tryUnlock(sequence: [], emergencyCode: emergencyCode)
                     emergencyCode = ""

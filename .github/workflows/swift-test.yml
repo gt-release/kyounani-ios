@@ -12,18 +12,23 @@ on:
 
 jobs:
   swift-test:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     timeout-minutes: 15
-    container:
-      image: swift:5.9
     defaults:
       run:
-        working-directory: /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}/KyounaniApp
+        working-directory: KyounaniApp
     steps:
       - uses: actions/checkout@v4
-      - name: Show Swift version
-        run: swift --version
+      - name: Select Xcode (explicit)
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      - name: Show toolchain
+        run: |
+          xcodebuild -version
+          xcode-select -p
+          swift --version
       - name: Resolve package
         run: swift package resolve
-      - name: Run swift test
-        run: swift test
+      - name: Run swift test (verbose)
+        run: swift test -v

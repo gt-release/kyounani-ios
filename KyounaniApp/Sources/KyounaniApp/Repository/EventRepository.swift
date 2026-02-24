@@ -1,5 +1,11 @@
 import Foundation
 
+public enum RepositoryKind: String {
+    case swiftData = "SwiftData"
+    case fileBacked = "FileBacked"
+    case inMemory = "InMemory"
+}
+
 @MainActor
 public protocol EventRepository: AnyObject {
     func fetchEvents() -> [Event]
@@ -18,7 +24,22 @@ import SwiftUI
 
 @MainActor
 open class EventRepositoryBase: ObservableObject, EventRepository {
-    public init() {}
+    public let repositoryKind: RepositoryKind
+    @Published public private(set) var lastErrorMessage: String?
+
+    public init(repositoryKind: RepositoryKind = .inMemory) {
+        self.repositoryKind = repositoryKind
+    }
+
+    public var hasError: Bool { lastErrorMessage != nil }
+
+    public func clearLastError() {
+        lastErrorMessage = nil
+    }
+
+    public func recordError(_ error: Error) {
+        lastErrorMessage = error.localizedDescription
+    }
 
     open func fetchEvents() -> [Event] { [] }
     open func fetchExceptions() -> [EventException] { [] }
@@ -33,7 +54,22 @@ open class EventRepositoryBase: ObservableObject, EventRepository {
 #else
 @MainActor
 open class EventRepositoryBase: EventRepository {
-    public init() {}
+    public let repositoryKind: RepositoryKind
+    public private(set) var lastErrorMessage: String?
+
+    public init(repositoryKind: RepositoryKind = .inMemory) {
+        self.repositoryKind = repositoryKind
+    }
+
+    public var hasError: Bool { lastErrorMessage != nil }
+
+    public func clearLastError() {
+        lastErrorMessage = nil
+    }
+
+    public func recordError(_ error: Error) {
+        lastErrorMessage = error.localizedDescription
+    }
 
     open func fetchEvents() -> [Event] { [] }
     open func fetchExceptions() -> [EventException] { [] }
@@ -57,7 +93,7 @@ public final class InMemoryEventRepository: EventRepositoryBase {
         self.events = events
         self.exceptions = exceptions
         self.stamps = stamps
-        super.init()
+        super.init(repositoryKind: .inMemory)
     }
 
     public override func fetchEvents() -> [Event] { events }

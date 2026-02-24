@@ -206,9 +206,14 @@ public struct EventEditorView: View {
                 }
 
                 Section("スタンプ") {
+                    #if os(iOS)
                     TextField("スタンプを検索", text: $stampSearchText)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
+                    #else
+                    TextField("スタンプを検索", text: $stampSearchText)
+                        .autocorrectionDisabled()
+                    #endif
 
                     Picker("並び替え", selection: $stampSortMode) {
                         ForEach(StampSortMode.allCases, id: \.self) { mode in

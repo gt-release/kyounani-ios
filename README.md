@@ -7,6 +7,7 @@
 - Today / Calendar の常設2タブ導線
 - 月/週カレンダー、日別詳細、予定タップ時の日本語TTS + TimerRing
 - 親モードでイベントCRUD、繰り返し例外編集（この日だけ / 以降 / 全体）
+- 親モード Diagnostics（Repository種別 / lastError / セルフテスト）
 - スタンプ管理（初期スタンプ + Files/Photos 追加）
 - ローカル保存（SwiftData優先、障害時のみFileBacked保険）と暗号化バックアップ（`.kybk`）
 
@@ -32,6 +33,13 @@
 - **現行形式のみ対応**（旧形式バックアップの復元は非対応）。
 - 復元は上書き方式。復号/デコード失敗時は既存データ無変更。
 
+### Diagnostics（親向け診断）
+- CIの検証は `macos-latest` の `swift test -v` を基準に実施。
+- 画面の最終動作確認は iPad Swift Playgrounds (`Kyounani.swiftpm`) で実施。
+- 親モードの Diagnostics で、現在有効なRepository（SwiftData / FileBacked / InMemory）と `lastError` を確認可能。
+- セルフテストで、祝日CSV読込 / RecurrenceEngine生成 / バックアップround-trip（メモリ上）を実行。
+- 失敗時は赤バナー表示で気づける（子どもモードには表示しない）。
+
 ### データリセット（互換削除後の運用）
 - 親モードの「データを全削除（リセット）」で、予定/例外/スタンプを全削除。
 - 追加したカスタム画像（PNG）も同時に削除。
@@ -44,6 +52,14 @@
 
 > 詳細: [docs/PLAYGROUNDS_QUICKSTART.md](docs/PLAYGROUNDS_QUICKSTART.md)
 
+## CI / 検証方針
+- CIは **macOS GitHub Actions** で `KyounaniApp` の `swift test` を実行（xcodebuildは使わない）。
+- macOSで unavailable な UI API は条件付きコンパイルでガードし、SwiftPMテストを安定化（例: Toolbar placementのOS分岐）。
+- コンパイル負荷の高いViewはsubview分割で type-check timeout を回避し、CI安定性を優先。
+- UIの見た目・操作確認は iPad Swift Playgrounds で行う。
+
+- macOSビルドで ToolbarContent が不安定な場合に備え、toolbar定義は result builder 解釈できる形（ToolbarContentBuilder）を維持。
+
 ## 既知の制約
 - このリポジトリの実行入口は **iPad Swift Playgrounds (`Kyounani.swiftpm`) 優先**。
 - **Mac / Xcode / xcodebuild 前提手順は採用しない**（検証手順にも含めない）。
@@ -53,7 +69,8 @@
 - `Kyounani.swiftpm`: iPad Swift Playgrounds向け App project（実行入口）
 - `KyounaniApp`: ドメイン/サービス/UIを提供する再利用Swift Package
 - `KyounaniApp/Tests/KyounaniAppTests`: 単体テスト
-- CIはGitHub Actionsで `swift:5.9` コンテナ上から `KyounaniApp` の `swift test` を実行（runnerは `ubuntu-latest`）。
+- CIはGitHub Actionsで `macos-latest` 上から `KyounaniApp` の `swift test -v` を実行（SwiftPMテストのみ）。
+- ワークフロー内で `setup-xcode` により Xcode を明示選択し、`swift` ツールチェーンのぶれを抑制。
 
 ## ドキュメント一覧
 - [CODE_REVIEW.md](CODE_REVIEW.md)
