@@ -66,8 +66,8 @@
 - `Kyounani.swiftpm/Packages/KyounaniEmbeddedApp` に実行用ソースを同梱し、Playgrounds 側 `Package.swift` では **local package dependency を使わず** 同梱ソースを直接 target 化して参照する構成に変更。
 - 併せて `ResourceBundleLocator` を追加し、`Bundle.module` 依存ではなく `.main` / 実行時に見える bundle 群（allBundles/allFrameworks）を横断して `syukujitsu*.csv` / `builtin_stamps.json` を探索する方式に変更。
 - これにより Playgrounds のサンドボックス制約と bundle 構成差の両方で起動失敗リスクを低減。
-- `Kyounani.swiftpm/Package.swift` は **`canImport(AppleProductTypes)` の条件分岐**を導入し、Playgroundsが `AppleProductTypes` を提供する環境では `.iOSApplication` を宣言してアプリターゲットを明示。
-- 一方で `AppleProductTypes` が存在しない環境では `executable product` に自動フォールバックし、`Type 'Product' has no member 'iOSApplication'` や `.placeholder / .presetColor / .pad` 連鎖エラーを回避する。
+- `Kyounani.swiftpm/Package.swift` は Playgrounds / CI の Manifest 評価安定性を優先し、`AppleProductTypes` / `iOSApplication` を参照しない `executable product` 構成を維持する。
+- これにより Xcode/SwiftPM バージョン差で発生する Manifest コンパイル失敗を避け、`swift package dump-package` を通しやすくする。
 
 ## 既知の制約
 - このリポジトリの実行入口は **iPad Swift Playgrounds (`Kyounani.swiftpm`) 優先**。
