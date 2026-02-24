@@ -16,8 +16,19 @@
 
 - 開発・検証の実行入口は **iPadのSwift Playgroundsで開ける `.swiftpm`（App project）** を優先する。
 - **Mac / Xcode / xcodebuild 前提の手順は採用しない**（このリポジトリでは検証手順にも含めない）。
+- Playgrounds 実機差異で `Bundle.module` のリソース解決が不安定になるケースがあるため、リソース読込は `ResourceBundleLocator` による複数bundle探索（`.main`/allBundles/allFrameworks）を標準とする。
+- Playgrounds のサンドボックス制約により、`.swiftpm` の親ディレクトリを参照する path dependency（例: `../KyounaniApp`）は読み込めない場合がある。実行用依存 package は `Kyounani.swiftpm` 配下に同梱する。
 
 ---
+
+## 0. 直近インシデント対応（2026-02）
+
+- iPad 起動直後に無表示クラッシュする報告に対応。
+  - 追加原因: Playgrounds が `../KyounaniApp` を参照できず、package読込段階で `NSCocoaErrorDomain Code=257`（Operation not permitted）が発生する端末差異を確認。
+  - 追加対策: `Kyounani.swiftpm/Packages/KyounaniApp` 同梱へ切替し、Playgrounds から親ディレクトリ参照しない構成へ変更。
+  - 原因: Playgrounds の実行環境によって `Bundle.module` 参照が期待通りにならず、起動時リソース解決が不安定。
+  - 対策: `ResourceBundleLocator` を導入し、祝日CSV/初期スタンプJSONの探索を複数bundle横断に変更。
+  - 影響: `JapaneseHolidayService` / `StampStore` / `SwiftDataEventRepository` の初期読込経路。
 
 ## 1. 目的への対応状況
 

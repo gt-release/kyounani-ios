@@ -7,7 +7,7 @@ let package = Package(
         .iOS(.v17)
     ],
     dependencies: [
-        .package(path: "../KyounaniApp")
+        .package(path: "Packages/KyounaniApp")
     ],
     targets: [
         .executableTarget(
