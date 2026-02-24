@@ -27,8 +27,8 @@ public struct TodayHomeView: View {
         }
         .navigationTitle("Today")
         .onAppear { reload() }
-        .onChange(of: appVM.filter) { _ in reload() }
-        .onChange(of: appVM.parentModeUnlocked) { _ in reload() }
+        .onChange(of: appVM.filter) { reload() }
+        .onChange(of: appVM.parentModeUnlocked) { reload() }
         .onReceive(repository.objectWillChange) { _ in reload() }
         .sheet(item: $selectedOccurrence) { occ in
             TimerRingView(targetDate: occ.displayStart)

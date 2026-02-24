@@ -28,6 +28,8 @@
   - 追加対策: `Kyounani.swiftpm/Packages/KyounaniEmbeddedApp` 同梱へ切替し、Playgrounds から親ディレクトリ参照しない構成へ変更。
   - 追加対策(2): `Kyounani.swiftpm/Package.swift` は `canImport(AppleProductTypes)` 分岐を使い、iPad Swift Playgrounds で `iOSApplication` を優先しつつ、非対応環境では `executable product` にフォールバック。
   - 再発予防: Playgrounds 側 `Package.swift` から local package dependency を排除し、同梱ソースを直接 target 化して参照する構成へ変更。
+  - 追加対策(3): `supportedInterfaceOrientations` に `.portraitUpsideDown` を含め、iPadマルチタスク環境での「全向きサポート必須」警告起因の白画面化を回避。
+  - 追加対策(4): `TodayHomeView` / `ParentModeView` の `onChange` を iOS 17 推奨シグネチャへ更新し、起動時警告ノイズを低減。
   - 実装注記: `Product.iOSApplication` や `.placeholder/.presetColor/.pad` が存在しない環境でも失敗しないよう、`Package.swift` は `canImport(AppleProductTypes)` で分岐し、非対応時は `executable product` を利用する。
   - 原因: Playgrounds の実行環境によって `Bundle.module` 参照が期待通りにならず、起動時リソース解決が不安定。
   - 対策: `ResourceBundleLocator` を導入し、祝日CSV/初期スタンプJSONの探索を複数bundle横断に変更。

@@ -134,8 +134,8 @@ public struct ParentModeView: View {
                 Text("予定・例外・スタンプ（追加画像含む）をすべて削除します")
             }
             #if canImport(PhotosUI)
-            .onChange(of: selectedPhotoItem) { item in
-                guard let item else { return }
+            .onChange(of: selectedPhotoItem) {
+                guard let item = selectedPhotoItem else { return }
                 Task {
                     guard let data = try? await item.loadTransferable(type: Data.self) else { return }
                     await MainActor.run {
