@@ -173,7 +173,7 @@ public final class StampStore: ObservableObject {
     }
 
     private func loadBuiltinDefinitions() -> [BuiltinStampDefinition] {
-        let candidateBundles: [Bundle] = [Bundle.module, .main]
+        let candidateBundles = ResourceBundleLocator.candidateBundles()
         for bundle in candidateBundles {
             guard let url = bundle.url(forResource: "builtin_stamps", withExtension: "json", subdirectory: "Stamps"),
                   let data = try? Data(contentsOf: url),
