@@ -53,7 +53,7 @@
 > 詳細: [docs/PLAYGROUNDS_QUICKSTART.md](docs/PLAYGROUNDS_QUICKSTART.md)
 
 ## CI / 検証方針
-- CIは **macOS GitHub Actions** で `Kyounani.swiftpm` の `swift package dump-package`（Manifest評価）と `KyounaniApp` の `swift test` を実行（xcodebuildは使わない）。
+- CIは **macOS GitHub Actions** で `Kyounani.swiftpm/Packages/KyounaniEmbeddedApp` の `swift package dump-package`（CI安全なManifest評価）と `KyounaniApp` の `swift test` を実行（xcodebuildは使わない）。
 - macOSで unavailable な UI API は条件付きコンパイルでガードし、SwiftPMテストを安定化（例: Toolbar placementのOS分岐）。
 - コンパイル負荷の高いViewはsubview分割で type-check timeout を回避し、CI安定性を優先。
 - UIの見た目・操作確認は iPad Swift Playgrounds で行う。
@@ -66,8 +66,9 @@
 - `Kyounani.swiftpm/Packages/KyounaniEmbeddedApp` に実行用ソースを同梱し、Playgrounds 側 `Package.swift` では **local package dependency を使わず** 同梱ソースを直接 target 化して参照する構成に変更。
 - 併せて `ResourceBundleLocator` を追加し、`Bundle.module` 依存ではなく `.main` / 実行時に見える bundle 群（allBundles/allFrameworks）を横断して `syukujitsu*.csv` / `builtin_stamps.json` を探索する方式に変更。
 - これにより Playgrounds のサンドボックス制約と bundle 構成差の両方で起動失敗リスクを低減。
-- `Kyounani.swiftpm/Package.swift` は Playgrounds での Manifest 評価互換を優先し、`AppleProductTypes` / `iOSApplication` 依存を廃止して `executable product` を常時利用する構成に変更。
-- これにより Playgrounds 環境で発生していた `Type 'Product' has no member 'iOSApplication'` や `.placeholder / .presetColor / .pad` 連鎖エラーを回避し、Manifest 評価からビルド段階へ進みやすくした。
+- `Kyounani.swiftpm/Package.swift` は **iPad Swift Playgrounds の正常起動を優先**し、`canImport(AppleProductTypes)` 可能な環境では `.iOSApplication` を宣言してアプリターゲットを明示する。
+- `AppleProductTypes` 非対応環境では `executable product` にフォールバックし、Manifest評価エラー（`Type 'Product' has no member 'iOSApplication'` など）を回避する。
+- CIは `Kyounani.swiftpm` 直下Manifestの `dump-package` を必須チェックにせず、同梱 `KyounaniEmbeddedApp` 側で継続監視する。
 
 ## 既知の制約
 - このリポジトリの実行入口は **iPad Swift Playgrounds (`Kyounani.swiftpm`) 優先**。
@@ -78,7 +79,7 @@
 - `Kyounani.swiftpm`: iPad Swift Playgrounds向け App project（実行入口）
 - `KyounaniApp`: ドメイン/サービス/UIを提供する再利用Swift Package
 - `KyounaniApp/Tests/KyounaniAppTests`: 単体テスト
-- CIはGitHub Actionsで `macos-latest` 上から `Kyounani.swiftpm` の `swift package dump-package` と `KyounaniApp` の `swift test -v` を実行。
+- CIはGitHub Actionsで `macos-latest` 上から `Kyounani.swiftpm/Packages/KyounaniEmbeddedApp` の `swift package dump-package` と `KyounaniApp` の `swift test -v` を実行。
 - ワークフロー内で `setup-xcode` により Xcode を明示選択し、`swift` ツールチェーンのぶれを抑制。
 
 ## ドキュメント一覧
