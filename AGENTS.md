@@ -26,7 +26,7 @@
 - iPad 起動直後に無表示クラッシュする報告に対応。
   - 追加原因: Playgrounds が `../KyounaniApp` を参照できず、package読込段階で `NSCocoaErrorDomain Code=257`（Operation not permitted）が発生する端末差異を確認。
   - 追加対策: `Kyounani.swiftpm/Packages/KyounaniEmbeddedApp` 同梱へ切替し、Playgrounds から親ディレクトリ参照しない構成へ変更。
-  - 再発予防: 同梱 package 名を `KyounaniEmbeddedAppPackage` に分離し、Playgrounds の依存解決が上位 `KyounaniApp` を誤参照しにくい構成へ変更。
+  - 再発予防: Playgrounds 側 `Package.swift` から local package dependency を排除し、同梱ソースを直接 target 化して参照する構成へ変更。
   - 原因: Playgrounds の実行環境によって `Bundle.module` 参照が期待通りにならず、起動時リソース解決が不安定。
   - 対策: `ResourceBundleLocator` を導入し、祝日CSV/初期スタンプJSONの探索を複数bundle横断に変更。
   - 影響: `JapaneseHolidayService` / `StampStore` / `SwiftDataEventRepository` の初期読込経路。
@@ -48,7 +48,7 @@
 
 - iPad / SwiftUI: **対応済み（最小）**
   - SwiftUI画面に加えて、`Kyounani.swiftpm`（iPad Swift Playgrounds向けApp project）を追加。
-  - 既存Swift Packageをローカル参照し、起動直後にTodayホームへ接続。
+  - `Kyounani.swiftpm` 内に同梱した `KyounaniApp` ソースtargetを参照し、起動直後にTodayホームへ接続。
 - 永続化Repository分離: **対応強化（SwiftData導入）**
   - Repository抽象 + InMemory実装を維持。
   - `SwiftDataEventRepository` を追加し、`Kyounani.swiftpm` 起動時はSwiftData優先（失敗時は保険としてFileBackedフォールバック）。
