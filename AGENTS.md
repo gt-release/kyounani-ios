@@ -51,6 +51,7 @@
 - iPad / SwiftUI: **対応済み（最小）**
   - SwiftUI画面に加えて、`Kyounani.swiftpm`（iPad Swift Playgrounds向けApp project）を追加。
   - `Kyounani.swiftpm` 内に同梱した `KyounaniApp` ソースtargetを参照し、起動直後にTodayホームへ接続。
+  - Playgrounds実行入口（`KyounaniPlaygroundsApp`）は `KyounaniRootView` を直接表示し、Tab導線とペアレンタルゲート挙動を共有実装へ統一。
 - 永続化Repository分離: **対応強化（SwiftData導入）**
   - Repository抽象 + InMemory実装を維持。
   - `SwiftDataEventRepository` を追加し、`Kyounani.swiftpm` 起動時はSwiftData優先（失敗時は保険としてFileBackedフォールバック）。
@@ -62,8 +63,9 @@
 
 - 起動時は子ども用モード: **対応済み**
 - 子ども用フィルタ（息子/娘/両方）: **対応済み**
-- ペアレンタルゲート（3本指2秒長押し起点）: **対応済み**
-  - 右上の固定領域で「3本指2秒長押し」を検出し、4点シーケンスゲートへ遷移。
+- ペアレンタルゲート（3本指2秒長押し起点）: **対応済み（誘導強化）**
+  - 右上の固定領域を拡張し、「親モード / 右上を3本指で2秒」ガイドを常時表示。
+  - ガイド領域内の「3本指2秒長押し」を検出し、4点シーケンスゲートへ遷移。
   - 4点シーケンスタップ、失敗時クールダウン、緊急4桁コードを維持。
   - 子どもモードでは親導線ボタンを非表示化（隠しジェスチャー領域のみ残す）。
   - 親モード画面で「ロック」実行時に親画面を自動で閉じ、子どもモードへ即時復帰。
