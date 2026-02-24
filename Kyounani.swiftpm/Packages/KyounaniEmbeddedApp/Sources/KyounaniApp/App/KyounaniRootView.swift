@@ -47,9 +47,22 @@ public struct KyounaniRootView: View {
                 ParentalGateTriggerArea {
                     showingGate = true
                 }
-                .frame(width: 56, height: 56)
+                .frame(width: 150, height: 90)
                 .contentShape(Rectangle())
-                .padding(.trailing, 8)
+                .overlay(alignment: .topTrailing) {
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Image(systemName: "hand.tap")
+                            .font(.caption.bold())
+                        Text("親モード")
+                            .font(.caption2.bold())
+                        Text("右上を3本指で2秒")
+                            .font(.caption2)
+                    }
+                    .foregroundStyle(.secondary)
+                    .padding(8)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10))
+                }
+                .padding(.trailing, 6)
                 .padding(.top, 4)
             }
         }
