@@ -64,6 +64,8 @@
 
 
 ## 起動クラッシュ修正（2026-02）
+- iPadで起動時に白画面化する端末差異に対し、`Kyounani.swiftpm/Package.swift` の `supportedInterfaceOrientations` へ `.portraitUpsideDown` を追加し、iPadマルチタスク時の「全向きサポート必須」警告を解消。
+- `TodayHomeView` / `ParentModeView` の `onChange(of:perform:)` 旧シグネチャを iOS 17 推奨の zero-parameter 版へ移行し、Playgrounds の起動ログを整理。
 - iPad Swift Playgrounds で、`Kyounani.swiftpm` から **親ディレクトリ参照のローカル package (`../KyounaniApp`)** を開けず、起動前に「Operation not permitted」で失敗するケースを修正。
 - `Kyounani.swiftpm/Packages/KyounaniEmbeddedApp` に実行用ソースを同梱し、Playgrounds 側 `Package.swift` では **local package dependency を使わず** 同梱ソースを直接 target 化して参照する構成に変更。
 - 併せて `ResourceBundleLocator` を追加し、`Bundle.module` 依存ではなく `.main` / 実行時に見える bundle 群（allBundles/allFrameworks）を横断して `syukujitsu*.csv` / `builtin_stamps.json` を探索する方式に変更。

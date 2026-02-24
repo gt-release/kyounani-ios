@@ -40,6 +40,7 @@ let products: [Product] = [
         ],
         supportedInterfaceOrientations: [
             .portrait,
+            .portraitUpsideDown,
             .landscapeLeft,
             .landscapeRight
         ]
