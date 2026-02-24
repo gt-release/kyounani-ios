@@ -24,6 +24,8 @@ public struct CalendarRootView: View {
                 Text("週").tag(CalendarDisplayMode.week)
             }
             .pickerStyle(.segmented)
+            .padding(theme.spacing.cardPadding)
+            .cardStyle(background: theme.colors.todayCard.opacity(0.45))
 
             HStack {
                 Button { move(by: -1) } label: {
@@ -41,6 +43,8 @@ public struct CalendarRootView: View {
                 }
                 .minTapTarget()
             }
+            .padding(theme.spacing.cardPadding)
+            .cardStyle(background: theme.colors.peekCard.opacity(0.4))
 
             Button("Today") { anchorDate = .now }
                 .font(theme.fonts.supporting)
@@ -49,11 +53,15 @@ public struct CalendarRootView: View {
                 .cardStyle(background: theme.colors.emptyCard)
                 .minTapTarget()
 
-            if mode == .month {
-                MonthView(monthDate: anchorDate, selectedDate: selectedDate, calendarVM: calendarVM, onSelectDate: select(date:))
-            } else {
-                WeekView(weekStartDate: anchorDate, selectedDate: selectedDate, calendarVM: calendarVM, onSelectDate: select(date:))
+            Group {
+                if mode == .month {
+                    MonthView(monthDate: anchorDate, selectedDate: selectedDate, calendarVM: calendarVM, onSelectDate: select(date:))
+                } else {
+                    WeekView(weekStartDate: anchorDate, selectedDate: selectedDate, calendarVM: calendarVM, onSelectDate: select(date:))
+                }
             }
+            .padding(theme.spacing.cardPadding)
+            .cardStyle(background: theme.colors.weekdayBackground.opacity(0.4))
 
             Spacer(minLength: 0)
         }

@@ -18,12 +18,13 @@ public struct ParentalGateTriggerArea: UIViewRepresentable {
     public func makeUIView(context: Context) -> UIView {
         let view = UIView()
         view.backgroundColor = .clear
+        view.isMultipleTouchEnabled = true
 
         let recognizer = UILongPressGestureRecognizer(
             target: context.coordinator,
             action: #selector(Coordinator.handleLongPress(_:))
         )
-        recognizer.numberOfTouchesRequired = 3
+        recognizer.numberOfTouchesRequired = 2
         recognizer.minimumPressDuration = 2.0
         recognizer.cancelsTouchesInView = false
         view.addGestureRecognizer(recognizer)

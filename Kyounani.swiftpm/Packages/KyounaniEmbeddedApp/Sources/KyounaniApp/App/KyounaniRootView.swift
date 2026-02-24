@@ -23,7 +23,9 @@ public struct KyounaniRootView: View {
         ZStack(alignment: .topTrailing) {
             TabView {
                 NavigationStack {
-                    TodayHomeView(calendarVM: calendarVM, speechService: speech, repository: repository)
+                    TodayHomeView(calendarVM: calendarVM, speechService: speech, repository: repository, onRequestParentalGate: {
+                        showingGate = true
+                    })
                 }
                 .tabItem { Label("Today", systemImage: "sun.max.fill") }
 
@@ -47,23 +49,25 @@ public struct KyounaniRootView: View {
                 ParentalGateTriggerArea {
                     showingGate = true
                 }
-                .frame(width: 150, height: 90)
+                .frame(width: 110, height: 110)
+                .padding(10)
                 .contentShape(Rectangle())
+                .zIndex(10)
                 .overlay(alignment: .topTrailing) {
                     VStack(alignment: .trailing, spacing: 4) {
                         Image(systemName: "hand.tap")
                             .font(.caption.bold())
                         Text("親モード")
                             .font(.caption2.bold())
-                        Text("右上を3本指で2秒")
+                        Text("右上を2本指で2秒")
                             .font(.caption2)
                     }
                     .foregroundStyle(.secondary)
                     .padding(8)
                     .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10))
                 }
-                .padding(.trailing, 6)
-                .padding(.top, 4)
+                .padding(.trailing, 2)
+                .padding(.top, 2)
             }
         }
         .environmentObject(appVM)
@@ -86,6 +90,7 @@ public struct KyounaniRootView: View {
             ParentModeView(repo: repository)
         }
     }
+
 }
 
 #endif

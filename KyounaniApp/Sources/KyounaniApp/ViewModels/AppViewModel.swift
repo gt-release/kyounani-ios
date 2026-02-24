@@ -54,6 +54,7 @@ public final class AppViewModel: ObservableObject {
     public func lockToChildMode() {
         parentModeUnlocked = false
     }
+
 }
 
 #endif
