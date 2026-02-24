@@ -28,7 +28,7 @@
   - 追加対策: `Kyounani.swiftpm/Packages/KyounaniEmbeddedApp` 同梱へ切替し、Playgrounds から親ディレクトリ参照しない構成へ変更。
   - 追加対策(2): `Kyounani.swiftpm/Package.swift` に `iOSApplication` product を明示し、Playgrounds 側のアプリターゲット記述読み込み失敗（「適切なアプリターゲットが見つからない」）を回避。
   - 再発予防: Playgrounds 側 `Package.swift` から local package dependency を排除し、同梱ソースを直接 target 化して参照する構成へ変更。
-  - 実装注記: `iOSApplication` API を持たないツールチェーンでの検証が壊れないよう、`Package.swift` は `#if os(iOS) && compiler(>=6.0)` で Playgrounds 向け定義とフォールバック定義を分岐する。
+  - 実装注記: `iOSApplication` / `AppleProductTypes` API を持たないツールチェーンでの検証が壊れないよう、`Package.swift` は `#if canImport(AppleProductTypes)` で Playgrounds 向け定義（`iOSApplication`）とフォールバック定義（`.executable`）を分岐する。
   - 原因: Playgrounds の実行環境によって `Bundle.module` 参照が期待通りにならず、起動時リソース解決が不安定。
   - 対策: `ResourceBundleLocator` を導入し、祝日CSV/初期スタンプJSONの探索を複数bundle横断に変更。
   - 影響: `JapaneseHolidayService` / `StampStore` / `SwiftDataEventRepository` の初期読込経路。
@@ -171,8 +171,10 @@
 
 - `JapaneseHolidayService` 単体テスト: **対応済み**
 - `RecurrenceEngine` 単体テスト（週次/祝日スキップ/override-delete/以降変更）: **対応済み**
-- CI（GitHub Actions `swift-test`）: **対応済み（macos-latest / Xcode明示選択 / KyounaniApp / swift test -v）**
+- CI（GitHub Actions `swift-test`）: **対応済み（macos-latest / Xcode明示選択 / Kyounani.swiftpm + KyounaniApp）**
   - 不安定化要因だったツールチェーン差分を抑えるため、`setup-xcode` で Xcode を明示選択。
+  - `Kyounani.swiftpm/Package.swift` 変更でもCIが走るよう、workflowのpath対象に `Kyounani.swiftpm/**` を含める。
+  - CI内で `Kyounani.swiftpm` の `swift package dump-package` を実行し、Playgrounds向けManifest評価を継続監視。
   - CIログの先頭エラー（SwiftDataRepositoryの条件付き束縛）を修正し、macOSでもコンパイル可能な形へ統一。
   - macOS unavailable なSwiftUI APIは `#if os(iOS)` でガードし、`swift test` の安定性を優先（UI最終確認はiPad Playgrounds）。
   - `ParentModeView` はツールバー配置をOS分岐（iOS: topBar, macOS: cancellation/confirmation）し、type-check timeout回避のためSubview分割を維持。

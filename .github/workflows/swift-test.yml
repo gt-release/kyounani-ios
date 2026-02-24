@@ -4,10 +4,12 @@ on:
   push:
     paths:
       - "KyounaniApp/**"
+      - "Kyounani.swiftpm/**"
       - ".github/workflows/swift-test.yml"
   pull_request:
     paths:
       - "KyounaniApp/**"
+      - "Kyounani.swiftpm/**"
       - ".github/workflows/swift-test.yml"
 
 jobs:
@@ -28,6 +30,9 @@ jobs:
           xcodebuild -version
           xcode-select -p
           swift --version
+      - name: Validate Playgrounds manifest
+        working-directory: Kyounani.swiftpm
+        run: swift package dump-package >/tmp/kyounani-swiftpm-dump.json
       - name: Resolve package
         run: swift package resolve
       - name: Run swift test (verbose)
