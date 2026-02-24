@@ -12,6 +12,7 @@ public final class AppViewModel: ObservableObject {
     @Published public var failedGateAttempts = 0
     @Published public var gateCooldownUntil: Date?
     @Published public var emergencyCodeEnabled = false
+    @Published public private(set) var gateRequestCount = 0
     @Published public var themePreset: ThemePreset {
         didSet {
             UserDefaults.standard.set(themePreset.rawValue, forKey: Keys.themePreset)
@@ -53,6 +54,10 @@ public final class AppViewModel: ObservableObject {
 
     public func lockToChildMode() {
         parentModeUnlocked = false
+    }
+
+    public func requestParentalGate() {
+        gateRequestCount += 1
     }
 }
 
