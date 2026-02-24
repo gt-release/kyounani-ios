@@ -26,9 +26,9 @@
 - iPad 起動直後に無表示クラッシュする報告に対応。
   - 追加原因: Playgrounds が `../KyounaniApp` を参照できず、package読込段階で `NSCocoaErrorDomain Code=257`（Operation not permitted）が発生する端末差異を確認。
   - 追加対策: `Kyounani.swiftpm/Packages/KyounaniEmbeddedApp` 同梱へ切替し、Playgrounds から親ディレクトリ参照しない構成へ変更。
-  - 追加対策(2): `Kyounani.swiftpm/Package.swift` に `iOSApplication` product を明示し、Playgrounds 側のアプリターゲット記述読み込み失敗（「適切なアプリターゲットが見つからない」）を回避。
+  - 追加対策(2): `Kyounani.swiftpm/Package.swift` の `AppleProductTypes` / `iOSApplication` 依存を撤去し、`executable product` を常時宣言する構成へ変更（PlaygroundsでのManifest評価を優先）。
   - 再発予防: Playgrounds 側 `Package.swift` から local package dependency を排除し、同梱ソースを直接 target 化して参照する構成へ変更。
-  - 実装注記: `iOSApplication` / `AppleProductTypes` API を持たないツールチェーンでの検証が壊れないよう、`Package.swift` は `#if canImport(AppleProductTypes)` で Playgrounds 向け定義（`iOSApplication`）とフォールバック定義（`.executable`）を分岐する。
+  - 実装注記: `Product.iOSApplication` や `.placeholder/.presetColor/.pad` が存在しないPlaygrounds環境でも失敗しないよう、`Package.swift` は `AppleProductTypes` を参照しない最小Manifestを維持する。
   - 原因: Playgrounds の実行環境によって `Bundle.module` 参照が期待通りにならず、起動時リソース解決が不安定。
   - 対策: `ResourceBundleLocator` を導入し、祝日CSV/初期スタンプJSONの探索を複数bundle横断に変更。
   - 影響: `JapaneseHolidayService` / `StampStore` / `SwiftDataEventRepository` の初期読込経路。
