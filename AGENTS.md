@@ -26,9 +26,9 @@
 - iPad 起動直後に無表示クラッシュする報告に対応。
   - 追加原因: Playgrounds が `../KyounaniApp` を参照できず、package読込段階で `NSCocoaErrorDomain Code=257`（Operation not permitted）が発生する端末差異を確認。
   - 追加対策: `Kyounani.swiftpm/Packages/KyounaniEmbeddedApp` 同梱へ切替し、Playgrounds から親ディレクトリ参照しない構成へ変更。
-  - 追加対策(2): `Kyounani.swiftpm/Package.swift` は `AppleProductTypes` / `iOSApplication` を参照しない `executable product` 構成を維持し、Playgrounds/CI の Manifest 評価安定性を優先。
+  - 追加対策(2): `Kyounani.swiftpm/Package.swift` は `canImport(AppleProductTypes)` 分岐を使い、iPad Swift Playgrounds で `iOSApplication` を優先しつつ、非対応環境では `executable product` にフォールバック。
   - 再発予防: Playgrounds 側 `Package.swift` から local package dependency を排除し、同梱ソースを直接 target 化して参照する構成へ変更。
-  - 実装注記: `Product.iOSApplication` や `.placeholder/.presetColor/.pad` が存在しないPlaygrounds環境でも失敗しないよう、`Package.swift` は `AppleProductTypes` を参照しない最小Manifestを維持する。
+  - 実装注記: `Product.iOSApplication` や `.placeholder/.presetColor/.pad` が存在しない環境でも失敗しないよう、`Package.swift` は `canImport(AppleProductTypes)` で分岐し、非対応時は `executable product` を利用する。
   - 原因: Playgrounds の実行環境によって `Bundle.module` 参照が期待通りにならず、起動時リソース解決が不安定。
   - 対策: `ResourceBundleLocator` を導入し、祝日CSV/初期スタンプJSONの探索を複数bundle横断に変更。
   - 影響: `JapaneseHolidayService` / `StampStore` / `SwiftDataEventRepository` の初期読込経路。
@@ -174,7 +174,7 @@
 - CI（GitHub Actions `swift-test`）: **対応済み（macos-latest / Xcode明示選択 / Kyounani.swiftpm + KyounaniApp）**
   - 不安定化要因だったツールチェーン差分を抑えるため、`setup-xcode` で Xcode を明示選択。
   - `Kyounani.swiftpm/Package.swift` 変更でもCIが走るよう、workflowのpath対象に `Kyounani.swiftpm/**` を含める。
-  - CI内で `Kyounani.swiftpm` の `swift package dump-package` を実行し、Playgrounds向けManifest評価を継続監視。
+  - CI内では `Kyounani.swiftpm` 直下Manifestではなく `Kyounani.swiftpm/Packages/KyounaniEmbeddedApp` の `swift package dump-package` を実行し、ツールチェーン差異の影響を受けにくい形で継続監視。
   - CIログの先頭エラー（SwiftDataRepositoryの条件付き束縛）を修正し、macOSでもコンパイル可能な形へ統一。
   - macOS unavailable なSwiftUI APIは `#if os(iOS)` でガードし、`swift test` の安定性を優先（UI最終確認はiPad Playgrounds）。
   - `ParentModeView` はツールバー配置をOS分岐（iOS: topBar, macOS: cancellation/confirmation）し、type-check timeout回避のためSubview分割を維持。
