@@ -12,6 +12,9 @@
 ## よくある詰まり
 - `Kyounani.swiftpm` ではなく `KyounaniApp` を開いている
   - → App project 側（`Kyounani.swiftpm`）を開く。
+- 「アプリターゲットの説明を読み込めませんでした（適切なアプリターゲットが見つからない）」が出る
+  - → `Kyounani.swiftpm/Package.swift` に `iOSApplication` product を含む版へ更新したリビジョンを利用する。
+  - → iPad側に古いコピーが残っている場合は、プロジェクトを再取得して開き直す。
 - 「The package at .../KyounaniApp cannot be accessed (Code=257)」が出る
   - → `Kyounani.swiftpm` を開き直し、同梱依存（`Packages/KyounaniEmbeddedApp`）を使う状態にする。
   - → それでも改善しない場合は、Playgroundsで当該プロジェクトを閉じて再読み込み（依存解決キャッシュ更新）。

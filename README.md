@@ -66,6 +66,7 @@
 - `Kyounani.swiftpm/Packages/KyounaniEmbeddedApp` に実行用ソースを同梱し、Playgrounds 側 `Package.swift` では **local package dependency を使わず** 同梱ソースを直接 target 化して参照する構成に変更。
 - 併せて `ResourceBundleLocator` を追加し、`Bundle.module` 依存ではなく `.main` / 実行時に見える bundle 群（allBundles/allFrameworks）を横断して `syukujitsu*.csv` / `builtin_stamps.json` を探索する方式に変更。
 - これにより Playgrounds のサンドボックス制約と bundle 構成差の両方で起動失敗リスクを低減。
+- さらに `Kyounani.swiftpm/Package.swift` に `iOSApplication` product を明示し、Playgrounds の「アプリターゲットの説明を読み込めませんでした（適切なアプリターゲットが見つからない）」エラーを回避。
 
 ## 既知の制約
 - このリポジトリの実行入口は **iPad Swift Playgrounds (`Kyounani.swiftpm`) 優先**。
