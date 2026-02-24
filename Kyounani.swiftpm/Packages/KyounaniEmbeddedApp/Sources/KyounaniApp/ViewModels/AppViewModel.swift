@@ -20,6 +20,7 @@ public final class AppViewModel: ObservableObject {
     }
 
     private let validSequence = [0, 2, 1, 3]
+    private var lastGateRequestAt: Date?
 
     public init() {
         let raw = UserDefaults.standard.string(forKey: Keys.themePreset)
@@ -57,6 +58,11 @@ public final class AppViewModel: ObservableObject {
     }
 
     public func requestParentalGate() {
+        let now = Date()
+        if let lastGateRequestAt, now.timeIntervalSince(lastGateRequestAt) < 0.8 {
+            return
+        }
+        self.lastGateRequestAt = now
         gateRequestCount += 1
     }
 }

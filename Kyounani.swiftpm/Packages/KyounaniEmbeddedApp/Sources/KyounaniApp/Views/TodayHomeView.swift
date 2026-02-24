@@ -166,6 +166,8 @@ public struct TodayHomeView: View {
     }
 
     private func registerFallbackGateTap() {
+        guard !appVM.parentModeUnlocked else { return }
+
         let now = Date()
         if let lastHiddenGateTapAt, now.timeIntervalSince(lastHiddenGateTapAt) > 4 {
             hiddenGateTapCount = 0

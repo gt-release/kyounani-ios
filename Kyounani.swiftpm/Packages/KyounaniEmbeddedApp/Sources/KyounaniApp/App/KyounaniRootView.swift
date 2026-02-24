@@ -47,8 +47,8 @@ public struct KyounaniRootView: View {
                 ParentalGateTriggerArea {
                     appVM.requestParentalGate()
                 }
-                .frame(width: 110, height: 110)
-                .padding(10)
+                .frame(width: 120, height: 120)
+                .padding(12)
                 .contentShape(Rectangle())
                 .zIndex(10)
                 .overlay(alignment: .topTrailing) {
@@ -63,6 +63,7 @@ public struct KyounaniRootView: View {
                     .foregroundStyle(.secondary)
                     .padding(8)
                     .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10))
+                    .allowsHitTesting(false)
                 }
                 .padding(.trailing, 2)
                 .padding(.top, 2)
@@ -82,7 +83,7 @@ public struct KyounaniRootView: View {
             }
         }
         .onChange(of: appVM.gateRequestCount) {
-            if !appVM.parentModeUnlocked {
+            if !appVM.parentModeUnlocked && !showingGate && !showingParentMode {
                 showingGate = true
             }
         }
