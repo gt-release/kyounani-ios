@@ -67,6 +67,7 @@
 - 併せて `ResourceBundleLocator` を追加し、`Bundle.module` 依存ではなく `.main` / 実行時に見える bundle 群（allBundles/allFrameworks）を横断して `syukujitsu*.csv` / `builtin_stamps.json` を探索する方式に変更。
 - これにより Playgrounds のサンドボックス制約と bundle 構成差の両方で起動失敗リスクを低減。
 - さらに `Kyounani.swiftpm/Package.swift` に `iOSApplication` product を明示し、Playgrounds の「アプリターゲットの説明を読み込めませんでした（適切なアプリターゲットが見つからない）」エラーを回避。
+- ただし `iOSApplication` API を持たないツールチェーン（例: 旧Swift Playgrounds）でも Manifest 評価が失敗しないよう、`#if os(iOS) && compiler(>=6.0)` のときだけ `iOSApplication` を有効化し、それ以外は通常の `targets` 定義へ自動フォールバックする。
 
 ## 既知の制約
 - このリポジトリの実行入口は **iPad Swift Playgrounds (`Kyounani.swiftpm`) 優先**。
