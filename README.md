@@ -60,12 +60,6 @@
 
 - macOSビルドで ToolbarContent が不安定な場合に備え、toolbar定義は result builder 解釈できる形（ToolbarContentBuilder）を維持。
 
-
-## 起動クラッシュ修正（2026-02）
-- iPad Swift Playgrounds 実行時に、環境によって `Bundle.module` からリソース解決できず起動直後に画面が出ない問題を修正。
-- `ResourceBundleLocator` を追加し、`Bundle.module` 依存ではなく `.main` / 実行時に見える bundle 群（allBundles/allFrameworks）を横断して `syukujitsu*.csv` / `builtin_stamps.json` を探索する方式に変更。
-- これにより Playgrounds の bundle 構成差での起動失敗リスクを低減。
-
 ## 既知の制約
 - このリポジトリの実行入口は **iPad Swift Playgrounds (`Kyounani.swiftpm`) 優先**。
 - **Mac / Xcode / xcodebuild 前提手順は採用しない**（検証手順にも含めない）。

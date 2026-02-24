@@ -23,7 +23,7 @@ public final class JapaneseHolidayService: HolidayService {
     }
 
     public static func bundled() -> JapaneseHolidayService {
-        let candidateBundles = ResourceBundleLocator.candidateBundles()
+        let candidateBundles: [Bundle] = [Bundle.module, .main]
         let candidateNames = ["syukujitsu", "syukujitsu_sample"]
 
         for bundle in candidateBundles {
