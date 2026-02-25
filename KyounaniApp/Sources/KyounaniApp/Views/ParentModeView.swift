@@ -91,15 +91,16 @@ public struct ParentModeView: View {
     private var parentSheetsView: some View {
         parentImportersView
             .sheet(isPresented: $creatingEvent) {
-                DiagnosticsCenter.breadcrumb(event: "openedEventEditor", detail: "create")
                 EventEditorView(mode: .create, initialEvent: draftEvent(), onSave: { event in
                     repo.save(event: event)
                     stampStore.markStampUsed(event.stampId)
                 })
                 .environmentObject(stampStore)
+                .onAppear {
+                    DiagnosticsCenter.breadcrumb(event: "openedEventEditor", detail: "create")
+                }
             }
             .sheet(item: $editingEvent) { event in
-                DiagnosticsCenter.breadcrumb(event: "openedEventEditor", detail: "edit")
                 EventEditorView(mode: .edit, initialEvent: event, onSave: { updated in
                     repo.save(event: updated)
                     stampStore.markStampUsed(updated.stampId)
@@ -107,6 +108,9 @@ public struct ParentModeView: View {
                     repo.delete(eventID: event.id)
                 })
                 .environmentObject(stampStore)
+                .onAppear {
+                    DiagnosticsCenter.breadcrumb(event: "openedEventEditor", detail: "edit")
+                }
             }
             .sheet(isPresented: $showingExportPassphraseSheet) {
                 backupExportPassphraseSheet

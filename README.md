@@ -55,6 +55,7 @@
 - 親モードの Diagnostics で、現在有効なRepository（SwiftData / FileBacked / InMemory）と `lastError` を確認可能。
 - セルフテストで、祝日CSV読込 / RecurrenceEngine生成 / バックアップround-trip（メモリ上）を実行。
 - 失敗時は赤バナー表示で気づける（子どもモードには表示しない）。
+- CI修正メモ: Diagnostics のバックアップセルフテストは `BackupCryptoService.decryptPayload(from:passphrase:)` を使用。
 
 ### データリセット（互換削除後の運用）
 - 親モードの「データを全削除（リセット）」で、予定/例外/スタンプを全削除。

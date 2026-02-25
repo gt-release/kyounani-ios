@@ -111,6 +111,7 @@
   - `EventEditorView` のスタンプ選択UXを拡張（最近使ったセクション / 検索 / 並び替え[最近順・名前順]）。
   - Diagnostics画面を追加し、有効Repository種別・lastError・CrashMarker・Breadcrumb(直近50件)・ファイルログ(`kyounani.log`)・バックアップ仕様（formatVersion=2 / PBKDF2-HMAC-SHA256 / AES-GCM）を表示。
   - Diagnosticsのセルフテストで、祝日CSV読込 / RecurrenceEngineの次3回生成 / バックアップround-trip（メモリ上）を実行可能。
+  - CI互換修正: Diagnostics のバックアップセルフテスト呼び出しを `importEncryptedData` から `decryptPayload(from:passphrase:)` へ統一。
   - セルフテスト失敗時は親モード内で赤バナー表示（子どもモードには非表示）。
 
 ## 6. 祝日（日本オフライン）

@@ -225,7 +225,7 @@ public struct DiagnosticsView: View {
                 exceptions: repo.fetchExceptions()
             )
             let encrypted = try BackupCryptoService.exportEncryptedData(payload: payload, passphrase: "123456")
-            let restored = try BackupCryptoService.importEncryptedData(encrypted, passphrase: "123456")
+            let restored = try BackupCryptoService.decryptPayload(from: encrypted, passphrase: "123456")
             if restored.events.count == payload.events.count,
                restored.exceptions.count == payload.exceptions.count {
                 return SelfTestResult(title: "バックアップround-trip", status: .pass, message: "メモリ上で復号・復元を確認")
