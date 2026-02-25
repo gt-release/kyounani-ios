@@ -74,6 +74,7 @@
   - CrashMarker（didCleanExit）を追加し、起動時に `didCleanExit=false` をセット。`scenePhase.background` / 明示ロック時に `didCleanExit=true` を記録し、次回起動時に前回異常終了バナーを表示。
   - Breadcrumb Logger を追加し、親モード導線・EventEditor/StampPicker起動・バックアップ開始・repoType・lastError を保存（直近50件をDiagnostics表示/コピー可能）。
   - Application Support の `kyounani.log` へタイムスタンプ付き追記ログを保存し、Diagnosticsから表示/コピー可能。
+  - 親ゲート突破後はまず `RescueGateView`（Crash-safe）を表示し、通常親画面/セーフモード親画面/ログコピー/全削除/子どもモード復帰を実行可能。
   - セーフモード（UserDefaults保存）を追加。ON時は次回起動で Repository を InMemory 固定、customImage読込を無効化、バックアップ操作を無効化。
   - 子どもモードでは親導線ボタンを非表示化（隠しジェスチャー領域のみ残す）。
   - 親モード画面で「ロック」実行時に親画面を自動で閉じ、子どもモードへ即時復帰。
@@ -109,7 +110,7 @@
   - `EventEditorView` で title / stamp / childScope / visibility / isAllDay / startDateTime / durationMinutes / recurrenceRule(週次) を編集可能。
   - 日別詳細で繰り返し予定の例外編集3択UI（この日だけ/以降/全体）を維持し、各選択肢に影響範囲の説明を表示。分岐後の編集画面として `EventEditorView` を再利用。
   - `EventEditorView` のスタンプ選択UXを拡張（最近使ったセクション / 検索 / 並び替え[最近順・名前順]）。
-  - Diagnostics画面を追加し、有効Repository種別・lastError・CrashMarker・Breadcrumb(直近50件)・ファイルログ(`kyounani.log`)・バックアップ仕様（formatVersion=2 / PBKDF2-HMAC-SHA256 / AES-GCM）を表示。
+  - Diagnosticsを `Lite`（Rescue相当）/`Full`（重い情報）へ分割し、有効Repository種別・lastError・CrashMarker・Breadcrumb・ファイルログ(`kyounani.log`)・バックアップ仕様（formatVersion=2 / PBKDF2-HMAC-SHA256 / AES-GCM）を表示。
   - Diagnosticsのセルフテストで、祝日CSV読込 / RecurrenceEngineの次3回生成 / バックアップround-trip（メモリ上）を実行可能。
   - CI互換修正: Diagnostics のバックアップセルフテスト呼び出しを `importEncryptedData` から `decryptPayload(from:passphrase:)` へ統一。
   - セルフテスト失敗時は親モード内で赤バナー表示（子どもモードには非表示）。

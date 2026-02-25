@@ -195,8 +195,11 @@ public struct ParentModeView: View {
 
             Section("診断") {
                 Toggle("セーフモード（次回起動で有効）", isOn: $appVM.safeModeEnabled)
-                NavigationLink("Diagnostics") {
-                    DiagnosticsView(repo: repo)
+                NavigationLink("Diagnostics Lite") {
+                    DiagnosticsLiteView(repo: repo)
+                }
+                NavigationLink("Diagnostics Full") {
+                    DiagnosticsFullView(repo: repo)
                 }
             }
 

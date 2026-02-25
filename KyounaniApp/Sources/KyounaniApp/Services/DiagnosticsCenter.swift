@@ -21,6 +21,8 @@ public enum DiagnosticsCenter {
         static let safeModeEnabled = "kyounani.safeModeEnabled"
         static let breadcrumbs = "kyounani.breadcrumbs"
         static let previousUncleanExit = "kyounani.previousUncleanExit"
+        static let lastErrorMessage = "kyounani.lastErrorMessage"
+        static let lastRepoTypeLabel = "kyounani.lastRepoTypeLabel"
     }
 
     private static let maxStoredBreadcrumbs = 200
@@ -41,6 +43,22 @@ public enum DiagnosticsCenter {
 
     public static var hadUncleanExitLastLaunch: Bool {
         UserDefaults.standard.bool(forKey: Keys.previousUncleanExit)
+    }
+
+    public static var lastErrorMessage: String? {
+        UserDefaults.standard.string(forKey: Keys.lastErrorMessage)
+    }
+
+    public static func setLastErrorMessage(_ value: String) {
+        UserDefaults.standard.set(value, forKey: Keys.lastErrorMessage)
+    }
+
+    public static var lastRepoTypeLabel: String? {
+        UserDefaults.standard.string(forKey: Keys.lastRepoTypeLabel)
+    }
+
+    public static func setLastRepoTypeLabel(_ value: String) {
+        UserDefaults.standard.set(value, forKey: Keys.lastRepoTypeLabel)
     }
 
     public static var isSafeModeEnabled: Bool {

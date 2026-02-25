@@ -39,6 +39,7 @@ open class EventRepositoryBase: ObservableObject, EventRepository {
 
     public func recordError(_ error: Error) {
         lastErrorMessage = error.localizedDescription
+        DiagnosticsCenter.setLastErrorMessage(error.localizedDescription)
         DiagnosticsCenter.breadcrumb(event: "lastError", detail: error.localizedDescription)
     }
 
@@ -70,6 +71,7 @@ open class EventRepositoryBase: EventRepository {
 
     public func recordError(_ error: Error) {
         lastErrorMessage = error.localizedDescription
+        DiagnosticsCenter.setLastErrorMessage(error.localizedDescription)
         DiagnosticsCenter.breadcrumb(event: "lastError", detail: error.localizedDescription)
     }
 

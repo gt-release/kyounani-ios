@@ -23,7 +23,10 @@ public struct ParentalGateView: View {
                     Button("●") {
                         sequence.append(index)
                         if sequence.count == 4 {
-                            _ = appVM.tryUnlock(sequence: sequence, emergencyCode: nil)
+                            let unlocked = appVM.tryUnlock(sequence: sequence, emergencyCode: nil)
+                            if unlocked {
+                                DiagnosticsCenter.breadcrumb(event: "enteredParentGate")
+                            }
                             sequence.removeAll()
                         }
                     }
@@ -42,7 +45,10 @@ public struct ParentalGateView: View {
                     .textFieldStyle(.roundedBorder)
                 #endif
                 Button("コードで解除") {
-                    _ = appVM.tryUnlock(sequence: [], emergencyCode: emergencyCode)
+                    let unlocked = appVM.tryUnlock(sequence: [], emergencyCode: emergencyCode)
+                    if unlocked {
+                        DiagnosticsCenter.breadcrumb(event: "enteredParentGate")
+                    }
                     emergencyCode = ""
                 }
             }

@@ -32,13 +32,14 @@
 - Files 取り込み時は security-scoped resource を考慮。
 
 ### クラッシュ調査手順（iPad単体）
+- 親ゲート突破後はまず **RescueGateView** を開きます（Crash-safe最小画面）。
 - 次回起動時に「前回、異常終了の可能性があります」バナーが出たら「診断」から親ゲートへ進む。
 - 親モード > Diagnostics で以下を確認:
   - Crash Marker（前回異常終了フラグ）
   - Breadcrumb直近50件（親モード遷移/エディタ/スタンプ/バックアップ/repoType/lastError）
   - `kyounani.log`（Application Support 追記ログ）
 - Diagnostics画面の「Breadcrumbをコピー」「ファイルログをコピー」で端末単体で共有可能。
-- 切り分け時は親モードの「セーフモード（次回起動で有効）」をONにして再起動し、再現有無を比較する。
+- 切り分け時は RescueGateView から「セーフモードONで親画面を開く」を選び、再現有無を比較する。
   - セーフモードでは Repository を InMemory に固定
   - customImage読み込みを無効化（system symbol相当表示）
   - バックアップ書き出し/復元は無効化
@@ -50,6 +51,8 @@
 - 復元は上書き方式。復号/デコード失敗時は既存データ無変更。
 
 ### Diagnostics（親向け診断）
+- `Diagnostics Lite`（Rescue相当）と `Diagnostics Full`（重い情報）に分割。
+- `Diagnostics Full` は RescueGateView から明示的に開く導線を用意。
 - CIの検証は `macos-latest` の `swift test -v` を基準に実施。
 - 画面の最終動作確認は iPad Swift Playgrounds (`Kyounani.swiftpm`) で実施。
 - 親モードの Diagnostics で、現在有効なRepository（SwiftData / FileBacked / InMemory）と `lastError` を確認可能。

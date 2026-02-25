@@ -9,6 +9,7 @@ public struct KyounaniRootView: View {
     @StateObject private var calendarVM: CalendarViewModel
     @StateObject private var stampStore: StampStore
     @State private var showingGate = false
+    @State private var showingRescueGate = false
     @State private var showingParentMode = false
     @State private var showCrashBanner = false
 
@@ -62,7 +63,7 @@ public struct KyounaniRootView: View {
 
             if appVM.parentModeUnlocked {
                 Button("親モード") {
-                    showingParentMode = true
+                    showingRescueGate = true
                 }
                 .font(.caption.bold())
                 .padding(.horizontal, 10)
@@ -113,8 +114,10 @@ public struct KyounaniRootView: View {
         }
         .onChange(of: appVM.parentModeUnlocked) {
             if appVM.parentModeUnlocked {
-                DiagnosticsCenter.breadcrumb(event: "openedParentModeView")
+                DiagnosticsCenter.breadcrumb(event: "openedRescueGateView")
+                showingRescueGate = true
             } else {
+                showingRescueGate = false
                 showingParentMode = false
             }
         }
@@ -126,9 +129,32 @@ public struct KyounaniRootView: View {
         .sheet(isPresented: $showingGate) {
             ParentalGateView()
         }
+        .sheet(isPresented: $showingRescueGate) {
+            RescueGateView(
+                repo: repository,
+                onOpenParentMode: {
+                    showingParentMode = true
+                },
+                onResetAllData: {
+                    resetAllData()
+                },
+                onBackToChildMode: {
+                    appVM.lockToChildMode()
+                    showingRescueGate = false
+                }
+            )
+        }
         .sheet(isPresented: $showingParentMode) {
             ParentModeView(repo: repository)
         }
+    }
+
+    private func resetAllData() {
+        repository.replaceAll(events: [], exceptions: [], stamps: [])
+        stampStore.removeAllCustomImageFiles()
+        stampStore.reseedBuiltinStampsIfNeeded()
+        stampStore.reload()
+        DiagnosticsCenter.breadcrumb(event: "resetAllData", detail: "fromRescueGate")
     }
 
 }
