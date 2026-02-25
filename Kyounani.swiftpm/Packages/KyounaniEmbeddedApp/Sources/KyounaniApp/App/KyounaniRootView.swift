@@ -2,6 +2,7 @@
 import SwiftUI
 
 public struct KyounaniRootView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var appVM = AppViewModel()
     @StateObject private var speech = SpeechService()
     @StateObject private var repository: EventRepositoryBase
@@ -9,6 +10,7 @@ public struct KyounaniRootView: View {
     @StateObject private var stampStore: StampStore
     @State private var showingGate = false
     @State private var showingParentMode = false
+    @State private var showCrashBanner = false
 
     public init() {
         let holiday = JapaneseHolidayService.bundled()
@@ -33,6 +35,29 @@ public struct KyounaniRootView: View {
                     CalendarRootView(calendarVM: calendarVM, speechService: speech, repository: repository)
                 }
                 .tabItem { Label("Calendar", systemImage: "calendar") }
+            }
+
+            if showCrashBanner {
+                VStack {
+                    HStack(spacing: 8) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.yellow)
+                        Text("前回、異常終了の可能性があります")
+                            .font(.caption.bold())
+                        Spacer()
+                        Button("診断") {
+                            showingGate = true
+                            showCrashBanner = false
+                        }
+                        .font(.caption.bold())
+                    }
+                    .padding(10)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+                    Spacer()
+                }
+                .padding(.horizontal, 12)
+                .padding(.top, 8)
+                .zIndex(20)
             }
 
             if appVM.parentModeUnlocked {
@@ -75,12 +100,27 @@ public struct KyounaniRootView: View {
         .environment(\.kyounaniTheme, appVM.theme)
         .tint(appVM.theme.colors.accent)
         .dynamicTypeSize(.medium ... .accessibility5)
+        .onAppear {
+            showCrashBanner = appVM.hadUncleanExitLastLaunch
+        }
         .onReceive(repository.objectWillChange) { _ in
             stampStore.reload()
         }
+        .onReceive(repository.$lastErrorMessage) { message in
+            if let message {
+                DiagnosticsCenter.breadcrumb(event: "lastError", detail: message)
+            }
+        }
         .onChange(of: appVM.parentModeUnlocked) {
-            if !appVM.parentModeUnlocked {
+            if appVM.parentModeUnlocked {
+                DiagnosticsCenter.breadcrumb(event: "openedParentModeView")
+            } else {
                 showingParentMode = false
+            }
+        }
+        .onChange(of: scenePhase) {
+            if scenePhase == .background {
+                appVM.markCleanExit(reason: "scenePhase.background")
             }
         }
         .sheet(isPresented: $showingGate) {

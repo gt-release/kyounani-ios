@@ -31,6 +31,18 @@
 - 画像は中央正方形にクロップして PNG 保存。
 - Files 取り込み時は security-scoped resource を考慮。
 
+### クラッシュ調査手順（iPad単体）
+- 次回起動時に「前回、異常終了の可能性があります」バナーが出たら「診断」から親ゲートへ進む。
+- 親モード > Diagnostics で以下を確認:
+  - Crash Marker（前回異常終了フラグ）
+  - Breadcrumb直近50件（親モード遷移/エディタ/スタンプ/バックアップ/repoType/lastError）
+  - `kyounani.log`（Application Support 追記ログ）
+- Diagnostics画面の「Breadcrumbをコピー」「ファイルログをコピー」で端末単体で共有可能。
+- 切り分け時は親モードの「セーフモード（次回起動で有効）」をONにして再起動し、再現有無を比較する。
+  - セーフモードでは Repository を InMemory に固定
+  - customImage読み込みを無効化（system symbol相当表示）
+  - バックアップ書き出し/復元は無効化
+
 ### バックアップ
 - 親モードから書き出し / 復元。
 - 形式: `kyounani-backup.kybk`（`formatVersion=2` 固定、`PBKDF2-HMAC-SHA256` + `AES-GCM`）。

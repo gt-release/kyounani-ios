@@ -37,6 +37,9 @@ public struct ParentModeView: View {
 
     public var body: some View {
         parentNavigationView
+            .onAppear {
+                DiagnosticsCenter.breadcrumb(event: "openedParentModeView")
+            }
     }
 
     private var parentNavigationView: some View {
@@ -88,6 +91,7 @@ public struct ParentModeView: View {
     private var parentSheetsView: some View {
         parentImportersView
             .sheet(isPresented: $creatingEvent) {
+                DiagnosticsCenter.breadcrumb(event: "openedEventEditor", detail: "create")
                 EventEditorView(mode: .create, initialEvent: draftEvent(), onSave: { event in
                     repo.save(event: event)
                     stampStore.markStampUsed(event.stampId)
@@ -95,6 +99,7 @@ public struct ParentModeView: View {
                 .environmentObject(stampStore)
             }
             .sheet(item: $editingEvent) { event in
+                DiagnosticsCenter.breadcrumb(event: "openedEventEditor", detail: "edit")
                 EventEditorView(mode: .edit, initialEvent: event, onSave: { updated in
                     repo.save(event: updated)
                     stampStore.markStampUsed(updated.stampId)
@@ -160,11 +165,21 @@ public struct ParentModeView: View {
 
             Section("バックアップ") {
                 Button("バックアップを書き出す") {
+                    DiagnosticsCenter.breadcrumb(event: "startedBackupExport")
                     showingExportPassphraseSheet = true
                 }
+                .disabled(appVM.safeModeEnabled)
 
                 Button("バックアップから復元") {
+                    DiagnosticsCenter.breadcrumb(event: "startedBackupImport")
                     showingBackupImporter = true
+                }
+                .disabled(appVM.safeModeEnabled)
+
+                if appVM.safeModeEnabled {
+                    Text("セーフモード中はバックアップ機能を無効化しています")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
 
@@ -175,6 +190,7 @@ public struct ParentModeView: View {
             }
 
             Section("診断") {
+                Toggle("セーフモード（次回起動で有効）", isOn: $appVM.safeModeEnabled)
                 NavigationLink("Diagnostics") {
                     DiagnosticsView(repo: repo)
                 }
@@ -191,12 +207,16 @@ public struct ParentModeView: View {
                 TextField("スタンプ名", text: $newStampName)
 
                 Button("Files から取り込み") {
+                    DiagnosticsCenter.breadcrumb(event: "openedStampPicker", detail: "Files")
                     showingImageImporter = true
                 }
 
                 #if canImport(PhotosUI)
                 PhotosPicker(selection: $selectedPhotoItem, matching: .images, photoLibrary: .shared()) {
                     Text("Photos から取り込み")
+                }
+                .onTapGesture {
+                    DiagnosticsCenter.breadcrumb(event: "openedStampPicker", detail: "Photos")
                 }
                 #endif
             }

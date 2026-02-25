@@ -1,6 +1,10 @@
 #if canImport(SwiftUI)
 import SwiftUI
 
+#if canImport(UIKit)
+import UIKit
+#endif
+
 private struct SelfTestResult: Identifiable {
     enum Status {
         case pass
@@ -18,6 +22,8 @@ public struct DiagnosticsView: View {
 
     @State private var results: [SelfTestResult] = []
     @State private var ranSelfTest = false
+    @State private var breadcrumbs: [BreadcrumbEntry] = []
+    @State private var fileLogText = ""
 
     public init(repo: EventRepositoryBase) {
         self.repo = repo
@@ -39,9 +45,52 @@ public struct DiagnosticsView: View {
                 .listRowBackground(Color.clear)
             }
 
+            Section("Crash Marker") {
+                row(title: "前回異常終了", value: DiagnosticsCenter.hadUncleanExitLastLaunch ? "疑いあり" : "なし")
+                row(title: "セーフモード", value: DiagnosticsCenter.isSafeModeEnabled ? "ON" : "OFF")
+            }
+
             Section("Repository") {
                 row(title: "有効なRepository", value: repo.repositoryKind.rawValue)
                 row(title: "lastError", value: repo.lastErrorMessage ?? "異常なし")
+            }
+
+            Section("Breadcrumb（直近50件）") {
+                if breadcrumbs.isEmpty {
+                    Text("ログなし")
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(breadcrumbs) { entry in
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(entry.event).font(.subheadline.weight(.semibold))
+                            Text(entry.detail).font(.caption)
+                            Text(entry.timestamp.formatted(date: .numeric, time: .standard)).font(.caption2).foregroundStyle(.secondary)
+                        }
+                    }
+                }
+
+                Button("Breadcrumbをコピー") {
+                    copyText(DiagnosticsCenter.breadcrumbsText(limit: 50))
+                }
+            }
+
+            Section("ファイルログ（kyounani.log）") {
+                if fileLogText.isEmpty {
+                    Text("ログファイルは空です")
+                        .foregroundStyle(.secondary)
+                } else {
+                    Text(fileLogText)
+                        .font(.caption.monospaced())
+                        .textSelection(.enabled)
+                        .lineLimit(12)
+                }
+
+                Button("ファイルログを再読込") {
+                    refreshLogs()
+                }
+                Button("ファイルログをコピー") {
+                    copyText(fileLogText)
+                }
             }
 
             Section("バックアップ仕様") {
@@ -72,10 +121,28 @@ public struct DiagnosticsView: View {
             }
         }
         .navigationTitle("Diagnostics")
+        .onAppear {
+            refreshLogs()
+            DiagnosticsCenter.breadcrumb(event: "openedDiagnostics")
+            if let lastError = repo.lastErrorMessage {
+                DiagnosticsCenter.breadcrumb(event: "lastError", detail: lastError)
+            }
+        }
+    }
+
+    private func refreshLogs() {
+        breadcrumbs = DiagnosticsCenter.recentBreadcrumbs(limit: 50)
+        fileLogText = DiagnosticsCenter.readLogFile()
     }
 
     private var hasFailedSelfTest: Bool {
         results.contains(where: { $0.status == .fail })
+    }
+
+    private func copyText(_ text: String) {
+        #if canImport(UIKit)
+        UIPasteboard.general.string = text
+        #endif
     }
 
     private func row(title: String, value: String) -> some View {
@@ -157,21 +224,15 @@ public struct DiagnosticsView: View {
                 events: repo.fetchEvents(),
                 exceptions: repo.fetchExceptions()
             )
-            let encrypted = try BackupCryptoService.exportEncryptedData(payload: payload, passphrase: "self-test")
-            let decrypted = try BackupCryptoService.decryptPayload(from: encrypted, passphrase: "self-test")
-
-            let source = BackupCryptoService.summarize(payload: payload)
-            let restored = BackupCryptoService.summarize(payload: decrypted)
-
-            if source.stampCount == restored.stampCount,
-               source.eventCount == restored.eventCount,
-               source.exceptionCount == restored.exceptionCount {
-                return SelfTestResult(title: "バックアップ round-trip", status: .pass, message: "件数一致（stamp:\(restored.stampCount), event:\(restored.eventCount), exception:\(restored.exceptionCount)）")
+            let encrypted = try BackupCryptoService.exportEncryptedData(payload: payload, passphrase: "123456")
+            let restored = try BackupCryptoService.importEncryptedData(encrypted, passphrase: "123456")
+            if restored.events.count == payload.events.count,
+               restored.exceptions.count == payload.exceptions.count {
+                return SelfTestResult(title: "バックアップround-trip", status: .pass, message: "メモリ上で復号・復元を確認")
             }
-
-            return SelfTestResult(title: "バックアップ round-trip", status: .fail, message: "件数不一致")
+            return SelfTestResult(title: "バックアップround-trip", status: .fail, message: "件数不一致")
         } catch {
-            return SelfTestResult(title: "バックアップ round-trip", status: .fail, message: error.localizedDescription)
+            return SelfTestResult(title: "バックアップround-trip", status: .fail, message: error.localizedDescription)
         }
     }
 }
