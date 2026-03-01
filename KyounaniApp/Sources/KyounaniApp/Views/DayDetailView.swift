@@ -311,6 +311,7 @@ public struct DayDetailView: View {
         .navigationTitle(titleText)
         .toolbar {
             if appVM.parentModeUnlocked {
+                #if os(iOS)
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         creatingEvent = true
@@ -318,6 +319,7 @@ public struct DayDetailView: View {
                         Label("追加", systemImage: "plus")
                     }
                 }
+                #endif
             }
         }
         .confirmationDialog("どこまで編集しますか？", isPresented: $showingRecurrenceEditTargetDialog, titleVisibility: .visible) {
@@ -351,7 +353,7 @@ public struct DayDetailView: View {
             }
             Button("全体を削除", role: .destructive) {
                 guard let occurrence = deletingOccurrence else { return }
-                repository.delete(eventID: occurrence.baseEvent.id)
+                deleteWholeSeries(occurrence)
             }
             Button("キャンセル", role: .cancel) {
                 deletingOccurrence = nil
@@ -422,16 +424,50 @@ public struct DayDetailView: View {
         repository.save(exception: exception)
     }
 
-    private func splitAndDeleteFromThisDate(_ occurrence: EventOccurrence) {
-        guard let rule = occurrence.baseEvent.recurrenceRule else { return }
-        var updatedRule = rule
-        let calendar = Calendar(identifier: .gregorian)
-        let previousDay = calendar.date(byAdding: .day, value: -1, to: occurrence.occurrenceDate) ?? occurrence.occurrenceDate
-        updatedRule.endDate = previousDay
+    private func deleteWholeSeries(_ occurrence: EventOccurrence) {
+        let events = repository.fetchEvents()
+        if events.contains(where: { $0.id == occurrence.baseEvent.id }) {
+            repository.delete(eventID: occurrence.baseEvent.id)
+        } else {
+            // Occurrence comes from an exception's overrideEvent (split series).
+            // Remove the overrideEvent so the generated split series disappears.
+            let exceptions = repository.fetchExceptions()
+            if let owningException = exceptions.first(where: { $0.overrideEvent?.id == occurrence.baseEvent.id }) {
+                var updated = owningException
+                updated.overrideEvent = nil
+                updated.splitRule = nil
+                repository.save(exception: updated)
+            }
+        }
+    }
 
+    private func splitAndDeleteFromThisDate(_ occurrence: EventOccurrence) {
+        guard var updatedRule = occurrence.baseEvent.recurrenceRule else { return }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Asia/Tokyo") ?? .current
+        // RecurrenceEngine uses an exclusive end bound (while day < end).
+        // Setting endDate to the start of the occurrence day excludes this and all later occurrences.
+        let splitEndExclusive = calendar.startOfDay(for: occurrence.occurrenceDate)
+        if let currentEnd = updatedRule.endDate {
+            guard currentEnd > splitEndExclusive else { return }
+            updatedRule.endDate = splitEndExclusive
+        } else {
+            updatedRule.endDate = splitEndExclusive
+        }
         var truncatedBase = occurrence.baseEvent
         truncatedBase.recurrenceRule = updatedRule
-        repository.save(event: truncatedBase)
+        let knownEvents = repository.fetchEvents()
+        if knownEvents.contains(where: { $0.id == truncatedBase.id }) {
+            repository.save(event: truncatedBase)
+        } else {
+            // Occurrence is from an exception's overrideEvent; update the exception to truncate it.
+            let allExceptions = repository.fetchExceptions()
+            if let i = allExceptions.firstIndex(where: { $0.overrideEvent?.id == truncatedBase.id }) {
+                var updated = allExceptions[i]
+                updated.overrideEvent = truncatedBase
+                repository.save(exception: updated)
+            }
+        }
     }
 
     private func draftEvent(on date: Date) -> Event {
