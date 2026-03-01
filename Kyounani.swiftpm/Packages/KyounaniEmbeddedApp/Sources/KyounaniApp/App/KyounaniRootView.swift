@@ -183,6 +183,7 @@ public struct KyounaniRootView: View {
     private func openPendingParentDestinationIfNeeded() {
         guard let destination = pendingParentDestination else { return }
         pendingParentDestination = nil
+        guard appVM.parentModeUnlocked else { return }
 
         DispatchQueue.main.async {
             switch destination {

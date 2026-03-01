@@ -297,7 +297,7 @@ public struct ParentModeView: View {
                             deletingEvent = event
                             showingDeleteEventConfirmation = true
                         } label: {
-                            Image(systemName: "trash")
+                            Label("削除", systemImage: "trash")
                         }
                         .buttonStyle(.borderless)
                     }
