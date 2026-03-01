@@ -23,6 +23,7 @@ public final class AppViewModel: ObservableObject {
             UserDefaults.standard.set(themePreset.rawValue, forKey: Keys.themePreset)
         }
     }
+    @Published public private(set) var quickAddRequestID = 0
 
     private let validSequence = [0, 2, 1, 3]
 
@@ -67,6 +68,10 @@ public final class AppViewModel: ObservableObject {
 
     public func markCleanExit(reason: String) {
         DiagnosticsCenter.markCleanExit(reason: reason)
+    }
+
+    public func requestQuickAdd() {
+        quickAddRequestID += 1
     }
 
 }

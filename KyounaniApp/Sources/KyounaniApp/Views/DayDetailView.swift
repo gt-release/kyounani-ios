@@ -231,6 +231,7 @@ public struct DayDetailView: View {
     @ObservedObject var repository: EventRepositoryBase
 
     let date: Date
+    let openEditorImmediately: Bool
     @State private var selectedOccurrence: EventOccurrence?
     @State private var editingOccurrence: EventOccurrence?
     @State private var editorContext: EventEditorContext?
@@ -239,11 +240,12 @@ public struct DayDetailView: View {
     @State private var showingRecurrenceDeleteTargetDialog = false
     @State private var creatingEvent = false
 
-    public init(date: Date, calendarVM: CalendarViewModel, speechService: SpeechService, repository: EventRepositoryBase) {
+    public init(date: Date, calendarVM: CalendarViewModel, speechService: SpeechService, repository: EventRepositoryBase, openEditorImmediately: Bool = false) {
         self.date = date
         self.calendarVM = calendarVM
         self.speechService = speechService
         self.repository = repository
+        self.openEditorImmediately = openEditorImmediately
     }
 
     public var body: some View {
@@ -371,6 +373,16 @@ public struct DayDetailView: View {
                 stampStore.markStampUsed(event.stampId)
             })
             .environmentObject(stampStore)
+        }
+
+        .onAppear {
+            if openEditorImmediately {
+                creatingEvent = true
+            }
+        }
+        .onChange(of: appVM.quickAddRequestID) {
+            guard appVM.parentModeUnlocked else { return }
+            creatingEvent = true
         }
         .sheet(item: $editorContext) { context in
             EventEditSheetView(context: context, repository: repository) {
