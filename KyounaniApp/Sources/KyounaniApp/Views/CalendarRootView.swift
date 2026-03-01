@@ -2,6 +2,7 @@
 import SwiftUI
 
 public struct CalendarRootView: View {
+    @EnvironmentObject private var appVM: AppViewModel
     @Environment(\.kyounaniTheme) private var theme
     @State private var mode: CalendarDisplayMode = .month
     @State private var anchorDate: Date = .now
@@ -67,6 +68,10 @@ public struct CalendarRootView: View {
         }
         .padding(theme.spacing.screenPadding)
         .navigationTitle("カレンダー")
+        .onChange(of: appVM.quickAddRequestID) {
+            guard appVM.parentModeUnlocked else { return }
+            selectedDate = calendarVM.startOfDay(for: selectedDate ?? anchorDate)
+        }
         .navigationDestination(isPresented: dayDetailIsPresented) {
             if let date = selectedDate {
                 DayDetailView(date: date, calendarVM: calendarVM, speechService: speechService, repository: repository)

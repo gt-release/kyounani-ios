@@ -119,13 +119,13 @@ public struct TodayHomeView: View {
     }
 
     private var tomorrowSection: some View {
-        let hasTomorrow = !calendarVM.weekPeekOccurrences.isEmpty
+        let hasTomorrow = !calendarVM.tomorrowOccurrences.isEmpty
         return VStack(alignment: .leading, spacing: theme.spacing.itemGap) {
             sectionHeader("あした")
 
             if hasTomorrow {
                 HStack(spacing: theme.spacing.itemGap) {
-                    ForEach(calendarVM.weekPeekOccurrences.prefix(2), id: \.id) { occ in
+                    ForEach(calendarVM.tomorrowOccurrences.prefix(2), id: \.id) { occ in
                         EventTokenRenderer(event: occ.baseEvent, showTitle: false, iconSize: theme.stampLarge, occurrenceDate: occ.occurrenceDate)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 18)

@@ -372,6 +372,11 @@ public struct DayDetailView: View {
             })
             .environmentObject(stampStore)
         }
+
+        .onChange(of: appVM.quickAddRequestID) {
+            guard appVM.parentModeUnlocked else { return }
+            creatingEvent = true
+        }
         .sheet(item: $editorContext) { context in
             EventEditSheetView(context: context, repository: repository) {
                 editingOccurrence = context.occurrence
