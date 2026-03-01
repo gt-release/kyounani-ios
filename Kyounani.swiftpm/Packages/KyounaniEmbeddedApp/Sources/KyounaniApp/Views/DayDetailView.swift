@@ -224,6 +224,7 @@ private struct EventEditSheetView: View {
 
 public struct DayDetailView: View {
     @EnvironmentObject private var appVM: AppViewModel
+    @EnvironmentObject private var stampStore: StampStore
     @Environment(\.kyounaniTheme) private var theme
     @ObservedObject var calendarVM: CalendarViewModel
     @ObservedObject var speechService: SpeechService
@@ -234,6 +235,9 @@ public struct DayDetailView: View {
     @State private var editingOccurrence: EventOccurrence?
     @State private var editorContext: EventEditorContext?
     @State private var showingRecurrenceEditTargetDialog = false
+    @State private var deletingOccurrence: EventOccurrence?
+    @State private var showingRecurrenceDeleteTargetDialog = false
+    @State private var creatingEvent = false
 
     public init(date: Date, calendarVM: CalendarViewModel, speechService: SpeechService, repository: EventRepositoryBase) {
         self.date = date
@@ -283,12 +287,41 @@ public struct DayDetailView: View {
                                 startEdit(occurrence)
                             }
                             .buttonStyle(.bordered)
+
+                            Button(role: .destructive) {
+                                startDelete(occurrence)
+                            } label: {
+                                Image(systemName: "trash")
+                            }
+                            .buttonStyle(.borderless)
+                        }
+                    }
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        if appVM.parentModeUnlocked {
+                            Button(role: .destructive) {
+                                startDelete(occurrence)
+                            } label: {
+                                Label("削除", systemImage: "trash")
+                            }
                         }
                     }
                 }
             }
         }
         .navigationTitle(titleText)
+        .toolbar {
+            if appVM.parentModeUnlocked {
+                #if os(iOS)
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        creatingEvent = true
+                    } label: {
+                        Label("追加", systemImage: "plus")
+                    }
+                }
+                #endif
+            }
+        }
         .confirmationDialog("どこまで編集しますか？", isPresented: $showingRecurrenceEditTargetDialog, titleVisibility: .visible) {
             Button("この日だけ\n今日（この1回）だけ変える") {
                 if let editingOccurrence {
@@ -309,9 +342,35 @@ public struct DayDetailView: View {
         } message: {
             Text("編集・削除の影響範囲を選んでください。")
         }
+        .confirmationDialog("どこまで削除しますか？", isPresented: $showingRecurrenceDeleteTargetDialog, titleVisibility: .visible) {
+            Button("この日だけ削除") {
+                guard let occurrence = deletingOccurrence else { return }
+                deleteSingleOccurrence(occurrence)
+            }
+            Button("以降すべて削除") {
+                guard let occurrence = deletingOccurrence else { return }
+                splitAndDeleteFromThisDate(occurrence)
+            }
+            Button("全体を削除", role: .destructive) {
+                guard let occurrence = deletingOccurrence else { return }
+                deleteWholeSeries(occurrence)
+            }
+            Button("キャンセル", role: .cancel) {
+                deletingOccurrence = nil
+            }
+        } message: {
+            Text("削除の影響範囲を選んでください。")
+        }
         .sheet(item: $selectedOccurrence) { occ in
             TimerRingView(targetDate: occ.displayStart)
                 .padding()
+        }
+        .sheet(isPresented: $creatingEvent) {
+            EventEditorView(mode: .create, initialEvent: draftEvent(on: date), onSave: { event in
+                repository.save(event: event)
+                stampStore.markStampUsed(event.stampId)
+            })
+            .environmentObject(stampStore)
         }
         .sheet(item: $editorContext) { context in
             EventEditSheetView(context: context, repository: repository) {
@@ -343,6 +402,85 @@ public struct DayDetailView: View {
         formatter.locale = Locale(identifier: "ja_JP")
         formatter.dateFormat = "HH:mm"
         return formatter.string(from: date)
+    }
+
+    private func startDelete(_ occurrence: EventOccurrence) {
+        if occurrence.baseEvent.recurrenceRule != nil {
+            deletingOccurrence = occurrence
+            showingRecurrenceDeleteTargetDialog = true
+            return
+        }
+        repository.delete(eventID: occurrence.baseEvent.id)
+    }
+
+    private func deleteSingleOccurrence(_ occurrence: EventOccurrence) {
+        let exception = EventException(
+            eventId: occurrence.baseEvent.id,
+            occurrenceDate: occurrence.occurrenceDate,
+            kind: .delete,
+            overrideEvent: nil,
+            splitRule: nil
+        )
+        repository.save(exception: exception)
+    }
+
+    private func deleteWholeSeries(_ occurrence: EventOccurrence) {
+        let events = repository.fetchEvents()
+        if events.contains(where: { $0.id == occurrence.baseEvent.id }) {
+            repository.delete(eventID: occurrence.baseEvent.id)
+        } else {
+            // Occurrence comes from an exception's overrideEvent (split series).
+            // Remove the overrideEvent so the generated split series disappears.
+            let exceptions = repository.fetchExceptions()
+            if let owningException = exceptions.first(where: { $0.overrideEvent?.id == occurrence.baseEvent.id }) {
+                var updated = owningException
+                updated.overrideEvent = nil
+                updated.splitRule = nil
+                repository.save(exception: updated)
+            }
+        }
+    }
+
+    private func splitAndDeleteFromThisDate(_ occurrence: EventOccurrence) {
+        guard var updatedRule = occurrence.baseEvent.recurrenceRule else { return }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Asia/Tokyo") ?? .current
+        // RecurrenceEngine uses an exclusive end bound (while day < end).
+        // Setting endDate to the start of the occurrence day excludes this and all later occurrences.
+        let splitEndExclusive = calendar.startOfDay(for: occurrence.occurrenceDate)
+        if let currentEnd = updatedRule.endDate {
+            guard currentEnd > splitEndExclusive else { return }
+            updatedRule.endDate = splitEndExclusive
+        } else {
+            updatedRule.endDate = splitEndExclusive
+        }
+        var truncatedBase = occurrence.baseEvent
+        truncatedBase.recurrenceRule = updatedRule
+        let knownEvents = repository.fetchEvents()
+        if knownEvents.contains(where: { $0.id == truncatedBase.id }) {
+            repository.save(event: truncatedBase)
+        } else {
+            // Occurrence is from an exception's overrideEvent; update the exception to truncate it.
+            let allExceptions = repository.fetchExceptions()
+            if let i = allExceptions.firstIndex(where: { $0.overrideEvent?.id == truncatedBase.id }) {
+                var updated = allExceptions[i]
+                updated.overrideEvent = truncatedBase
+                repository.save(exception: updated)
+            }
+        }
+    }
+
+    private func draftEvent(on date: Date) -> Event {
+        Event(
+            title: "",
+            stampId: stampStore.defaultStampId,
+            childScope: .both,
+            visibility: .published,
+            isAllDay: false,
+            startDateTime: date,
+            durationMinutes: 60,
+            recurrenceRule: nil
+        )
     }
 }
 

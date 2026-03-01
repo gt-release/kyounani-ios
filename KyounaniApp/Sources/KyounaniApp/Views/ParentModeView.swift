@@ -28,10 +28,6 @@ public struct ParentModeView: View {
     @State private var selectedPhotoItem: PhotosPickerItem?
     #endif
     @State private var newStampName = ""
-    @State private var creatingEvent = false
-    @State private var editingEvent: Event?
-    @State private var deletingEvent: Event?
-    @State private var showingDeleteEventConfirmation = false
 
     private let hideBackupControls: Bool
     private let hideDiagnosticsEntry: Bool
@@ -97,28 +93,6 @@ public struct ParentModeView: View {
 
     private var parentSheetsView: some View {
         parentImportersView
-            .sheet(isPresented: $creatingEvent) {
-                EventEditorView(mode: .create, initialEvent: draftEvent(), onSave: { event in
-                    repo.save(event: event)
-                    stampStore.markStampUsed(event.stampId)
-                })
-                .environmentObject(stampStore)
-                .onAppear {
-                    DiagnosticsCenter.breadcrumb(event: "openedEventEditor", detail: "create")
-                }
-            }
-            .sheet(item: $editingEvent) { event in
-                EventEditorView(mode: .edit, initialEvent: event, onSave: { updated in
-                    repo.save(event: updated)
-                    stampStore.markStampUsed(updated.stampId)
-                }, onDelete: {
-                    repo.delete(eventID: event.id)
-                })
-                .environmentObject(stampStore)
-                .onAppear {
-                    DiagnosticsCenter.breadcrumb(event: "openedEventEditor", detail: "edit")
-                }
-            }
             .sheet(isPresented: $showingExportPassphraseSheet) {
                 backupExportPassphraseSheet
             }
@@ -213,22 +187,6 @@ public struct ParentModeView: View {
                 }
             }
 
-            Section("クイック追加") {
-                quickButton("幼稚園", stampId: stampStore.defaultStampId)
-                quickButton("病院", stampId: UUID(uuidString: "22222222-2222-2222-2222-222222222222") ?? stampStore.defaultStampId)
-                quickButton("公園", stampId: UUID(uuidString: "33333333-3333-3333-3333-333333333333") ?? stampStore.defaultStampId)
-                quickButton("療育", stampId: UUID(uuidString: "44444444-4444-4444-4444-444444444444") ?? stampStore.defaultStampId)
-            }
-
-            Section("予定を追加") {
-                Button("＋ 予定エディタを開く") {
-                    creatingEvent = true
-                }
-                Text("上のボタンから新規予定を作成できます（右上の＋追加と同じ動作）")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
             Section("スタンプ追加") {
                 TextField("スタンプ名", text: $newStampName)
 
@@ -273,87 +231,16 @@ public struct ParentModeView: View {
                 .onDelete(perform: deleteUserStamp)
             }
 
-            Section("予定") {
-                ForEach(repo.fetchEvents().sorted(by: { $0.startDateTime < $1.startDateTime })) { event in
-                    HStack {
-                        Button {
-                            editingEvent = event
-                        } label: {
-                            HStack {
-                                EventTokenRenderer(event: event, showTitle: false, iconSize: 24)
-                                VStack(alignment: .leading) {
-                                    Text(event.title)
-                                    Text(event.visibility == .published ? "公開" : "下書き")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                                Spacer()
-                            }
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-
-                        Button(role: .destructive) {
-                            deletingEvent = event
-                            showingDeleteEventConfirmation = true
-                        } label: {
-                            Label("削除", systemImage: "trash")
-                        }
-                        .buttonStyle(.borderless)
-                    }
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        Button(role: .destructive) {
-                            deletingEvent = event
-                            showingDeleteEventConfirmation = true
-                        } label: {
-                            Label("削除", systemImage: "trash")
-                        }
-                    }
-                }
-                .onDelete { indexSet in
-                    let events = repo.fetchEvents().sorted(by: { $0.startDateTime < $1.startDateTime })
-                    for i in indexSet {
-                        repo.delete(eventID: events[i].id)
-                    }
-                }
-            }
-        }
-        .confirmationDialog("この予定を削除しますか？", isPresented: $showingDeleteEventConfirmation, titleVisibility: .visible) {
-            Button("削除する", role: .destructive) {
-                guard let event = deletingEvent else { return }
-                repo.delete(eventID: event.id)
-                if editingEvent?.id == event.id {
-                    editingEvent = nil
-                }
-                deletingEvent = nil
-            }
-            Button("キャンセル", role: .cancel) {
-                deletingEvent = nil
-            }
-        } message: {
-            if let event = deletingEvent {
-                Text("\(event.title.isEmpty ? "よてい" : event.title) を削除します")
-            }
         }
     }
 
     @ToolbarContentBuilder
     private var parentToolbar: some ToolbarContent {
         #if os(iOS)
-        ToolbarItem(placement: .topBarLeading) {
-            Button("＋追加") {
-                creatingEvent = true
-            }
-        }
         ToolbarItem(placement: .topBarTrailing) {
             Button("ロック") { appVM.lockToChildMode() }
         }
         #else
-        ToolbarItem(placement: .cancellationAction) {
-            Button("＋追加") {
-                creatingEvent = true
-            }
-        }
         ToolbarItem(placement: .confirmationAction) {
             Button("ロック") { appVM.lockToChildMode() }
         }
@@ -470,35 +357,6 @@ public struct ParentModeView: View {
             }
         }
         return try? Data(contentsOf: url)
-    }
-
-    private func quickButton(_ name: String, stampId: UUID) -> some View {
-        Button(name) {
-            let event = Event(
-                title: name,
-                stampId: stampStore.ensureStampIdForDisplay(stampId),
-                childScope: .both,
-                visibility: .published,
-                isAllDay: false,
-                startDateTime: Date().addingTimeInterval(3600),
-                durationMinutes: 60,
-                recurrenceRule: nil
-            )
-            repo.save(event: event)
-        }
-    }
-
-    private func draftEvent() -> Event {
-        Event(
-            title: "",
-            stampId: stampStore.defaultStampId,
-            childScope: .both,
-            visibility: .published,
-            isAllDay: false,
-            startDateTime: Date(),
-            durationMinutes: 60,
-            recurrenceRule: nil
-        )
     }
 
     private func prepareBackupFileForExport() {
