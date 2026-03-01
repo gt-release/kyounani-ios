@@ -110,15 +110,11 @@ public struct KyounaniRootView: View {
         .onReceive(repository.objectWillChange) { _ in
             stampStore.reload()
         }
-        .onReceive(repository.$lastErrorMessage) { message in
-            if let message {
-                DiagnosticsCenter.breadcrumb(event: "lastError", detail: message)
-            }
-        }
         .onChange(of: appVM.parentModeUnlocked) {
             if appVM.parentModeUnlocked {
                 let level = DiagnosticsCenter.rescueDebugLevel
                 DiagnosticsCenter.breadcrumb(event: "openingRescue\(level.rawValue)")
+                showingGate = false
                 showingRescueGate = true
             } else {
                 showingRescueGate = false
@@ -137,11 +133,18 @@ public struct KyounaniRootView: View {
         .sheet(isPresented: $showingRescueGate) {
             RescueDebugRouterView(
                 level: DiagnosticsCenter.rescueDebugLevel,
+                repo: repository,
                 onOpenParentMode: {
-                    showingParentMode = true
+                    showingRescueGate = false
+                    DispatchQueue.main.async {
+                        showingParentMode = true
+                    }
                 },
                 onOpenSafeParentMode: {
-                    showingSafeParentMode = true
+                    showingRescueGate = false
+                    DispatchQueue.main.async {
+                        showingSafeParentMode = true
+                    }
                 },
                 onResetAllData: {
                     resetAllData()

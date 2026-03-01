@@ -62,7 +62,7 @@ public final class AppViewModel: ObservableObject {
 
     public func lockToChildMode() {
         parentModeUnlocked = false
-        DiagnosticsCenter.markCleanExit(reason: "lockedToChildMode")
+        DiagnosticsCenter.breadcrumb(event: "lockedToChildMode")
     }
 
     public func markCleanExit(reason: String) {
