@@ -7,6 +7,7 @@ public struct CalendarRootView: View {
     @State private var mode: CalendarDisplayMode = .month
     @State private var anchorDate: Date = .now
     @State private var selectedDate: Date?
+    @State private var openEditorOnQuickAdd = false
 
     @ObservedObject var calendarVM: CalendarViewModel
     @ObservedObject var speechService: SpeechService
@@ -70,11 +71,12 @@ public struct CalendarRootView: View {
         .navigationTitle("カレンダー")
         .onChange(of: appVM.quickAddRequestID) {
             guard appVM.parentModeUnlocked else { return }
+            openEditorOnQuickAdd = true
             selectedDate = calendarVM.startOfDay(for: selectedDate ?? anchorDate)
         }
         .navigationDestination(isPresented: dayDetailIsPresented) {
             if let date = selectedDate {
-                DayDetailView(date: date, calendarVM: calendarVM, speechService: speechService, repository: repository)
+                DayDetailView(date: date, calendarVM: calendarVM, speechService: speechService, repository: repository, openEditorImmediately: openEditorOnQuickAdd)
             }
         }
     }
@@ -91,6 +93,7 @@ public struct CalendarRootView: View {
     }
 
     private func select(date: Date) {
+        openEditorOnQuickAdd = false
         selectedDate = calendarVM.startOfDay(for: date)
     }
 

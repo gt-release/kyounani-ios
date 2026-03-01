@@ -200,22 +200,6 @@ public struct KyounaniRootView: View {
         }
     }
 
-    private func openParentEntryPoint() {
-        guard appVM.parentModeUnlocked else { return }
-        if hasCompletedRescueGate {
-            if appVM.safeModeEnabled {
-                showingSafeParentMode = true
-            } else {
-                showingParentMode = true
-            }
-            return
-        }
-
-        let level = DiagnosticsCenter.rescueDebugLevel
-        DiagnosticsCenter.breadcrumb(event: "openingRescue\(level.rawValue)")
-        showingRescueGate = true
-    }
-
 }
 
 #endif
