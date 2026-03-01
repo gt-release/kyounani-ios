@@ -11,6 +11,7 @@ public struct KyounaniRootView: View {
     @State private var showingGate = false
     @State private var showingRescueGate = false
     @State private var showingParentMode = false
+    @State private var showingSafeParentMode = false
     @State private var showCrashBanner = false
 
     public init() {
@@ -63,6 +64,8 @@ public struct KyounaniRootView: View {
 
             if appVM.parentModeUnlocked {
                 Button("親モード") {
+                    let level = DiagnosticsCenter.rescueDebugLevel
+                    DiagnosticsCenter.breadcrumb(event: "openingRescue\(level.rawValue)")
                     showingRescueGate = true
                 }
                 .font(.caption.bold())
@@ -114,11 +117,13 @@ public struct KyounaniRootView: View {
         }
         .onChange(of: appVM.parentModeUnlocked) {
             if appVM.parentModeUnlocked {
-                DiagnosticsCenter.breadcrumb(event: "openedRescueGateView")
+                let level = DiagnosticsCenter.rescueDebugLevel
+                DiagnosticsCenter.breadcrumb(event: "openingRescue\(level.rawValue)")
                 showingRescueGate = true
             } else {
                 showingRescueGate = false
                 showingParentMode = false
+                showingSafeParentMode = false
             }
         }
         .onChange(of: scenePhase) {
@@ -130,10 +135,13 @@ public struct KyounaniRootView: View {
             ParentalGateView()
         }
         .sheet(isPresented: $showingRescueGate) {
-            RescueGateView(
-                repo: repository,
+            RescueDebugRouterView(
+                level: DiagnosticsCenter.rescueDebugLevel,
                 onOpenParentMode: {
                     showingParentMode = true
+                },
+                onOpenSafeParentMode: {
+                    showingSafeParentMode = true
                 },
                 onResetAllData: {
                     resetAllData()
@@ -146,6 +154,9 @@ public struct KyounaniRootView: View {
         }
         .sheet(isPresented: $showingParentMode) {
             ParentModeView(repo: repository)
+        }
+        .sheet(isPresented: $showingSafeParentMode) {
+            ParentModeSafeShellView()
         }
     }
 

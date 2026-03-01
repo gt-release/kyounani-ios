@@ -44,6 +44,17 @@
   - customImage読み込みを無効化（system symbol相当表示）
   - バックアップ書き出し/復元は無効化
 
+### クラッシュ切り分けメモ（RescueDebugLevel）
+- 親ゲート突破後の遷移先は `RescueDebugLevel`（L0〜L5）で段階切替できます。
+  - `L0`: 完全空画面（白背景 + テキスト + 戻るのみ）
+  - `L1`: L0 + UserDefaults bool 表示
+  - `L2`: L1 + breadcrumb最後1件
+  - `L3`: L2 + セーフモードON/OFF
+  - `L4`: L3 + 親画面（Safe Shell / InMemory固定）導線
+  - `L5`: L4 + 通常親画面導線
+- 切替方法: `DiagnosticsCenter.rescueDebugLevelOverride`（コード固定）または `kyounani.rescueDebugLevel`（UserDefaults）
+- 親モード/Diagnosticsで落ちる場合は、L0→L5へ順に上げて「どの段階で落ちるか」を特定してください。
+
 ### バックアップ
 - 親モードから書き出し / 復元。
 - 形式: `kyounani-backup.kybk`（`formatVersion=2` 固定、`PBKDF2-HMAC-SHA256` + `AES-GCM`）。

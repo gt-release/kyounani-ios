@@ -31,8 +31,13 @@ public struct ParentModeView: View {
     @State private var creatingEvent = false
     @State private var editingEvent: Event?
 
-    public init(repo: EventRepositoryBase) {
+    private let hideBackupControls: Bool
+    private let hideDiagnosticsEntry: Bool
+
+    public init(repo: EventRepositoryBase, hideBackupControls: Bool = false, hideDiagnosticsEntry: Bool = false) {
         self.repo = repo
+        self.hideBackupControls = hideBackupControls
+        self.hideDiagnosticsEntry = hideDiagnosticsEntry
     }
 
     public var body: some View {
@@ -172,16 +177,16 @@ public struct ParentModeView: View {
                     DiagnosticsCenter.breadcrumb(event: "startedBackupExport")
                     showingExportPassphraseSheet = true
                 }
-                .disabled(appVM.safeModeEnabled)
+                .disabled(appVM.safeModeEnabled || hideBackupControls)
 
                 Button("バックアップから復元") {
                     DiagnosticsCenter.breadcrumb(event: "startedBackupImport")
                     showingBackupImporter = true
                 }
-                .disabled(appVM.safeModeEnabled)
+                .disabled(appVM.safeModeEnabled || hideBackupControls)
 
-                if appVM.safeModeEnabled {
-                    Text("セーフモード中はバックアップ機能を無効化しています")
+                if appVM.safeModeEnabled || hideBackupControls {
+                    Text("セーフモードまたはRescue経由のためバックアップ機能を無効化しています")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -195,11 +200,14 @@ public struct ParentModeView: View {
 
             Section("診断") {
                 Toggle("セーフモード（次回起動で有効）", isOn: $appVM.safeModeEnabled)
-                NavigationLink("Diagnostics Lite") {
-                    DiagnosticsLiteView(repo: repo)
-                }
-                NavigationLink("Diagnostics Full") {
-                    DiagnosticsFullView(repo: repo)
+                if hideDiagnosticsEntry {
+                    Text("Diagnostics は Rescue 経由で開いてください")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Text("クラッシュ切り分け中のため、Diagnostics は Rescue から開いてください")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
 

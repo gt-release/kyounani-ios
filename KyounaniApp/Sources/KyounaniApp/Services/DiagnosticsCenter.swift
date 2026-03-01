@@ -1,6 +1,15 @@
 #if canImport(Foundation)
 import Foundation
 
+public enum RescueDebugLevel: String, CaseIterable {
+    case l0 = "L0"
+    case l1 = "L1"
+    case l2 = "L2"
+    case l3 = "L3"
+    case l4 = "L4"
+    case l5 = "L5"
+}
+
 public struct BreadcrumbEntry: Codable, Identifiable {
     public let id: UUID
     public let timestamp: Date
@@ -16,6 +25,8 @@ public struct BreadcrumbEntry: Codable, Identifiable {
 }
 
 public enum DiagnosticsCenter {
+    // 切り分け時に固定したい場合は nil 以外へ変更
+    public static let rescueDebugLevelOverride: RescueDebugLevel? = nil
     private enum Keys {
         static let didCleanExit = "kyounani.didCleanExit"
         static let safeModeEnabled = "kyounani.safeModeEnabled"
@@ -23,6 +34,7 @@ public enum DiagnosticsCenter {
         static let previousUncleanExit = "kyounani.previousUncleanExit"
         static let lastErrorMessage = "kyounani.lastErrorMessage"
         static let lastRepoTypeLabel = "kyounani.lastRepoTypeLabel"
+        static let rescueDebugLevel = "kyounani.rescueDebugLevel"
     }
 
     private static let maxStoredBreadcrumbs = 200
@@ -59,6 +71,16 @@ public enum DiagnosticsCenter {
 
     public static func setLastRepoTypeLabel(_ value: String) {
         UserDefaults.standard.set(value, forKey: Keys.lastRepoTypeLabel)
+    }
+
+    public static var rescueDebugLevel: RescueDebugLevel {
+        if let rescueDebugLevelOverride { return rescueDebugLevelOverride }
+        let raw = UserDefaults.standard.string(forKey: Keys.rescueDebugLevel) ?? RescueDebugLevel.l5.rawValue
+        return RescueDebugLevel(rawValue: raw) ?? .l5
+    }
+
+    public static func setRescueDebugLevel(_ level: RescueDebugLevel) {
+        UserDefaults.standard.set(level.rawValue, forKey: Keys.rescueDebugLevel)
     }
 
     public static var isSafeModeEnabled: Bool {
