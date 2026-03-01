@@ -70,13 +70,15 @@ public struct KyounaniRootView: View {
             }
 
             if appVM.parentModeUnlocked {
-                Button("親モード") {
-                    openParentEntryPoint()
+                Button {
+                    appVM.requestQuickAdd()
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.headline.bold())
+                        .frame(width: 34, height: 34)
                 }
-                .font(.caption.bold())
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(.ultraThinMaterial, in: Capsule())
+                .accessibilityLabel("予定を追加")
+                .background(.ultraThinMaterial, in: Circle())
                 .padding(.trailing, 12)
                 .padding(.top, 8)
             } else {
@@ -196,22 +198,6 @@ public struct KyounaniRootView: View {
                 showingSafeParentMode = true
             }
         }
-    }
-
-    private func openParentEntryPoint() {
-        guard appVM.parentModeUnlocked else { return }
-        if hasCompletedRescueGate {
-            if appVM.safeModeEnabled {
-                showingSafeParentMode = true
-            } else {
-                showingParentMode = true
-            }
-            return
-        }
-
-        let level = DiagnosticsCenter.rescueDebugLevel
-        DiagnosticsCenter.breadcrumb(event: "openingRescue\(level.rawValue)")
-        showingRescueGate = true
     }
 
 }
