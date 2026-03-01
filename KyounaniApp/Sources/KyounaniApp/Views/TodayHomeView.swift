@@ -8,11 +8,15 @@ public struct TodayHomeView: View {
     @ObservedObject var speechService: SpeechService
     @ObservedObject var repository: EventRepositoryBase
     @State private var selectedOccurrence: EventOccurrence?
+    @State private var hiddenGateTapCount = 0
+    @State private var lastHiddenGateTapAt: Date?
+    private let onRequestParentalGate: () -> Void
 
-    public init(calendarVM: CalendarViewModel, speechService: SpeechService, repository: EventRepositoryBase) {
+    public init(calendarVM: CalendarViewModel, speechService: SpeechService, repository: EventRepositoryBase, onRequestParentalGate: @escaping () -> Void = {}) {
         self.calendarVM = calendarVM
         self.speechService = speechService
         self.repository = repository
+        self.onRequestParentalGate = onRequestParentalGate
     }
 
     public var body: some View {
@@ -50,10 +54,10 @@ public struct TodayHomeView: View {
         let summary = EventListPresenter.summarizeDay(calendarVM.todayOccurrences)
 
         return VStack(alignment: .leading, spacing: theme.spacing.itemGap) {
-            sectionHeader("きょう")
+            sectionHeader("きょう", enablesFallbackGate: true)
 
             if summary.topOccurrences.isEmpty {
-                emptyCard(icon: "sun.max", message: "きょうのよていは ないよ")
+                emptyCard(icon: "sun.max.fill", message: "きょうは おやすみ")
             } else {
                 HStack(spacing: theme.spacing.itemGap) {
                     ForEach(summary.topOccurrences, id: \.id) { occ in
@@ -73,6 +77,8 @@ public struct TodayHomeView: View {
                 }
             }
         }
+        .padding(theme.spacing.cardPadding)
+        .cardStyle(background: theme.colors.todayCard.opacity(0.5))
     }
 
     private var nextSection: some View {
@@ -108,6 +114,8 @@ public struct TodayHomeView: View {
                 emptyCard(icon: "moon.stars.fill", message: "きょうは おしまい")
             }
         }
+        .padding(theme.spacing.cardPadding)
+        .cardStyle(background: theme.colors.nextCard.opacity(0.45))
     }
 
     private var tomorrowSection: some View {
@@ -125,30 +133,51 @@ public struct TodayHomeView: View {
                     }
                 }
             } else {
-                emptyCard(icon: "calendar", message: "あしたの よていは まだないよ")
+                emptyCard(icon: "calendar", message: "あしたを おたのしみに")
             }
         }
+        .padding(theme.spacing.cardPadding)
+        .cardStyle(background: theme.colors.peekCard.opacity(0.5))
     }
 
-    private func sectionHeader(_ title: String) -> some View {
+    private func sectionHeader(_ title: String, enablesFallbackGate: Bool = false) -> some View {
         Text(title)
             .font(theme.fonts.sectionHeader)
             .foregroundStyle(theme.colors.primaryText)
             .padding(.bottom, 2)
+            .onTapGesture {
+                guard enablesFallbackGate else { return }
+                registerFallbackGateTap()
+            }
     }
 
     private func emptyCard(icon: String, message: String) -> some View {
-        HStack(spacing: 10) {
+        VStack(spacing: 12) {
             Image(systemName: icon)
-                .font(.system(size: 34, weight: .semibold))
+                .symbolRenderingMode(.multicolor)
+                .font(.system(size: 44, weight: .bold))
             Text(message)
                 .font(theme.fonts.cardTitle)
+                .fontWeight(.heavy)
         }
         .foregroundStyle(theme.colors.primaryText)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity)
         .padding(theme.spacing.cardPadding)
         .cardStyle(background: theme.colors.emptyCard)
         .minTapTarget()
+    }
+
+    private func registerFallbackGateTap() {
+        let now = Date()
+        if let lastHiddenGateTapAt, now.timeIntervalSince(lastHiddenGateTapAt) > 4 {
+            hiddenGateTapCount = 0
+        }
+        hiddenGateTapCount += 1
+        lastHiddenGateTapAt = now
+        if hiddenGateTapCount >= 7 {
+            hiddenGateTapCount = 0
+            onRequestParentalGate()
+        }
     }
 
     private func reload() {

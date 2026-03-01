@@ -31,12 +31,20 @@ public struct ParentModeView: View {
     @State private var creatingEvent = false
     @State private var editingEvent: Event?
 
-    public init(repo: EventRepositoryBase) {
+    private let hideBackupControls: Bool
+    private let hideDiagnosticsEntry: Bool
+
+    public init(repo: EventRepositoryBase, hideBackupControls: Bool = false, hideDiagnosticsEntry: Bool = false) {
         self.repo = repo
+        self.hideBackupControls = hideBackupControls
+        self.hideDiagnosticsEntry = hideDiagnosticsEntry
     }
 
     public var body: some View {
         parentNavigationView
+            .onAppear {
+                DiagnosticsCenter.breadcrumb(event: "openedParentModeView")
+            }
     }
 
     private var parentNavigationView: some View {
@@ -93,6 +101,9 @@ public struct ParentModeView: View {
                     stampStore.markStampUsed(event.stampId)
                 })
                 .environmentObject(stampStore)
+                .onAppear {
+                    DiagnosticsCenter.breadcrumb(event: "openedEventEditor", detail: "create")
+                }
             }
             .sheet(item: $editingEvent) { event in
                 EventEditorView(mode: .edit, initialEvent: event, onSave: { updated in
@@ -102,6 +113,9 @@ public struct ParentModeView: View {
                     repo.delete(eventID: event.id)
                 })
                 .environmentObject(stampStore)
+                .onAppear {
+                    DiagnosticsCenter.breadcrumb(event: "openedEventEditor", detail: "edit")
+                }
             }
             .sheet(isPresented: $showingExportPassphraseSheet) {
                 backupExportPassphraseSheet
@@ -160,11 +174,21 @@ public struct ParentModeView: View {
 
             Section("バックアップ") {
                 Button("バックアップを書き出す") {
+                    DiagnosticsCenter.breadcrumb(event: "startedBackupExport")
                     showingExportPassphraseSheet = true
                 }
+                .disabled(appVM.safeModeEnabled || hideBackupControls)
 
                 Button("バックアップから復元") {
+                    DiagnosticsCenter.breadcrumb(event: "startedBackupImport")
                     showingBackupImporter = true
+                }
+                .disabled(appVM.safeModeEnabled || hideBackupControls)
+
+                if appVM.safeModeEnabled || hideBackupControls {
+                    Text("セーフモードまたはRescue経由のためバックアップ機能を無効化しています")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
 
@@ -175,8 +199,15 @@ public struct ParentModeView: View {
             }
 
             Section("診断") {
-                NavigationLink("Diagnostics") {
-                    DiagnosticsView(repo: repo)
+                Toggle("セーフモード（次回起動で有効）", isOn: $appVM.safeModeEnabled)
+                if hideDiagnosticsEntry {
+                    Text("Diagnostics は Rescue 経由で開いてください")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Text("クラッシュ切り分け中のため、Diagnostics は Rescue から開いてください")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
 
@@ -191,12 +222,16 @@ public struct ParentModeView: View {
                 TextField("スタンプ名", text: $newStampName)
 
                 Button("Files から取り込み") {
+                    DiagnosticsCenter.breadcrumb(event: "openedStampPicker", detail: "Files")
                     showingImageImporter = true
                 }
 
                 #if canImport(PhotosUI)
                 PhotosPicker(selection: $selectedPhotoItem, matching: .images, photoLibrary: .shared()) {
                     Text("Photos から取り込み")
+                }
+                .onTapGesture {
+                    DiagnosticsCenter.breadcrumb(event: "openedStampPicker", detail: "Photos")
                 }
                 #endif
             }
