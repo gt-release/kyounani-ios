@@ -136,7 +136,9 @@ public struct KyounaniRootView: View {
         .sheet(isPresented: $showingGate) {
             ParentalGateView(appVM: appVM)
         }
-        .sheet(isPresented: $showingRescueGate) {
+        .sheet(isPresented: $showingRescueGate, onDismiss: {
+            openPendingParentDestinationIfNeeded()
+        }) {
             RescueDebugRouterView(
                 level: DiagnosticsCenter.rescueDebugLevel,
                 repo: repository,
@@ -158,8 +160,6 @@ public struct KyounaniRootView: View {
             )
             .environmentObject(appVM)
             .environmentObject(stampStore)
-        } onDismiss: {
-            openPendingParentDestinationIfNeeded()
         }
         .sheet(isPresented: $showingParentMode) {
             ParentModeView(repo: repository)
@@ -183,6 +183,7 @@ public struct KyounaniRootView: View {
     private func openPendingParentDestinationIfNeeded() {
         guard let destination = pendingParentDestination else { return }
         pendingParentDestination = nil
+        guard appVM.parentModeUnlocked else { return }
 
         DispatchQueue.main.async {
             switch destination {
