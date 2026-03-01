@@ -41,13 +41,40 @@ public struct TodayHomeView: View {
     }
 
     private var childFilter: some View {
-        Picker("対象", selection: $appVM.filter) {
-            Text("息子").tag(ChildScope.son)
-            Text("娘").tag(ChildScope.daughter)
-            Text("両方").tag(ChildScope.both)
+        HStack(spacing: 10) {
+            childFilterButton(scope: .son, symbol: "figure.stand", color: .blue)
+            childFilterButton(scope: .daughter, symbol: "figure.stand", color: .pink)
+            childFilterButton(scope: .both, symbol: "person.2.fill", color: .purple)
         }
-        .pickerStyle(.segmented)
         .padding(.vertical, 2)
+    }
+
+    private func childFilterButton(scope: ChildScope, symbol: String, color: Color) -> some View {
+        let isSelected = appVM.filter == scope
+        return Button {
+            appVM.filter = scope
+        } label: {
+            VStack(spacing: 6) {
+                Image(systemName: symbol)
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundStyle(color)
+                Text(scopeLabel(scope))
+                    .font(.caption.bold())
+                    .foregroundStyle(theme.colors.primaryText)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(isSelected ? color.opacity(0.2) : Color.clear)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(isSelected ? color : theme.colors.secondaryText.opacity(0.2), lineWidth: isSelected ? 2 : 1)
+            )
+        }
+        .buttonStyle(.plain)
+        .minTapTarget()
     }
 
     private var todaySection: some View {
@@ -186,7 +213,20 @@ public struct TodayHomeView: View {
 
     private func timeRemainingText(_ date: Date) -> String {
         let min = max(0, Int(date.timeIntervalSinceNow / 60))
-        return "あと\(min)分"
+        if min >= 60 {
+            let hours = min / 60
+            let minutes = min % 60
+            return "あと\(hours)じかん\(minutes)ふん"
+        }
+        return "あと\(min)ふん"
+    }
+
+    private func scopeLabel(_ scope: ChildScope) -> String {
+        switch scope {
+        case .son: return "息子"
+        case .daughter: return "娘"
+        case .both: return "両方"
+        }
     }
 
     private func timeText(_ date: Date) -> String {

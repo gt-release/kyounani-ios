@@ -15,6 +15,7 @@ public struct KyounaniRootView: View {
     @State private var showCrashBanner = false
     @State private var pendingParentDestination: ParentDestination?
     @State private var hasCompletedRescueGate = false
+    @State private var hasBootstrappedInitialView = false
 
     private enum ParentDestination {
         case normal
@@ -70,15 +71,27 @@ public struct KyounaniRootView: View {
             }
 
             if appVM.parentModeUnlocked {
-                Button {
-                    appVM.requestQuickAdd()
-                } label: {
-                    Image(systemName: "plus")
-                        .font(.headline.bold())
-                        .frame(width: 34, height: 34)
+                HStack(spacing: 8) {
+                    Button {
+                        appVM.requestQuickAdd()
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.headline.bold())
+                            .frame(width: 34, height: 34)
+                    }
+                    .accessibilityLabel("予定を追加")
+                    .background(.ultraThinMaterial, in: Circle())
+
+                    Button {
+                        openParentToolsDirectly()
+                    } label: {
+                        Image(systemName: "slider.horizontal.3")
+                            .font(.headline.bold())
+                            .frame(width: 34, height: 34)
+                    }
+                    .accessibilityLabel("親モードのツール")
+                    .background(.ultraThinMaterial, in: Circle())
                 }
-                .accessibilityLabel("予定を追加")
-                .background(.ultraThinMaterial, in: Circle())
                 .padding(.trailing, 12)
                 .padding(.top, 8)
             } else {
@@ -114,6 +127,7 @@ public struct KyounaniRootView: View {
         .dynamicTypeSize(.medium ... .accessibility5)
         .onAppear {
             showCrashBanner = appVM.hadUncleanExitLastLaunch
+            bootstrapInitialViewIfNeeded()
         }
         .onReceive(repository.objectWillChange) { _ in
             stampStore.reload()
@@ -200,6 +214,21 @@ public struct KyounaniRootView: View {
         }
     }
 
+
+    private func bootstrapInitialViewIfNeeded() {
+        guard !hasBootstrappedInitialView else { return }
+        hasBootstrappedInitialView = true
+        calendarVM.refresh(childFilter: appVM.filter, includeDraft: appVM.parentModeUnlocked)
+    }
+
+    private func openParentToolsDirectly() {
+        guard appVM.parentModeUnlocked else { return }
+        if DiagnosticsCenter.isSafeModeEnabled {
+            showingSafeParentMode = true
+        } else {
+            showingParentMode = true
+        }
+    }
 }
 
 #endif

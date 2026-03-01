@@ -15,12 +15,13 @@ public struct TimerRingView: View {
             ZStack {
                 ForEach(0..<ringCount, id: \.self) { idx in
                     let fraction = progressForRing(index: idx)
+                    let ringColor = ringColor(for: idx)
                     Circle()
-                        .stroke(theme.colors.accent.opacity(0.15 + Double(idx) * 0.15), lineWidth: 16)
+                        .stroke(ringColor.opacity(0.22), lineWidth: 16)
                         .frame(width: 200 - CGFloat(idx * 18), height: 200 - CGFloat(idx * 18))
                     Circle()
                         .trim(from: 0, to: fraction)
-                        .stroke(theme.colors.accent, style: StrokeStyle(lineWidth: 16, lineCap: .round))
+                        .stroke(ringColor, style: StrokeStyle(lineWidth: 16, lineCap: .round))
                         .rotationEffect(.degrees(-90))
                         .frame(width: 200 - CGFloat(idx * 18), height: 200 - CGFloat(idx * 18))
                 }
@@ -51,15 +52,44 @@ public struct TimerRingView: View {
         return CGFloat(remainingInThisRing / 3600)
     }
 
+    private func ringColor(for index: Int) -> Color {
+        let palette: [Color] = [
+            theme.colors.accent,
+            .orange,
+            .pink,
+            .mint,
+            .purple,
+            .teal
+        ]
+        return palette[index % palette.count]
+    }
+
     private var labelText: String {
         if remaining <= 0 { return "はじまった！" }
-        let minutes = Int(remaining / 60)
-        return "あと \(minutes)分"
+        return remainingText(forAccessibility: false)
     }
 
     private var accessibilityValue: String {
         if remaining <= 0 { return "開始済み" }
-        return "あと\(Int(remaining / 60))ふん"
+        return remainingText(forAccessibility: true)
+    }
+
+    private func remainingText(forAccessibility: Bool) -> String {
+        let totalMinutes = Int(remaining / 60)
+        let hours = totalMinutes / 60
+        let minutes = totalMinutes % 60
+
+        if hours > 0 {
+            if forAccessibility {
+                return "あと\(hours)じかん\(minutes)ふん"
+            }
+            return "あと \(hours)じかん\(minutes)ふん"
+        }
+
+        if forAccessibility {
+            return "あと\(minutes)ふん"
+        }
+        return "あと \(minutes)分"
     }
 }
 
