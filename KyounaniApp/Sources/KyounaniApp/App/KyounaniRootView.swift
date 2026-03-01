@@ -13,6 +13,12 @@ public struct KyounaniRootView: View {
     @State private var showingParentMode = false
     @State private var showingSafeParentMode = false
     @State private var showCrashBanner = false
+    @State private var pendingParentDestination: ParentDestination?
+
+    private enum ParentDestination {
+        case normal
+        case safe
+    }
 
     public init() {
         let holiday = JapaneseHolidayService.bundled()
@@ -135,16 +141,12 @@ public struct KyounaniRootView: View {
                 level: DiagnosticsCenter.rescueDebugLevel,
                 repo: repository,
                 onOpenParentMode: {
+                    pendingParentDestination = .normal
                     showingRescueGate = false
-                    DispatchQueue.main.async {
-                        showingParentMode = true
-                    }
                 },
                 onOpenSafeParentMode: {
+                    pendingParentDestination = .safe
                     showingRescueGate = false
-                    DispatchQueue.main.async {
-                        showingSafeParentMode = true
-                    }
                 },
                 onResetAllData: {
                     resetAllData()
@@ -156,6 +158,8 @@ public struct KyounaniRootView: View {
             )
             .environmentObject(appVM)
             .environmentObject(stampStore)
+        } onDismiss: {
+            openPendingParentDestinationIfNeeded()
         }
         .sheet(isPresented: $showingParentMode) {
             ParentModeView(repo: repository)
@@ -174,6 +178,20 @@ public struct KyounaniRootView: View {
         stampStore.reseedBuiltinStampsIfNeeded()
         stampStore.reload()
         DiagnosticsCenter.breadcrumb(event: "resetAllData", detail: "fromRescueGate")
+    }
+
+    private func openPendingParentDestinationIfNeeded() {
+        guard let destination = pendingParentDestination else { return }
+        pendingParentDestination = nil
+
+        DispatchQueue.main.async {
+            switch destination {
+            case .normal:
+                showingParentMode = true
+            case .safe:
+                showingSafeParentMode = true
+            }
+        }
     }
 
 }

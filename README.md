@@ -24,12 +24,14 @@
 - フォールバック導線: Todayの見出し「きょう」を **7回連続タップ** でも4点シーケンス画面を起動可能（親向けの隠し導線）。
 - 安定化メモ: 右上ホットエリアと7回タップの両経路は同じ4点シーケンス画面を直接開く実装に統一。
 - 親モードでイベントの追加・編集・削除、テーマ切替（Kid / High Contrast）が可能。
+- 予定の追加は「右上の＋追加」または画面内の「予定を追加 > ＋ 予定エディタを開く」から開始できます。
 - 「ロック」で子どもモードに即復帰。
 
 ### スタンプ追加
 - 親モードで Files / Photos から追加。
 - 画像は中央正方形にクロップして PNG 保存。
 - Files 取り込み時は security-scoped resource を考慮。
+- Rescue 経由で親画面を開いた場合も、Rescueシートを閉じた後に親画面を確実に開く遷移へ修正済み。
 
 ### クラッシュ調査手順（iPad単体）
 - 親ゲート突破後はまず **RescueGateView** を開きます（Crash-safe最小画面）。
@@ -122,11 +124,9 @@
 - ワークフロー内で `setup-xcode` により Xcode を明示選択し、`swift` ツールチェーンのぶれを抑制。
 
 ## ドキュメント一覧
-- [CODE_REVIEW.md](CODE_REVIEW.md)
 - [docs/PLAYGROUNDS_QUICKSTART.md](docs/PLAYGROUNDS_QUICKSTART.md)
 - [docs/QA_CHECKLIST.md](docs/QA_CHECKLIST.md)
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - [docs/SECURITY.md](docs/SECURITY.md)
 - [AGENTS.md](AGENTS.md)
-- [LEGACY_REMOVAL.md](LEGACY_REMOVAL.md)
 - [PHASE1-PLAN.md](PHASE1-PLAN.md)
