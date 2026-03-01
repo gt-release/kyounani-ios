@@ -311,6 +311,7 @@ public struct DayDetailView: View {
         .navigationTitle(titleText)
         .toolbar {
             if appVM.parentModeUnlocked {
+                #if os(iOS)
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         creatingEvent = true
@@ -318,6 +319,7 @@ public struct DayDetailView: View {
                         Label("追加", systemImage: "plus")
                     }
                 }
+                #endif
             }
         }
         .confirmationDialog("どこまで編集しますか？", isPresented: $showingRecurrenceEditTargetDialog, titleVisibility: .visible) {
