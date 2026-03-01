@@ -34,6 +34,7 @@
   - 原因: Playgrounds の実行環境によって `Bundle.module` 参照が期待通りにならず、起動時リソース解決が不安定。
   - 対策: `ResourceBundleLocator` を導入し、祝日CSV/初期スタンプJSONの探索を複数bundle横断に変更。
   - 影響: `JapaneseHolidayService` / `StampStore` / `SwiftDataEventRepository` の初期読込経路。
+  - 追加対策(5): Rescue から通常/セーフ親画面を開く際、シート閉鎖と同時present競合で遷移が失敗するケースを修正。Rescueのdismiss完了後に保留済み遷移先を開く方式へ変更。
 
 ## 1. 目的への対応状況
 
@@ -108,6 +109,9 @@
   - 日別詳細一覧を追加。
   - 予定タップで既存TTS + TimerRing表示へ接続。
 - 親モードCRUD/繰り返し例外UI/スタンプ管理/診断: **対応強化（前進）**
+  - 親モード内に「予定を追加 > ＋予定エディタを開く」を常設し、ツールバー操作に依存せず追加導線を明示。
+  - 親モード予定一覧に行内ゴミ箱ボタン + swipe削除 + 確認ダイアログを追加し、検索操作なしで削除導線が見えるよう改善。
+  - Rescue/セーフ経由を含む親画面で、スタンプ追加（Files/Photos）導線が機能することを再確認。
   - イベントの本格CRUD（新規作成 / 一覧タップ編集 / 削除）を実装。
   - `EventEditorView` で title / stamp / childScope / visibility / isAllDay / startDateTime / durationMinutes / recurrenceRule(週次) を編集可能。
   - 日別詳細で繰り返し予定の例外編集3択UI（この日だけ/以降/全体）を維持し、各選択肢に影響範囲の説明を表示。分岐後の編集画面として `EventEditorView` を再利用。
@@ -215,3 +219,9 @@
 3. 暗号化バックアップの改善（KDF強化、ZIPコンテナ化、差分/選択復元）。
 4. CI（`swift test` 拡充、Playgrounds起動手順チェック、診断セルフテスト運用の文書化）。
 5. 子ども向け空状態イラスト/文言の差し替え容易化（ローカライズ含む）。
+
+
+## 15. ドキュメント整理（2026-03）
+
+- `README.md` のドキュメント一覧を現行運用に合わせて更新。
+- 役割が終わった `CODE_REVIEW.md` / `LEGACY_REMOVAL.md` を削除。

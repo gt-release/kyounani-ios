@@ -30,6 +30,8 @@ public struct ParentModeView: View {
     @State private var newStampName = ""
     @State private var creatingEvent = false
     @State private var editingEvent: Event?
+    @State private var deletingEvent: Event?
+    @State private var showingDeleteEventConfirmation = false
 
     private let hideBackupControls: Bool
     private let hideDiagnosticsEntry: Bool
@@ -218,6 +220,15 @@ public struct ParentModeView: View {
                 quickButton("療育", stampId: UUID(uuidString: "44444444-4444-4444-4444-444444444444") ?? stampStore.defaultStampId)
             }
 
+            Section("予定を追加") {
+                Button("＋ 予定エディタを開く") {
+                    creatingEvent = true
+                }
+                Text("上のボタンから新規予定を作成できます（右上の＋追加と同じ動作）")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             Section("スタンプ追加") {
                 TextField("スタンプ名", text: $newStampName)
 
@@ -264,22 +275,40 @@ public struct ParentModeView: View {
 
             Section("予定") {
                 ForEach(repo.fetchEvents().sorted(by: { $0.startDateTime < $1.startDateTime })) { event in
-                    Button {
-                        editingEvent = event
-                    } label: {
-                        HStack {
-                            EventTokenRenderer(event: event, showTitle: false, iconSize: 24)
-                            VStack(alignment: .leading) {
-                                Text(event.title)
-                                Text(event.visibility == .published ? "公開" : "下書き")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                    HStack {
+                        Button {
+                            editingEvent = event
+                        } label: {
+                            HStack {
+                                EventTokenRenderer(event: event, showTitle: false, iconSize: 24)
+                                VStack(alignment: .leading) {
+                                    Text(event.title)
+                                    Text(event.visibility == .published ? "公開" : "下書き")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
                             }
-                            Spacer()
+                            .contentShape(Rectangle())
                         }
-                        .contentShape(Rectangle())
+                        .buttonStyle(.plain)
+
+                        Button(role: .destructive) {
+                            deletingEvent = event
+                            showingDeleteEventConfirmation = true
+                        } label: {
+                            Label("削除", systemImage: "trash")
+                        }
+                        .buttonStyle(.borderless)
                     }
-                    .buttonStyle(.plain)
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        Button(role: .destructive) {
+                            deletingEvent = event
+                            showingDeleteEventConfirmation = true
+                        } label: {
+                            Label("削除", systemImage: "trash")
+                        }
+                    }
                 }
                 .onDelete { indexSet in
                     let events = repo.fetchEvents().sorted(by: { $0.startDateTime < $1.startDateTime })
@@ -287,6 +316,23 @@ public struct ParentModeView: View {
                         repo.delete(eventID: events[i].id)
                     }
                 }
+            }
+        }
+        .confirmationDialog("この予定を削除しますか？", isPresented: $showingDeleteEventConfirmation, titleVisibility: .visible) {
+            Button("削除する", role: .destructive) {
+                guard let event = deletingEvent else { return }
+                repo.delete(eventID: event.id)
+                if editingEvent?.id == event.id {
+                    editingEvent = nil
+                }
+                deletingEvent = nil
+            }
+            Button("キャンセル", role: .cancel) {
+                deletingEvent = nil
+            }
+        } message: {
+            if let event = deletingEvent {
+                Text("\(event.title.isEmpty ? "よてい" : event.title) を削除します")
             }
         }
     }
