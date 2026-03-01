@@ -3,7 +3,7 @@ import SwiftUI
 
 public struct ParentModeSafeShellView: View {
     @EnvironmentObject private var appVM: AppViewModel
-    @StateObject private var safeRepo = InMemoryEventRepository()
+    @StateObject private var safeRepo: InMemoryEventRepository
     @StateObject private var safeStampStore: StampStore
 
     public init() {
@@ -24,13 +24,15 @@ public struct ParentModeSafeShellView: View {
 
 public struct RescueDebugRouterView: View {
     let level: RescueDebugLevel
+    let repo: EventRepositoryBase
     let onOpenParentMode: () -> Void
     let onOpenSafeParentMode: () -> Void
     let onResetAllData: () -> Void
     let onBackToChildMode: () -> Void
 
-    public init(level: RescueDebugLevel, onOpenParentMode: @escaping () -> Void, onOpenSafeParentMode: @escaping () -> Void, onResetAllData: @escaping () -> Void, onBackToChildMode: @escaping () -> Void) {
+    public init(level: RescueDebugLevel, repo: EventRepositoryBase, onOpenParentMode: @escaping () -> Void, onOpenSafeParentMode: @escaping () -> Void, onResetAllData: @escaping () -> Void, onBackToChildMode: @escaping () -> Void) {
         self.level = level
+        self.repo = repo
         self.onOpenParentMode = onOpenParentMode
         self.onOpenSafeParentMode = onOpenSafeParentMode
         self.onResetAllData = onResetAllData
@@ -50,7 +52,7 @@ public struct RescueDebugRouterView: View {
         case .l4:
             RescueL4View(onOpenSafeParentMode: onOpenSafeParentMode, onBackToChildMode: onBackToChildMode)
         case .l5:
-            RescueL5View(onOpenParentMode: onOpenParentMode, onOpenSafeParentMode: onOpenSafeParentMode, onResetAllData: onResetAllData, onBackToChildMode: onBackToChildMode)
+            RescueGateView(repo: repo, onOpenParentMode: onOpenParentMode, onResetAllData: onResetAllData, onBackToChildMode: onBackToChildMode)
         }
     }
 }

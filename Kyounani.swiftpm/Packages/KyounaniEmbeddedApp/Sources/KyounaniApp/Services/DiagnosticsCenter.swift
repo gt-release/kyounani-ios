@@ -128,10 +128,20 @@ public enum DiagnosticsCenter {
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         let line = "\(formatter.string(from: Date())) \(line)\n"
 
+        let maxBytes = 100_000
+        let trimBytes = 50_000
+
         do {
             let url = logFileURL()
             try ensureDirectoryExists(url.deletingLastPathComponent())
             if FileManager.default.fileExists(atPath: url.path) {
+                let fileSize = (try? url.resourceValues(forKeys: [.fileSizeKey]))?.fileSize ?? 0
+                if fileSize > maxBytes,
+                   let existingData = try? Data(contentsOf: url),
+                   existingData.count > trimBytes {
+                    let trimmed = existingData.suffix(trimBytes)
+                    try trimmed.write(to: url, options: .atomic)
+                }
                 let handle = try FileHandle(forWritingTo: url)
                 defer { try? handle.close() }
                 try handle.seekToEnd()
