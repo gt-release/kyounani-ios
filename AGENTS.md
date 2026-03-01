@@ -65,10 +65,19 @@
 
 - 起動時は子ども用モード: **対応済み**
 - 子ども用フィルタ（息子/娘/両方）: **対応済み**
-- ペアレンタルゲート（3本指2秒長押し起点）: **対応済み（誘導強化）**
-  - 右上の固定領域を拡張し、「親モード / 右上を3本指で2秒」ガイドを常時表示。
-  - ガイド領域内の「3本指2秒長押し」を検出し、4点シーケンスゲートへ遷移。
+- ペアレンタルゲート（2本指2秒長押し起点）: **対応強化（信頼性改善）**
+  - 右上の固定領域に見た目より大きい透明ホットエリア（約110x110 + padding）を重ね、「親モード / 右上を2本指で2秒」ガイドを常時表示。
+  - ガイド領域内の「2本指2秒長押し」を検出し、4点シーケンスゲートへ遷移。UIViewRepresentable側で `isMultipleTouchEnabled = true` を明示。
   - 4点シーケンスタップ、失敗時クールダウン、緊急4桁コードを維持。
+  - フォールバックとして Today見出し「きょう」の7回連続タップでもゲート起動可能（親のみが知る隠し導線）。
+  - 安定化追記: 親ゲート起動は `AppViewModel` のカウンタ中継を介さず、ホットエリア/フォールバックの両方から `KyounaniRootView` の `showingGate` を直接更新する経路へ整理し、unknown crash 調査時の状態遷移を単純化。
+  - CrashMarker（didCleanExit）を追加し、起動時に `didCleanExit=false` をセット。`scenePhase.background` / 明示ロック時に `didCleanExit=true` を記録し、次回起動時に前回異常終了バナーを表示。
+  - Breadcrumb Logger を追加し、親モード導線・EventEditor/StampPicker起動・バックアップ開始・repoType・lastError を保存（直近50件をDiagnostics表示/コピー可能）。
+  - Application Support の `kyounani.log` へタイムスタンプ付き追記ログを保存し、Diagnosticsから表示/コピー可能。
+  - 親ゲート突破後はまず `RescueGateView`（Crash-safe）を表示し、通常親画面/セーフモード親画面/ログコピー/全削除/子どもモード復帰を実行可能。
+  - 設計注記: 親ゲート関連Viewの依存注入を明示する。`ParentalGateView` は `AppViewModel` を `@ObservedObject` 引数注入し、`ParentModeView` / `ParentModeSafeShellView` / `RescueGateView` は `@EnvironmentObject` 依存として `KyounaniRootView` の sheet 表示クロージャ内で必要な `environmentObject(...)` を必ず明示注入する（注入漏れは即時クラッシュ要因）。
+  - 切り分け専用: `RescueDebugLevel`（L0〜L5）で親ゲート突破後の遷移先を段階的に差し替え可能。L0の完全空画面から順に依存を増やして、落ちる段階を特定する運用を追加。
+  - セーフモード（UserDefaults保存）を追加。ON時は次回起動で Repository を InMemory 固定、customImage読込を無効化、バックアップ操作を無効化。
   - 子どもモードでは親導線ボタンを非表示化（隠しジェスチャー領域のみ残す）。
   - 親モード画面で「ロック」実行時に親画面を自動で閉じ、子どもモードへ即時復帰。
 - Face ID/Touch ID未使用: **対応済み**
@@ -81,11 +90,12 @@
 
 ## 5. 画面構成
 
-- Todayホーム: **対応強化（見た目最適化 + Theme適用）**
+- Todayホーム: **対応強化（見た目最適化 + 賑やかさ強化）**
   - 「きょう / つぎ / あした」セクションを大きな見出しと広い余白で整理。
+  - 「きょう / つぎ / あした」セクション全体を薄いティントのカードで包み、余白・角丸トーンを統一。
   - 今日・あしたはスタンプ優先の大きな表示で最大2件+`+N`を維持。
   - 次カードはカード全体タップで TTS + TimerRing を一体動作。
-  - 今日0件 / 次予定なしの空状態UIを追加。
+  - 今日0件 / 次予定なしの空状態UIを追加（multicolor SF Symbol + 太字短文）。
   - Themeプリセット（Kid / HighContrast）切替を親モードに追加し、子どもモードにも同設定を反映。
   - EventToken / TimerRing のアクセシビリティ文言（label/value）を強化し、VoiceOverで予定情報と残り時間を説明可能に改善。
 - Today/Calendar導線: **対応済み（常設2タブ）**
@@ -93,6 +103,7 @@
   - 子どもフィルタ（息子/娘/両方）はToday上部に常時表示し、タップしやすい領域を確保。
 - 月/週カレンダー（見通し）: **対応済み（最小）**
   - 月表示/週表示の切替、日曜始まり、祝日/土日色分け、日セル2件+`+N` を実装。
+  - Calendar側もセグメント/ヘッダー/本体をカード化し、Todayと同じ角丸・背景トーンへ寄せてTheme適用漏れを補完。
 - 日別詳細 + TimerOverlay: **部分対応**
   - 日別詳細一覧を追加。
   - 予定タップで既存TTS + TimerRing表示へ接続。
@@ -101,8 +112,9 @@
   - `EventEditorView` で title / stamp / childScope / visibility / isAllDay / startDateTime / durationMinutes / recurrenceRule(週次) を編集可能。
   - 日別詳細で繰り返し予定の例外編集3択UI（この日だけ/以降/全体）を維持し、各選択肢に影響範囲の説明を表示。分岐後の編集画面として `EventEditorView` を再利用。
   - `EventEditorView` のスタンプ選択UXを拡張（最近使ったセクション / 検索 / 並び替え[最近順・名前順]）。
-  - Diagnostics画面を追加し、有効Repository種別・lastError・バックアップ仕様（formatVersion=2 / PBKDF2-HMAC-SHA256 / AES-GCM）を表示。
+  - 切り分け優先運用として、親導線からはDiagnosticsを直接開かず `RescueDebugLevel` ルート経由で段階切替する。Diagnosticsは `Lite`/`Full` 分割を維持。
   - Diagnosticsのセルフテストで、祝日CSV読込 / RecurrenceEngineの次3回生成 / バックアップround-trip（メモリ上）を実行可能。
+  - CI互換修正: Diagnostics のバックアップセルフテスト呼び出しを `importEncryptedData` から `decryptPayload(from:passphrase:)` へ統一。
   - セルフテスト失敗時は親モード内で赤バナー表示（子どもモードには非表示）。
 
 ## 6. 祝日（日本オフライン）

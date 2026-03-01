@@ -6,6 +6,8 @@ import SwiftUI
 import UIKit
 #endif
 
+private func safeUUID(_ value: String) -> UUID { UUID(uuidString: value) ?? UUID() }
+
 private struct BuiltinStampDefinition: Codable {
     var id: UUID
     var name: String
@@ -19,18 +21,18 @@ public final class StampStore: ObservableObject {
     private let repository: EventRepositoryBase
 
     private static let fallbackBuiltinDefinitions: [BuiltinStampDefinition] = [
-        .init(id: UUID(uuidString: "11111111-1111-1111-1111-111111111111")!, name: "ようちえん", symbolName: "figure.and.child.holdinghands"),
-        .init(id: UUID(uuidString: "22222222-2222-2222-2222-222222222222")!, name: "びょういん", symbolName: "cross.case.fill"),
-        .init(id: UUID(uuidString: "33333333-3333-3333-3333-333333333333")!, name: "こうえん", symbolName: "leaf.fill"),
-        .init(id: UUID(uuidString: "44444444-4444-4444-4444-444444444444")!, name: "りょういく", symbolName: "hands.sparkles.fill"),
-        .init(id: UUID(uuidString: "55555555-5555-5555-5555-555555555555")!, name: "かいもの", symbolName: "cart.fill"),
-        .init(id: UUID(uuidString: "66666666-6666-6666-6666-666666666666")!, name: "がいしょく", symbolName: "fork.knife"),
-        .init(id: UUID(uuidString: "77777777-7777-7777-7777-777777777777")!, name: "きせい", symbolName: "house.fill"),
-        .init(id: UUID(uuidString: "88888888-8888-8888-8888-888888888888")!, name: "たんじょうび", symbolName: "birthday.cake.fill")
+        .init(id: safeUUID("11111111-1111-1111-1111-111111111111"), name: "ようちえん", symbolName: "figure.and.child.holdinghands"),
+        .init(id: safeUUID("22222222-2222-2222-2222-222222222222"), name: "びょういん", symbolName: "cross.case.fill"),
+        .init(id: safeUUID("33333333-3333-3333-3333-333333333333"), name: "こうえん", symbolName: "leaf.fill"),
+        .init(id: safeUUID("44444444-4444-4444-4444-444444444444"), name: "りょういく", symbolName: "hands.sparkles.fill"),
+        .init(id: safeUUID("55555555-5555-5555-5555-555555555555"), name: "かいもの", symbolName: "cart.fill"),
+        .init(id: safeUUID("66666666-6666-6666-6666-666666666666"), name: "がいしょく", symbolName: "fork.knife"),
+        .init(id: safeUUID("77777777-7777-7777-7777-777777777777"), name: "きせい", symbolName: "house.fill"),
+        .init(id: safeUUID("88888888-8888-8888-8888-888888888888"), name: "たんじょうび", symbolName: "birthday.cake.fill")
     ]
 
     public var defaultStampId: UUID {
-        Self.fallbackBuiltinDefinitions.first?.id ?? UUID(uuidString: "11111111-1111-1111-1111-111111111111")!
+        Self.fallbackBuiltinDefinitions.first?.id ?? safeUUID("11111111-1111-1111-1111-111111111111")
     }
 
     public init(repository: EventRepositoryBase) {
@@ -52,6 +54,7 @@ public final class StampStore: ObservableObject {
             }
             return Image(systemName: "questionmark.circle.fill")
         case .customImage:
+            if DiagnosticsCenter.isSafeModeEnabled { return nil }
             return imageFromURL(url: userImageURL(filename: stamp.imageLocation))
         }
     }

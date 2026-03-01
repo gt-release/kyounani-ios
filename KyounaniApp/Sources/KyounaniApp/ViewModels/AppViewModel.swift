@@ -12,6 +12,12 @@ public final class AppViewModel: ObservableObject {
     @Published public var failedGateAttempts = 0
     @Published public var gateCooldownUntil: Date?
     @Published public var emergencyCodeEnabled = false
+    @Published public private(set) var hadUncleanExitLastLaunch = false
+    @Published public var safeModeEnabled: Bool {
+        didSet {
+            DiagnosticsCenter.setSafeModeEnabled(safeModeEnabled)
+        }
+    }
     @Published public var themePreset: ThemePreset {
         didSet {
             UserDefaults.standard.set(themePreset.rawValue, forKey: Keys.themePreset)
@@ -23,6 +29,8 @@ public final class AppViewModel: ObservableObject {
     public init() {
         let raw = UserDefaults.standard.string(forKey: Keys.themePreset)
         themePreset = ThemePreset(rawValue: raw ?? "") ?? .kid
+        safeModeEnabled = DiagnosticsCenter.isSafeModeEnabled
+        hadUncleanExitLastLaunch = DiagnosticsCenter.markAppLaunched()
     }
 
     public var theme: KyounaniTheme {
@@ -40,6 +48,7 @@ public final class AppViewModel: ObservableObject {
             parentModeUnlocked = true
             failedGateAttempts = 0
             gateCooldownUntil = nil
+            DiagnosticsCenter.breadcrumb(event: "enteredParentMode")
             return true
         }
 
@@ -53,7 +62,13 @@ public final class AppViewModel: ObservableObject {
 
     public func lockToChildMode() {
         parentModeUnlocked = false
+        DiagnosticsCenter.breadcrumb(event: "lockedToChildMode")
     }
+
+    public func markCleanExit(reason: String) {
+        DiagnosticsCenter.markCleanExit(reason: reason)
+    }
+
 }
 
 #endif

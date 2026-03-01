@@ -126,7 +126,7 @@ public struct EventException: Identifiable, Codable, Equatable {
 }
 
 public struct Stamp: Identifiable, Codable, Equatable {
-    public static let defaultStampId = UUID(uuidString: "11111111-1111-1111-1111-111111111111")!
+    public static let defaultStampId = UUID(uuidString: "11111111-1111-1111-1111-111111111111") ?? UUID()
 
     public var id: UUID
     public var name: String

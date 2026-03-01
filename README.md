@@ -19,8 +19,10 @@
 - 「つぎ」カードをタップすると読み上げ + 残り時間リング表示。
 
 ### 親モード
-- 右上のガイド表示付き領域で **3本指2秒長押し** → 4点シーケンスで解除。
-- ガイド（「親モード / 右上を3本指で2秒」）が表示されるので、その範囲内で長押し。
+- 右上のガイド表示付き領域で **2本指2秒長押し** → 4点シーケンスで解除。
+- ガイド（「親モード / 右上を2本指で2秒」）が表示されるので、その範囲内で長押し。
+- フォールバック導線: Todayの見出し「きょう」を **7回連続タップ** でも4点シーケンス画面を起動可能（親向けの隠し導線）。
+- 安定化メモ: 右上ホットエリアと7回タップの両経路は同じ4点シーケンス画面を直接開く実装に統一。
 - 親モードでイベントの追加・編集・削除、テーマ切替（Kid / High Contrast）が可能。
 - 「ロック」で子どもモードに即復帰。
 
@@ -29,18 +31,51 @@
 - 画像は中央正方形にクロップして PNG 保存。
 - Files 取り込み時は security-scoped resource を考慮。
 
+### クラッシュ調査手順（iPad単体）
+- 親ゲート突破後はまず **RescueGateView** を開きます（Crash-safe最小画面）。
+- 次回起動時に「前回、異常終了の可能性があります」バナーが出たら「診断」から親ゲートへ進む。
+- 親モード > Diagnostics で以下を確認:
+  - Crash Marker（前回異常終了フラグ）
+  - Breadcrumb直近50件（親モード遷移/エディタ/スタンプ/バックアップ/repoType/lastError）
+  - `kyounani.log`（Application Support 追記ログ）
+- Diagnostics画面の「Breadcrumbをコピー」「ファイルログをコピー」で端末単体で共有可能。
+- 切り分け時は RescueGateView から「セーフモードONで親画面を開く」を選び、再現有無を比較する。
+  - セーフモードでは Repository を InMemory に固定
+  - customImage読み込みを無効化（system symbol相当表示）
+  - バックアップ書き出し/復元は無効化
+
+### クラッシュ切り分けメモ（RescueDebugLevel）
+- 親ゲート突破後の遷移先は `RescueDebugLevel`（L0〜L5）で段階切替できます。
+  - `L0`: 完全空画面（白背景 + テキスト + 戻るのみ）
+  - `L1`: L0 + UserDefaults bool 表示
+  - `L2`: L1 + breadcrumb最後1件
+  - `L3`: L2 + セーフモードON/OFF
+  - `L4`: L3 + 親画面（Safe Shell / InMemory固定）導線
+  - `L5`: L4 + 通常親画面導線
+- 切替方法: `DiagnosticsCenter.rescueDebugLevelOverride`（コード固定）または `kyounani.rescueDebugLevel`（UserDefaults）
+- 親モード/Diagnosticsで落ちる場合は、L0→L5へ順に上げて「どの段階で落ちるか」を特定してください。
+
 ### バックアップ
 - 親モードから書き出し / 復元。
 - 形式: `kyounani-backup.kybk`（`formatVersion=2` 固定、`PBKDF2-HMAC-SHA256` + `AES-GCM`）。
 - **現行形式のみ対応**（旧形式バックアップの復元は非対応）。
 - 復元は上書き方式。復号/デコード失敗時は既存データ無変更。
 
+
+### EnvironmentObject 注入ルール（親ゲート関連）
+- `ParentModeView` / `ParentModeSafeShellView` / `RescueGateView` は `@EnvironmentObject`（`AppViewModel` や `StampStore`）依存です。`ParentalGateView` は `AppViewModel` を `@ObservedObject` 引数注入します。
+- ルート（`KyounaniRootView`）での注入を基本としつつ、**sheet/fullScreenCover の表示クロージャ内でも必要な `environmentObject(...)` を明示注入**して、経路差分での注入漏れクラッシュを防いでください。
+- 特に親ゲート導線は iPad Playgrounds 実機差異の影響を受けやすいため、「親ゲートから開く全画面で注入済み」を維持してください。
+
 ### Diagnostics（親向け診断）
+- `Diagnostics Lite`（Rescue相当）と `Diagnostics Full`（重い情報）に分割。
+- `Diagnostics Full` は RescueGateView から明示的に開く導線を用意。
 - CIの検証は `macos-latest` の `swift test -v` を基準に実施。
 - 画面の最終動作確認は iPad Swift Playgrounds (`Kyounani.swiftpm`) で実施。
 - 親モードの Diagnostics で、現在有効なRepository（SwiftData / FileBacked / InMemory）と `lastError` を確認可能。
 - セルフテストで、祝日CSV読込 / RecurrenceEngine生成 / バックアップround-trip（メモリ上）を実行。
 - 失敗時は赤バナー表示で気づける（子どもモードには表示しない）。
+- CI修正メモ: Diagnostics のバックアップセルフテストは `BackupCryptoService.decryptPayload(from:passphrase:)` を使用。
 
 ### データリセット（互換削除後の運用）
 - 親モードの「データを全削除（リセット）」で、予定/例外/スタンプを全削除。
