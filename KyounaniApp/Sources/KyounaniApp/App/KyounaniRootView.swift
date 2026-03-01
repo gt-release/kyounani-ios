@@ -117,10 +117,12 @@ public struct KyounaniRootView: View {
         }
         .onChange(of: appVM.parentModeUnlocked) {
             if appVM.parentModeUnlocked {
+                showingGate = false
                 let level = DiagnosticsCenter.rescueDebugLevel
                 DiagnosticsCenter.breadcrumb(event: "openingRescue\(level.rawValue)")
                 showingRescueGate = true
             } else {
+                showingGate = false
                 showingRescueGate = false
                 showingParentMode = false
                 showingSafeParentMode = false
@@ -139,10 +141,16 @@ public struct KyounaniRootView: View {
             RescueDebugRouterView(
                 level: DiagnosticsCenter.rescueDebugLevel,
                 onOpenParentMode: {
-                    showingParentMode = true
+                    showingRescueGate = false
+                    DispatchQueue.main.async {
+                        showingParentMode = true
+                    }
                 },
                 onOpenSafeParentMode: {
-                    showingSafeParentMode = true
+                    showingRescueGate = false
+                    DispatchQueue.main.async {
+                        showingSafeParentMode = true
+                    }
                 },
                 onResetAllData: {
                     resetAllData()

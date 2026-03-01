@@ -76,6 +76,7 @@
   - Application Support の `kyounani.log` へタイムスタンプ付き追記ログを保存し、Diagnosticsから表示/コピー可能。
   - 親ゲート突破後はまず `RescueGateView`（Crash-safe）を表示し、通常親画面/セーフモード親画面/ログコピー/全削除/子どもモード復帰を実行可能。
   - 設計注記: 親ゲート関連View（`ParentalGateView` / `ParentModeView` / `ParentModeSafeShellView` / `RescueGateView`）は `@EnvironmentObject` 依存のため、`KyounaniRootView` の sheet 表示クロージャ内で必要な `environmentObject(...)` を必ず明示注入する（注入漏れは即時クラッシュ要因）。
+  - 遷移注記: Rescue -> 親画面（通常/セーフ）の切替は、`showingRescueGate=false` で先に閉じてから次runloopで開く（同一Presenterでのsheet重複表示を避ける）。
   - 切り分け専用: `RescueDebugLevel`（L0〜L5）で親ゲート突破後の遷移先を段階的に差し替え可能。L0の完全空画面から順に依存を増やして、落ちる段階を特定する運用を追加。
   - セーフモード（UserDefaults保存）を追加。ON時は次回起動で Repository を InMemory 固定、customImage読込を無効化、バックアップ操作を無効化。
   - 子どもモードでは親導線ボタンを非表示化（隠しジェスチャー領域のみ残す）。
