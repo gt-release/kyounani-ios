@@ -14,6 +14,7 @@ public struct KyounaniRootView: View {
     @State private var showingSafeParentMode = false
     @State private var showCrashBanner = false
     @State private var pendingParentDestination: ParentDestination?
+    @State private var hasCompletedRescueGate = false
 
     private enum ParentDestination {
         case normal
@@ -70,9 +71,7 @@ public struct KyounaniRootView: View {
 
             if appVM.parentModeUnlocked {
                 Button("親モード") {
-                    let level = DiagnosticsCenter.rescueDebugLevel
-                    DiagnosticsCenter.breadcrumb(event: "openingRescue\(level.rawValue)")
-                    showingRescueGate = true
+                    openParentEntryPoint()
                 }
                 .font(.caption.bold())
                 .padding(.horizontal, 10)
@@ -100,6 +99,7 @@ public struct KyounaniRootView: View {
                     .foregroundStyle(.secondary)
                     .padding(8)
                     .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10))
+                    .allowsHitTesting(false)
                 }
                 .padding(.trailing, 2)
                 .padding(.top, 2)
@@ -118,6 +118,7 @@ public struct KyounaniRootView: View {
         }
         .onChange(of: appVM.parentModeUnlocked) {
             if appVM.parentModeUnlocked {
+                hasCompletedRescueGate = false
                 let level = DiagnosticsCenter.rescueDebugLevel
                 DiagnosticsCenter.breadcrumb(event: "openingRescue\(level.rawValue)")
                 showingGate = false
@@ -188,11 +189,29 @@ public struct KyounaniRootView: View {
         DispatchQueue.main.async {
             switch destination {
             case .normal:
+                hasCompletedRescueGate = true
                 showingParentMode = true
             case .safe:
+                hasCompletedRescueGate = true
                 showingSafeParentMode = true
             }
         }
+    }
+
+    private func openParentEntryPoint() {
+        guard appVM.parentModeUnlocked else { return }
+        if hasCompletedRescueGate {
+            if appVM.safeModeEnabled {
+                showingSafeParentMode = true
+            } else {
+                showingParentMode = true
+            }
+            return
+        }
+
+        let level = DiagnosticsCenter.rescueDebugLevel
+        DiagnosticsCenter.breadcrumb(event: "openingRescue\(level.rawValue)")
+        showingRescueGate = true
     }
 
 }

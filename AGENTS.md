@@ -69,6 +69,7 @@
 - ペアレンタルゲート（2本指2秒長押し起点）: **対応強化（信頼性改善）**
   - 右上の固定領域に見た目より大きい透明ホットエリア（約110x110 + padding）を重ね、「親モード / 右上を2本指で2秒」ガイドを常時表示。
   - ガイド領域内の「2本指2秒長押し」を検出し、4点シーケンスゲートへ遷移。UIViewRepresentable側で `isMultipleTouchEnabled = true` を明示。
+  - 右上ガイドオーバーレイは `allowsHitTesting(false)` を適用し、2本指長押しのタッチを遮らないようにする。
   - 4点シーケンスタップ、失敗時クールダウン、緊急4桁コードを維持。
   - フォールバックとして Today見出し「きょう」の7回連続タップでもゲート起動可能（親のみが知る隠し導線）。
   - 安定化追記: 親ゲート起動は `AppViewModel` のカウンタ中継を介さず、ホットエリア/フォールバックの両方から `KyounaniRootView` の `showingGate` を直接更新する経路へ整理し、unknown crash 調査時の状態遷移を単純化。
@@ -76,6 +77,7 @@
   - Breadcrumb Logger を追加し、親モード導線・EventEditor/StampPicker起動・バックアップ開始・repoType・lastError を保存（直近50件をDiagnostics表示/コピー可能）。
   - Application Support の `kyounani.log` へタイムスタンプ付き追記ログを保存し、Diagnosticsから表示/コピー可能。
   - 親ゲート突破後はまず `RescueGateView`（Crash-safe）を表示し、通常親画面/セーフモード親画面/ログコピー/全削除/子どもモード復帰を実行可能。
+  - Rescueから通常/セーフ親画面へ一度遷移した同一アンロックセッション中は、右上「親モード」ボタンで通常親画面/セーフ親画面へ直接再入場できる（毎回Rescueを経由しない）。
   - 設計注記: 親ゲート関連Viewの依存注入を明示する。`ParentalGateView` は `AppViewModel` を `@ObservedObject` 引数注入し、`ParentModeView` / `ParentModeSafeShellView` / `RescueGateView` は `@EnvironmentObject` 依存として `KyounaniRootView` の sheet 表示クロージャ内で必要な `environmentObject(...)` を必ず明示注入する（注入漏れは即時クラッシュ要因）。
   - 切り分け専用: `RescueDebugLevel`（L0〜L5）で親ゲート突破後の遷移先を段階的に差し替え可能。L0の完全空画面から順に依存を増やして、落ちる段階を特定する運用を追加。
   - セーフモード（UserDefaults保存）を追加。ON時は次回起動で Repository を InMemory 固定、customImage読込を無効化、バックアップ操作を無効化。
@@ -109,8 +111,8 @@
   - 日別詳細一覧を追加。
   - 予定タップで既存TTS + TimerRing表示へ接続。
 - 親モードCRUD/繰り返し例外UI/スタンプ管理/診断: **対応強化（前進）**
-  - 親モード内に「予定を追加 > ＋予定エディタを開く」を常設し、ツールバー操作に依存せず追加導線を明示。
-  - 親モード予定一覧に行内ゴミ箱ボタン + swipe削除 + 確認ダイアログを追加し、検索操作なしで削除導線が見えるよう改善。
+  - 予定CRUD導線を Calendarタブの日別詳細へ集約（親モード時のみ `+` 追加 / 行内「編集」 / 行内・swipe削除を表示）。
+  - 親モード画面からは予定CRUD導線（クイック追加・予定一覧・＋追加ボタン）を外し、スタンプ管理/バックアップ/診断に役割を整理。
   - Rescue/セーフ経由を含む親画面で、スタンプ追加（Files/Photos）導線が機能することを再確認。
   - イベントの本格CRUD（新規作成 / 一覧タップ編集 / 削除）を実装。
   - `EventEditorView` で title / stamp / childScope / visibility / isAllDay / startDateTime / durationMinutes / recurrenceRule(週次) を編集可能。
