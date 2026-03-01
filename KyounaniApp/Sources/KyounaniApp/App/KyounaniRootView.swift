@@ -133,6 +133,7 @@ public struct KyounaniRootView: View {
         }
         .sheet(isPresented: $showingGate) {
             ParentalGateView()
+                .environmentObject(appVM)
         }
         .sheet(isPresented: $showingRescueGate) {
             RescueDebugRouterView(
@@ -151,12 +152,17 @@ public struct KyounaniRootView: View {
                     showingRescueGate = false
                 }
             )
+            .environmentObject(appVM)
+            .environmentObject(stampStore)
         }
         .sheet(isPresented: $showingParentMode) {
             ParentModeView(repo: repository)
+                .environmentObject(appVM)
+                .environmentObject(stampStore)
         }
         .sheet(isPresented: $showingSafeParentMode) {
             ParentModeSafeShellView()
+                .environmentObject(appVM)
         }
     }
 

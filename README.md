@@ -61,6 +61,12 @@
 - **現行形式のみ対応**（旧形式バックアップの復元は非対応）。
 - 復元は上書き方式。復号/デコード失敗時は既存データ無変更。
 
+
+### EnvironmentObject 注入ルール（親ゲート関連）
+- `ParentalGateView` / `ParentModeView` / `ParentModeSafeShellView` / `RescueGateView` は `@EnvironmentObject`（`AppViewModel` や `StampStore`）依存です。
+- ルート（`KyounaniRootView`）での注入を基本としつつ、**sheet/fullScreenCover の表示クロージャ内でも必要な `environmentObject(...)` を明示注入**して、経路差分での注入漏れクラッシュを防いでください。
+- 特に親ゲート導線は iPad Playgrounds 実機差異の影響を受けやすいため、「親ゲートから開く全画面で注入済み」を維持してください。
+
 ### Diagnostics（親向け診断）
 - `Diagnostics Lite`（Rescue相当）と `Diagnostics Full`（重い情報）に分割。
 - `Diagnostics Full` は RescueGateView から明示的に開く導線を用意。
