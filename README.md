@@ -130,4 +130,3 @@
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - [docs/SECURITY.md](docs/SECURITY.md)
 - [AGENTS.md](AGENTS.md)
-- [PHASE1-PLAN.md](PHASE1-PLAN.md)
