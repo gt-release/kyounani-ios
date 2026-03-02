@@ -62,10 +62,10 @@ public final class CalendarViewModel: ObservableObject {
         let now = Date()
         let startToday = calendar.startOfDay(for: now)
         let endToday = calendar.date(byAdding: .day, value: 1, to: startToday)!
-        let endWeek = calendar.date(byAdding: .day, value: 7, to: startToday)!
+        let endTomorrow = calendar.date(byAdding: .day, value: 2, to: startToday)!
 
         todayOccurrences = occurrences(in: DateInterval(start: startToday, end: endToday), childFilter: childFilter, includeDraft: includeDraft)
-        weekPeekOccurrences = occurrences(in: DateInterval(start: endToday, end: endWeek), childFilter: childFilter, includeDraft: includeDraft)
+        weekPeekOccurrences = occurrences(in: DateInterval(start: endToday, end: endTomorrow), childFilter: childFilter, includeDraft: includeDraft)
     }
 
     public func daySummary(on date: Date, childFilter: ChildScope, includeDraft: Bool) -> DayEventSummary {

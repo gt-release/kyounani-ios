@@ -2,6 +2,11 @@
 import SwiftUI
 
 public struct KyounaniRootView: View {
+    private enum RootTab: Hashable {
+        case today
+        case calendar
+    }
+
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var appVM = AppViewModel()
     @StateObject private var speech = SpeechService()
@@ -16,6 +21,7 @@ public struct KyounaniRootView: View {
     @State private var pendingParentDestination: ParentDestination?
     @State private var hasCompletedRescueGate = false
     @State private var hasBootstrappedInitialView = false
+    @State private var selectedTab: RootTab = .today
 
     private enum ParentDestination {
         case normal
@@ -33,18 +39,20 @@ public struct KyounaniRootView: View {
 
     public var body: some View {
         ZStack(alignment: .topTrailing) {
-            TabView {
+            TabView(selection: $selectedTab) {
                 NavigationStack {
                     TodayHomeView(calendarVM: calendarVM, speechService: speech, repository: repository, onRequestParentalGate: {
                         showingGate = true
                     })
                 }
                 .tabItem { Label("Today", systemImage: "sun.max.fill") }
+                .tag(RootTab.today)
 
                 NavigationStack {
                     CalendarRootView(calendarVM: calendarVM, speechService: speech, repository: repository)
                 }
                 .tabItem { Label("Calendar", systemImage: "calendar") }
+                .tag(RootTab.calendar)
             }
 
             if showCrashBanner {
@@ -149,6 +157,9 @@ public struct KyounaniRootView: View {
             if scenePhase == .background {
                 appVM.markCleanExit(reason: "scenePhase.background")
             }
+        }
+        .onChange(of: appVM.quickAddRequestID) {
+            selectedTab = .calendar
         }
         .sheet(isPresented: $showingGate) {
             ParentalGateView(appVM: appVM)
