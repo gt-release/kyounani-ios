@@ -71,8 +71,10 @@ public struct CalendarRootView: View {
         .navigationTitle("カレンダー")
         .onChange(of: appVM.quickAddRequestID) {
             guard appVM.parentModeUnlocked else { return }
+            let today = calendarVM.startOfDay(for: .now)
+            anchorDate = today
+            selectedDate = today
             openEditorOnQuickAdd = true
-            selectedDate = calendarVM.startOfDay(for: selectedDate ?? anchorDate)
         }
         .navigationDestination(isPresented: dayDetailIsPresented) {
             if let date = selectedDate {

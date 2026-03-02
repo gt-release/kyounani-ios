@@ -251,6 +251,11 @@ public struct EventEditorView: View {
                         displayedComponents: isAllDay ? [.date] : [.date, .hourAndMinute]
                     )
                     .onChange(of: startDateTime) {
+                        if endDateTime <= startDateTime {
+                            endDateTime = startDateTime.addingTimeInterval(5 * 60)
+                        }
+                    }
+                    .onChange(of: isAllDay) {
                         if !isAllDay, endDateTime <= startDateTime {
                             endDateTime = startDateTime.addingTimeInterval(5 * 60)
                         }
