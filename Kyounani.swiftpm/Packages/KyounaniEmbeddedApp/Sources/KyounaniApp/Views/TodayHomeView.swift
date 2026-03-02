@@ -22,6 +22,7 @@ public struct TodayHomeView: View {
     public var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: theme.spacing.sectionGap) {
+                headerDate
                 childFilter
                 todaySection
                 nextSection
@@ -29,6 +30,7 @@ public struct TodayHomeView: View {
             }
             .padding(theme.spacing.screenPadding)
         }
+        .background(KidSoftBackground())
         .navigationTitle("Today")
         .onAppear { reload() }
         .onChange(of: appVM.filter) { reload() }
@@ -37,16 +39,27 @@ public struct TodayHomeView: View {
         .sheet(item: $selectedOccurrence) { occ in
             TimerRingView(targetDate: occ.displayStart)
                 .padding()
+                .presentationDetents([.medium])
+        }
+    }
+
+    private var headerDate: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(todayHeader())
+                .font(theme.fonts.heroDate)
+                .foregroundStyle(theme.colors.primaryText)
+            Text("きょうのよてい")
+                .font(theme.fonts.supporting)
+                .foregroundStyle(theme.colors.secondaryText)
         }
     }
 
     private var childFilter: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 12) {
             childFilterButton(scope: .son, symbol: "figure.stand", color: .blue)
             childFilterButton(scope: .daughter, symbol: "figure.stand", color: .pink)
             childFilterButton(scope: .both, symbol: "person.2.fill", color: .purple)
         }
-        .padding(.vertical, 2)
     }
 
     private func childFilterButton(scope: ChildScope, symbol: String, color: Color) -> some View {
@@ -54,85 +67,73 @@ public struct TodayHomeView: View {
         return Button {
             appVM.filter = scope
         } label: {
-            VStack(spacing: 6) {
+            HStack(spacing: 10) {
                 Image(systemName: symbol)
-                    .font(.system(size: 20, weight: .bold))
+                    .font(.system(size: 24, weight: .bold))
                     .foregroundStyle(color)
                 Text(scopeLabel(scope))
-                    .font(.caption.bold())
+                    .font(theme.fonts.supporting)
                     .foregroundStyle(theme.colors.primaryText)
+                Spacer(minLength: 0)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
             .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(isSelected ? color.opacity(0.2) : Color.clear)
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(isSelected ? color.opacity(0.2) : .white.opacity(0.75))
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(isSelected ? color : theme.colors.secondaryText.opacity(0.2), lineWidth: isSelected ? 2 : 1)
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(isSelected ? color : theme.colors.secondaryText.opacity(0.2), lineWidth: isSelected ? 2.5 : 1)
             )
         }
         .buttonStyle(.plain)
+        .frame(maxWidth: .infinity)
         .minTapTarget()
     }
 
     private var todaySection: some View {
         let summary = EventListPresenter.summarizeDay(calendarVM.todayOccurrences)
-
-        return VStack(alignment: .leading, spacing: theme.spacing.itemGap) {
-            sectionHeader("きょう", enablesFallbackGate: true)
-
+        return KidSectionIsland(title: "きょう", tint: theme.colors.todayCard, onTitleTap: registerFallbackGateTap) {
             if summary.topOccurrences.isEmpty {
                 emptyCard(icon: "sun.max.fill", message: "きょうは おやすみ")
             } else {
                 HStack(spacing: theme.spacing.itemGap) {
                     ForEach(summary.topOccurrences, id: \.id) { occ in
-                        EventTokenRenderer(event: occ.baseEvent, showTitle: false, iconSize: theme.stampLarge, occurrenceDate: occ.occurrenceDate)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 18)
-                            .cardStyle(background: theme.colors.todayCard)
+                        tappableToken(occ, bgColor: theme.colors.todayCard)
                     }
-
                     if summary.remainingCount > 0 {
                         Text("+\(summary.remainingCount)")
                             .font(theme.fonts.plusCount)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 28)
+                            .frame(maxWidth: .infinity, minHeight: 136)
                             .cardStyle(background: theme.colors.todayCard)
                     }
                 }
             }
         }
-        .padding(theme.spacing.cardPadding)
-        .cardStyle(background: theme.colors.todayCard.opacity(0.5))
     }
 
     private var nextSection: some View {
-        VStack(alignment: .leading, spacing: theme.spacing.itemGap) {
-            sectionHeader("つぎ")
-
+        KidSectionIsland(title: "つぎ", tint: theme.colors.nextCard) {
             if let next = calendarVM.todayOccurrences.first(where: { $0.displayStart >= .now }) {
                 Button {
                     speechService.speak(next.baseEvent.title)
                     selectedOccurrence = next
                 } label: {
-                    HStack(spacing: theme.spacing.itemGap) {
+                    HStack(spacing: 14) {
                         EventTokenRenderer(event: next.baseEvent, showTitle: false, iconSize: theme.stampNext, occurrenceDate: next.occurrenceDate)
-
                         VStack(alignment: .leading, spacing: 6) {
                             Text(next.baseEvent.title)
                                 .font(theme.fonts.cardTitle)
-                                .foregroundStyle(theme.colors.primaryText)
                             Text("\(timeText(next.displayStart)) ・ \(timeRemainingText(next.displayStart))")
                                 .font(theme.fonts.supporting)
                                 .foregroundStyle(theme.colors.secondaryText)
                         }
-
                         Spacer()
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .foregroundStyle(theme.colors.primaryText)
                     .padding(theme.spacing.cardPadding)
+                    .frame(maxWidth: .infinity, minHeight: 148, alignment: .leading)
                     .cardStyle(background: theme.colors.nextCard)
                 }
                 .buttonStyle(.plain)
@@ -141,57 +142,53 @@ public struct TodayHomeView: View {
                 emptyCard(icon: "moon.stars.fill", message: "きょうは おしまい")
             }
         }
-        .padding(theme.spacing.cardPadding)
-        .cardStyle(background: theme.colors.nextCard.opacity(0.45))
     }
 
     private var tomorrowSection: some View {
-        let hasTomorrow = !calendarVM.weekPeekOccurrences.isEmpty
-        return VStack(alignment: .leading, spacing: theme.spacing.itemGap) {
-            sectionHeader("あした")
-
-            if hasTomorrow {
+        KidSectionIsland(title: "あした", tint: theme.colors.peekCard) {
+            if calendarVM.weekPeekOccurrences.isEmpty {
+                emptyCard(icon: "calendar", message: "あしたを おたのしみに")
+            } else {
                 HStack(spacing: theme.spacing.itemGap) {
                     ForEach(calendarVM.weekPeekOccurrences.prefix(2), id: \.id) { occ in
-                        EventTokenRenderer(event: occ.baseEvent, showTitle: false, iconSize: theme.stampLarge, occurrenceDate: occ.occurrenceDate)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 18)
+                        tappableToken(occ, bgColor: theme.colors.peekCard)
+                    }
+                    if calendarVM.weekPeekOccurrences.count > 2 {
+                        Text("+\(calendarVM.weekPeekOccurrences.count - 2)")
+                            .font(theme.fonts.plusCount)
+                            .frame(maxWidth: .infinity, minHeight: 136)
                             .cardStyle(background: theme.colors.peekCard)
                     }
                 }
-            } else {
-                emptyCard(icon: "calendar", message: "あしたを おたのしみに")
             }
         }
-        .padding(theme.spacing.cardPadding)
-        .cardStyle(background: theme.colors.peekCard.opacity(0.5))
     }
 
-    private func sectionHeader(_ title: String, enablesFallbackGate: Bool = false) -> some View {
-        Text(title)
-            .font(theme.fonts.sectionHeader)
-            .foregroundStyle(theme.colors.primaryText)
-            .padding(.bottom, 2)
-            .onTapGesture {
-                guard enablesFallbackGate else { return }
-                registerFallbackGateTap()
-            }
+    private func tappableToken(_ occ: EventOccurrence, bgColor: Color) -> some View {
+        Button {
+            speechService.speak(occ.baseEvent.title)
+            selectedOccurrence = occ
+        } label: {
+            EventTokenRenderer(event: occ.baseEvent, showTitle: false, iconSize: theme.stampLarge, occurrenceDate: occ.occurrenceDate)
+                .frame(maxWidth: .infinity, minHeight: 136)
+                .cardStyle(background: bgColor)
+        }
+        .buttonStyle(.plain)
+        .minTapTarget()
     }
 
     private func emptyCard(icon: String, message: String) -> some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 14) {
             Image(systemName: icon)
                 .symbolRenderingMode(.multicolor)
-                .font(.system(size: 44, weight: .bold))
+                .font(.system(size: 52, weight: .bold))
             Text(message)
                 .font(theme.fonts.cardTitle)
-                .fontWeight(.heavy)
         }
         .foregroundStyle(theme.colors.primaryText)
-        .frame(maxWidth: .infinity)
-        .padding(theme.spacing.cardPadding)
+        .frame(maxWidth: .infinity, minHeight: 132)
+        .padding(.horizontal, 8)
         .cardStyle(background: theme.colors.emptyCard)
-        .minTapTarget()
     }
 
     private func registerFallbackGateTap() {
@@ -234,6 +231,13 @@ public struct TodayHomeView: View {
         formatter.locale = Locale(identifier: "ja_JP")
         formatter.dateFormat = "HH:mm"
         return formatter.string(from: date)
+    }
+
+    private func todayHeader() -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ja_JP")
+        formatter.dateFormat = "M/d E"
+        return formatter.string(from: .now)
     }
 }
 

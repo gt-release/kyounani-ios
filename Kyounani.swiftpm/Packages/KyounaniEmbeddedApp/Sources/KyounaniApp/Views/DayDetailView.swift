@@ -277,7 +277,9 @@ public struct DayDetailView: View {
                                         .foregroundStyle(.secondary)
                                 }
                             }
-                            .padding(.vertical, 6)
+                            .padding(.vertical, 10)
+                            .padding(.horizontal, 8)
+                            .cardStyle(background: .white.opacity(0.78))
                         }
                         .buttonStyle(.plain)
                         .minTapTarget()
@@ -307,9 +309,14 @@ public struct DayDetailView: View {
                             }
                         }
                     }
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
                 }
             }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
         }
+        .background(KidSoftBackground())
         .navigationTitle(titleText)
         .toolbar {
             if appVM.parentModeUnlocked {

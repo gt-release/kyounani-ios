@@ -9,6 +9,7 @@ import PhotosUI
 public struct ParentModeView: View {
     @EnvironmentObject private var appVM: AppViewModel
     @EnvironmentObject private var stampStore: StampStore
+    @Environment(\.kyounaniTheme) private var theme
     @ObservedObject var repo: EventRepositoryBase
 
     @State private var showingImageImporter = false
@@ -52,6 +53,8 @@ public struct ParentModeView: View {
     private var parentBaseView: some View {
         NavigationStack {
             parentList
+                .scrollContentBackground(.hidden)
+                .background(KidSoftBackground())
         }
         .navigationTitle("親モード")
         .toolbar {

@@ -26,34 +26,37 @@ public struct CalendarRootView: View {
                 Text("週").tag(CalendarDisplayMode.week)
             }
             .pickerStyle(.segmented)
-            .padding(theme.spacing.cardPadding)
-            .cardStyle(background: theme.colors.todayCard.opacity(0.45))
+            .padding(8)
+            .cardStyle(background: theme.colors.tabBackground)
 
-            HStack {
+            HStack(spacing: 12) {
                 Button { move(by: -1) } label: {
                     Image(systemName: "chevron.left")
+                        .font(.title3.bold())
                 }
                 .minTapTarget()
 
-                Spacer()
                 Text(headerTitle)
                     .font(theme.fonts.calendarHeader)
-                Spacer()
+                    .frame(maxWidth: .infinity)
 
                 Button { move(by: 1) } label: {
                     Image(systemName: "chevron.right")
+                        .font(.title3.bold())
                 }
                 .minTapTarget()
             }
             .padding(theme.spacing.cardPadding)
-            .cardStyle(background: theme.colors.peekCard.opacity(0.4))
+            .cardStyle(background: .white.opacity(0.8))
 
-            Button("Today") { anchorDate = .now }
-                .font(theme.fonts.supporting)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
-                .cardStyle(background: theme.colors.emptyCard)
-                .minTapTarget()
+            HStack {
+                Button("きょう") { anchorDate = .now }
+                    .font(theme.fonts.supporting)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
+                    .cardStyle(background: theme.colors.peekCard)
+                Spacer()
+            }
 
             Group {
                 if mode == .month {
@@ -63,11 +66,12 @@ public struct CalendarRootView: View {
                 }
             }
             .padding(theme.spacing.cardPadding)
-            .cardStyle(background: theme.colors.weekdayBackground.opacity(0.4))
+            .cardStyle(background: .white.opacity(0.75))
 
             Spacer(minLength: 0)
         }
         .padding(theme.spacing.screenPadding)
+        .background(KidSoftBackground())
         .navigationTitle("カレンダー")
         .onChange(of: appVM.quickAddRequestID) {
             guard appVM.parentModeUnlocked else { return }

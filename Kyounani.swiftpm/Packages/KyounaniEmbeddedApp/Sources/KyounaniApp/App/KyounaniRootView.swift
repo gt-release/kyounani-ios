@@ -45,15 +45,16 @@ public struct KyounaniRootView: View {
                         showingGate = true
                     })
                 }
-                .tabItem { Label("Today", systemImage: "sun.max.fill") }
+                .tabItem { Label("きょう", systemImage: "sun.max.fill") }
                 .tag(RootTab.today)
 
                 NavigationStack {
                     CalendarRootView(calendarVM: calendarVM, speechService: speech, repository: repository)
                 }
-                .tabItem { Label("Calendar", systemImage: "calendar") }
+                .tabItem { Label("カレンダー", systemImage: "calendar") }
                 .tag(RootTab.calendar)
             }
+            .background(KidSoftBackground())
 
             if showCrashBanner {
                 VStack {
@@ -106,7 +107,7 @@ public struct KyounaniRootView: View {
                 ParentalGateTriggerArea {
                     showingGate = true
                 }
-                .frame(width: 110, height: 110)
+                .frame(width: 120, height: 120)
                 .padding(10)
                 .contentShape(Rectangle())
                 .zIndex(10)

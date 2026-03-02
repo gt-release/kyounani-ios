@@ -44,6 +44,8 @@ public struct KyounaniTheme {
         public let calendarHeader: Font
         public let dayTitle: Font
         public let tokenTitle: Font
+        public let heroDate: Font
+        public let islandTitle: Font
     }
 
     public struct Colors {
@@ -56,6 +58,9 @@ public struct KyounaniTheme {
         public let accent: Color
         public let tokenPlaceholderFill: Color
         public let tokenPlaceholderText: Color
+        public let pageBackgroundTop: Color
+        public let pageBackgroundBottom: Color
+        public let tabBackground: Color
 
         public let weekdayText: Color
         public let weekendText: Color
@@ -90,66 +95,76 @@ public struct KyounaniTheme {
         switch preset {
         case .kid:
             return .init(
-                spacing: .init(screenPadding: 20, sectionGap: 28, itemGap: 14, cardPadding: 16, minTapSize: 48),
-                corner: .init(card: 18, token: 6),
-                shadow: .init(color: .black.opacity(0.06), radius: 6, x: 0, y: 2),
+                spacing: .init(screenPadding: 24, sectionGap: 22, itemGap: 14, cardPadding: 18, minTapSize: 60),
+                corner: .init(card: 26, token: 8),
+                shadow: .init(color: .black.opacity(0.08), radius: 18, x: 0, y: 8),
                 fonts: .init(
-                    sectionHeader: .system(size: 34, weight: .heavy).lowerBoundedForKid(),
-                    cardTitle: .system(size: 30, weight: .bold).lowerBoundedForKid(),
-                    supporting: .system(size: 16, weight: .medium).lowerBoundedForKid(),
-                    plusCount: .system(size: 30, weight: .heavy).lowerBoundedForKid(),
-                    calendarHeader: .title2.bold(),
-                    dayTitle: .headline,
-                    tokenTitle: .caption2
+                    sectionHeader: .system(.title2, design: .rounded).weight(.heavy),
+                    cardTitle: .system(.title3, design: .rounded).weight(.bold),
+                    supporting: .system(.subheadline, design: .rounded).weight(.semibold),
+                    plusCount: .system(size: 32, weight: .heavy, design: .rounded),
+                    calendarHeader: .system(.title2, design: .rounded).weight(.heavy),
+                    dayTitle: .system(.headline, design: .rounded).weight(.bold),
+                    tokenTitle: .system(.caption2, design: .rounded).weight(.bold),
+                    heroDate: .system(size: 40, weight: .heavy, design: .rounded),
+                    islandTitle: .system(.title3, design: .rounded).weight(.heavy)
                 ),
                 colors: .init(
-                    todayCard: .green.opacity(0.16),
-                    nextCard: .yellow.opacity(0.24),
-                    peekCard: .blue.opacity(0.14),
-                    emptyCard: .gray.opacity(0.14),
-                    primaryText: .primary,
-                    secondaryText: .secondary,
-                    accent: .blue,
-                    tokenPlaceholderFill: .green.opacity(0.2),
-                    tokenPlaceholderText: .green,
+                    todayCard: Color(red: 0.84, green: 0.94, blue: 1.0),
+                    nextCard: Color(red: 1.0, green: 0.92, blue: 0.8),
+                    peekCard: Color(red: 0.88, green: 0.93, blue: 0.84),
+                    emptyCard: Color(red: 0.96, green: 0.96, blue: 0.98),
+                    primaryText: Color(red: 0.18, green: 0.2, blue: 0.28),
+                    secondaryText: Color(red: 0.39, green: 0.42, blue: 0.52),
+                    accent: Color(red: 0.33, green: 0.42, blue: 1.0),
+                    tokenPlaceholderFill: Color(red: 0.68, green: 0.78, blue: 1.0),
+                    tokenPlaceholderText: Color(red: 0.21, green: 0.27, blue: 0.58),
+                    pageBackgroundTop: Color(red: 0.97, green: 0.98, blue: 1.0),
+                    pageBackgroundBottom: Color(red: 0.94, green: 0.95, blue: 0.99),
+                    tabBackground: .white.opacity(0.9),
                     weekdayText: .primary,
-                    weekendText: .blue,
-                    holidayText: .red,
+                    weekendText: Color(red: 0.2, green: 0.38, blue: 0.9),
+                    holidayText: Color(red: 0.9, green: 0.2, blue: 0.25),
                     selectedText: .white,
-                    todayText: .primary,
-                    weekdayBackground: .gray.opacity(0.08),
-                    weekendBackground: .blue.opacity(0.08),
-                    holidayBackground: .red.opacity(0.12),
-                    selectedBackground: .blue.opacity(0.6),
-                    todayBackground: .green.opacity(0.18)
+                    todayText: Color(red: 0.12, green: 0.2, blue: 0.5),
+                    weekdayBackground: Color.white.opacity(0.9),
+                    weekendBackground: Color(red: 0.87, green: 0.93, blue: 1.0),
+                    holidayBackground: Color(red: 1.0, green: 0.9, blue: 0.9),
+                    selectedBackground: Color(red: 0.35, green: 0.45, blue: 1.0),
+                    todayBackground: Color(red: 0.75, green: 0.85, blue: 1.0)
                 ),
-                stampLarge: 66,
-                stampNext: 72
+                stampLarge: 80,
+                stampNext: 88
             )
         case .highContrast:
             return .init(
-                spacing: .init(screenPadding: 20, sectionGap: 28, itemGap: 14, cardPadding: 16, minTapSize: 50),
-                corner: .init(card: 18, token: 6),
-                shadow: .init(color: .black.opacity(0.18), radius: 0, x: 0, y: 0),
+                spacing: .init(screenPadding: 24, sectionGap: 22, itemGap: 14, cardPadding: 18, minTapSize: 60),
+                corner: .init(card: 24, token: 8),
+                shadow: .init(color: .black.opacity(0.3), radius: 0, x: 0, y: 0),
                 fonts: .init(
-                    sectionHeader: .system(size: 36, weight: .black).lowerBoundedForKid(),
-                    cardTitle: .system(size: 32, weight: .black).lowerBoundedForKid(),
-                    supporting: .system(size: 18, weight: .bold).lowerBoundedForKid(),
-                    plusCount: .system(size: 32, weight: .black).lowerBoundedForKid(),
-                    calendarHeader: .title2.bold(),
-                    dayTitle: .headline,
-                    tokenTitle: .caption.bold()
+                    sectionHeader: .system(.title2, design: .rounded).weight(.black),
+                    cardTitle: .system(.title3, design: .rounded).weight(.black),
+                    supporting: .system(.body, design: .rounded).weight(.bold),
+                    plusCount: .system(size: 32, weight: .black, design: .rounded),
+                    calendarHeader: .system(.title2, design: .rounded).weight(.black),
+                    dayTitle: .system(.headline, design: .rounded).weight(.black),
+                    tokenTitle: .system(.caption, design: .rounded).weight(.bold),
+                    heroDate: .system(size: 42, weight: .black, design: .rounded),
+                    islandTitle: .system(.title3, design: .rounded).weight(.black)
                 ),
                 colors: .init(
                     todayCard: .black,
-                    nextCard: Color(red: 0.15, green: 0.15, blue: 0.0),
-                    peekCard: Color(red: 0.0, green: 0.12, blue: 0.2),
+                    nextCard: Color(red: 0.2, green: 0.2, blue: 0),
+                    peekCard: Color(red: 0.08, green: 0.15, blue: 0.25),
                     emptyCard: Color(red: 0.16, green: 0.16, blue: 0.16),
                     primaryText: .white,
-                    secondaryText: Color.white.opacity(0.92),
+                    secondaryText: .white.opacity(0.92),
                     accent: .yellow,
                     tokenPlaceholderFill: .white,
                     tokenPlaceholderText: .black,
+                    pageBackgroundTop: .black,
+                    pageBackgroundBottom: Color(red: 0.08, green: 0.08, blue: 0.08),
+                    tabBackground: Color(red: 0.15, green: 0.15, blue: 0.15),
                     weekdayText: .white,
                     weekendText: .cyan,
                     holidayText: .red,
@@ -161,8 +176,8 @@ public struct KyounaniTheme {
                     selectedBackground: .yellow,
                     todayBackground: Color.yellow.opacity(0.22)
                 ),
-                stampLarge: 66,
-                stampNext: 72
+                stampLarge: 80,
+                stampNext: 88
             )
         }
     }
@@ -228,12 +243,6 @@ public extension View {
 
     func minTapTarget() -> some View {
         modifier(MinTapTargetModifier())
-    }
-}
-
-public extension Font {
-    func lowerBoundedForKid() -> Font {
-        self
     }
 }
 
