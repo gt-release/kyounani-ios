@@ -87,6 +87,7 @@ public struct CalendarRootView: View {
             set: { isPresented in
                 if !isPresented {
                     selectedDate = nil
+                    openEditorOnQuickAdd = false
                 }
             }
         )

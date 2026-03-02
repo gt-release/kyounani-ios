@@ -42,7 +42,7 @@
   - Design Tokensベースの `KyounaniTheme`（Kid / HighContrast）を導入し、Today/Calendar/DayDetail/Token/TimerRing の配色・余白・角丸・タップ領域を統一。
   - Today/Calendarの2タブ導線を常設し、迷子になりにくい移動を実装。
   - 空状態（今日0件・次予定なし）の表示を追加し、予定が無い日でも把握しやすく改善。
-  - Todayの「あした」は翌日0:00〜翌々日0:00の予定のみを表示し、明後日以降は混在させない。
+  - Todayの「あした」は翌日0:00〜翌々日0:00の予定のみを表示し、明後日以降は混在させない（再発していた抽出範囲漏れを修正済み）。
 - 先の予定の見通しで「がっかり」を減らす: **部分対応（前進）**
   - 月表示/週表示の見通しUIを追加。
   - 日別詳細へのドリルダウンを追加。
@@ -118,7 +118,7 @@
   - 親モード画面からは予定CRUD導線（クイック追加・予定一覧・＋追加ボタン）を外し、スタンプ管理/バックアップ/診断に役割を整理。
   - Rescue/セーフ経由を含む親画面で、スタンプ追加（Files/Photos）導線が機能することを再確認。
   - イベントの本格CRUD（新規作成 / 一覧タップ編集 / 削除）を実装。
-  - `EventEditorView` で title / stamp / childScope / visibility / isAllDay / startDateTime / durationMinutes / recurrenceRule(週次) を編集可能。
+  - `EventEditorView` で title / stamp / childScope / visibility / isAllDay / startDateTime / endDateTime(入力UI) / recurrenceRule(週次) を編集可能。
   - 日別詳細で繰り返し予定の例外編集3択UI（この日だけ/以降/全体）を維持し、各選択肢に影響範囲の説明を表示。分岐後の編集画面として `EventEditorView` を再利用。
   - `EventEditorView` のスタンプ選択UXを拡張（最近使ったセクション / 検索 / 並び替え[最近順・名前順]）。
   - 切り分け優先運用として、親導線からはDiagnosticsを直接開かず `RescueDebugLevel` ルート経由で段階切替する。Diagnosticsは `Lite`/`Full` 分割を維持。
@@ -230,3 +230,9 @@
 
 - `README.md` のドキュメント一覧を現行運用に合わせて更新。
 - 役割が終わった `CODE_REVIEW.md` / `LEGACY_REMOVAL.md` を削除。
+
+## 16. 追加修正メモ（2026-03）
+
+- Today右上「＋」押下時、Calendarタブへ自動遷移して当日詳細の追加画面を開く動線に修正（Today上で無反応に見える問題を解消）。
+- Calendarのクイック追加をキャンセル後、Todayへ移動して戻ると再度自動表示される問題を修正（遷移終了時に `openEditorOnQuickAdd` をリセット）。
+- 子ども対象（息子/娘/両方）選択UIをボタン全体タップ判定に変更。

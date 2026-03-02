@@ -52,7 +52,7 @@ public struct EventEditorView: View {
     @State private var visibility: Visibility
     @State private var isAllDay: Bool
     @State private var startDateTime: Date
-    @State private var durationMinutes: Int
+    @State private var endDateTime: Date
 
     @State private var recurrenceEnabled: Bool
     @State private var recurrenceStartDate: Date
@@ -93,7 +93,8 @@ public struct EventEditorView: View {
         _visibility = State(initialValue: initialEvent.visibility)
         _isAllDay = State(initialValue: initialEvent.isAllDay)
         _startDateTime = State(initialValue: initialEvent.startDateTime)
-        _durationMinutes = State(initialValue: max(5, initialEvent.durationMinutes ?? 30))
+        let initialDuration = max(5, initialEvent.durationMinutes ?? 30)
+        _endDateTime = State(initialValue: initialEvent.startDateTime.addingTimeInterval(TimeInterval(initialDuration * 60)))
 
         _recurrenceEnabled = State(initialValue: initialEvent.recurrenceRule != nil)
         _recurrenceStartDate = State(initialValue: initialEvent.recurrenceRule?.startDate ?? initialEvent.startDateTime)
@@ -193,10 +194,13 @@ public struct EventEditorView: View {
                 Section("基本") {
                     TextField("タイトル", text: $title)
 
-                    Picker("子ども対象", selection: $childScope) {
-                        Text("息子").tag(ChildScope.son)
-                        Text("娘").tag(ChildScope.daughter)
-                        Text("両方").tag(ChildScope.both)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("子ども対象")
+                        HStack(spacing: 8) {
+                            childScopeButton(.son, label: "息子")
+                            childScopeButton(.daughter, label: "娘")
+                            childScopeButton(.both, label: "両方")
+                        }
                     }
 
                     Picker("公開状態", selection: $visibility) {
@@ -246,11 +250,19 @@ public struct EventEditorView: View {
                         selection: $startDateTime,
                         displayedComponents: isAllDay ? [.date] : [.date, .hourAndMinute]
                     )
+                    .onChange(of: startDateTime) {
+                        if !isAllDay, endDateTime <= startDateTime {
+                            endDateTime = startDateTime.addingTimeInterval(5 * 60)
+                        }
+                    }
 
                     if !isAllDay {
-                        Stepper(value: $durationMinutes, in: 5...24*60, step: 5) {
-                            Text("所要時間: \(durationMinutes)分")
-                        }
+                        DatePicker("終了", selection: $endDateTime, displayedComponents: [.date, .hourAndMinute])
+                            .onChange(of: endDateTime) {
+                                if endDateTime <= startDateTime {
+                                    endDateTime = startDateTime.addingTimeInterval(5 * 60)
+                                }
+                            }
                     }
                 }
 
@@ -299,6 +311,26 @@ public struct EventEditorView: View {
                 }
             }
         }
+    }
+
+    private func childScopeButton(_ scope: ChildScope, label: String) -> some View {
+        Button {
+            childScope = scope
+        } label: {
+            Text(label)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(childScope == scope ? Color.blue.opacity(0.2) : Color.secondary.opacity(0.1))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(childScope == scope ? Color.blue : Color.clear, lineWidth: 1.5)
+                )
+        }
+        .buttonStyle(.plain)
+        .contentShape(Rectangle())
     }
 
     @ViewBuilder
@@ -352,6 +384,7 @@ public struct EventEditorView: View {
     }
 
     private func previewEvent(stampId: UUID) -> Event {
+        let durationMinutes = max(5, Int(endDateTime.timeIntervalSince(startDateTime) / 60))
         Event(
             id: eventID,
             title: title,
@@ -369,6 +402,7 @@ public struct EventEditorView: View {
 
     private func buildEvent(with resolvedStampId: UUID) -> Event {
         let resolvedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "よてい" : title
+        let durationMinutes = max(5, Int(endDateTime.timeIntervalSince(startDateTime) / 60))
 
         let recurrence: WeeklyRecurrenceRule?
         if recurrenceEnabled {
