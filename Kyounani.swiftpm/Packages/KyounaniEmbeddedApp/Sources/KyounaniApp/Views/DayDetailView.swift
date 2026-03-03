@@ -249,146 +249,164 @@ public struct DayDetailView: View {
     }
 
     public var body: some View {
-        let occurrences = calendarVM.dayOccurrences(on: date, childFilter: appVM.filter, includeDraft: appVM.parentModeUnlocked)
-
-        Group {
-            if occurrences.isEmpty {
-                Text("この日の予定はありません")
-                     .font(theme.fonts.supporting)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(theme.spacing.cardPadding)
-                    .cardStyle(background: theme.colors.emptyCard)
-                    .padding(.horizontal, theme.spacing.screenPadding)
-            } else {
-                List(occurrences, id: \.id) { occurrence in
-                    HStack(spacing: 12) {
+        contentView
+            .background(KidSoftBackground())
+            .navigationTitle(titleText)
+            .toolbar {
+                if appVM.parentModeUnlocked {
+                    #if os(iOS)
+                    ToolbarItem(placement: .topBarTrailing) {
                         Button {
-                            speechService.speak(occurrence.baseEvent.title)
-                            selectedOccurrence = occurrence
+                            creatingEvent = true
                         } label: {
-                            HStack(spacing: 12) {
-                                EventTokenRenderer(event: occurrence.baseEvent, showTitle: false, iconSize: 42, occurrenceDate: occurrence.occurrenceDate)
-                                VStack(alignment: .leading, spacing: 6) {
-                                    Text(occurrence.baseEvent.title)
-                                        .font(theme.fonts.dayTitle)
-                                    Text(timeText(occurrence.displayStart, allDay: occurrence.baseEvent.isAllDay))
-                                         .font(theme.fonts.supporting)
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                            .padding(.vertical, 6)
-                        }
-                        .buttonStyle(.plain)
-                        .minTapTarget()
-
-                        Spacer()
-
-                        if appVM.parentModeUnlocked {
-                            Button("編集") {
-                                startEdit(occurrence)
-                            }
-                            .buttonStyle(.bordered)
-
-                            Button(role: .destructive) {
-                                startDelete(occurrence)
-                            } label: {
-                                Image(systemName: "trash")
-                            }
-                            .buttonStyle(.borderless)
+                            Label("追加", systemImage: "plus")
                         }
                     }
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        if appVM.parentModeUnlocked {
-                            Button(role: .destructive) {
-                                startDelete(occurrence)
-                            } label: {
-                                Label("削除", systemImage: "trash")
-                            }
-                        }
+                    #endif
+                }
+            }
+            .confirmationDialog("どこまで編集しますか？", isPresented: $showingRecurrenceEditTargetDialog, titleVisibility: .visible) {
+                Button("この日だけ\n今日（この1回）だけ変える") {
+                    if let editingOccurrence {
+                        editorContext = EventEditorContext(occurrence: editingOccurrence, target: .singleOccurrence)
                     }
                 }
-            }
-        }
-        .navigationTitle(titleText)
-        .toolbar {
-            if appVM.parentModeUnlocked {
-                #if os(iOS)
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        creatingEvent = true
-                    } label: {
-                        Label("追加", systemImage: "plus")
+                Button("以降すべて\n今日以降の予定をまとめて変える") {
+                    if let editingOccurrence {
+                        editorContext = EventEditorContext(occurrence: editingOccurrence, target: .fromThisDate)
                     }
                 }
-                #endif
+                Button("全体\nシリーズ全体（開始〜終了）を変える") {
+                    if let editingOccurrence {
+                        editorContext = EventEditorContext(occurrence: editingOccurrence, target: .wholeSeries)
+                    }
+                }
+                Button("キャンセル", role: .cancel) {}
+            } message: {
+                Text("編集・削除の影響範囲を選んでください。")
             }
-        }
-        .confirmationDialog("どこまで編集しますか？", isPresented: $showingRecurrenceEditTargetDialog, titleVisibility: .visible) {
-            Button("この日だけ\n今日（この1回）だけ変える") {
-                if let editingOccurrence {
-                    editorContext = EventEditorContext(occurrence: editingOccurrence, target: .singleOccurrence)
+            .confirmationDialog("どこまで削除しますか？", isPresented: $showingRecurrenceDeleteTargetDialog, titleVisibility: .visible) {
+                Button("この日だけ削除") {
+                    guard let occurrence = deletingOccurrence else { return }
+                    deleteSingleOccurrence(occurrence)
+                }
+                Button("以降すべて削除") {
+                    guard let occurrence = deletingOccurrence else { return }
+                    splitAndDeleteFromThisDate(occurrence)
+                }
+                Button("全体を削除", role: .destructive) {
+                    guard let occurrence = deletingOccurrence else { return }
+                    deleteWholeSeries(occurrence)
+                }
+                Button("キャンセル", role: .cancel) {
+                    deletingOccurrence = nil
+                }
+            } message: {
+                Text("削除の影響範囲を選んでください。")
+            }
+            .sheet(item: $selectedOccurrence) { occ in
+                TimerRingView(targetDate: occ.displayStart)
+                    .padding()
+            }
+            .sheet(isPresented: $creatingEvent) {
+                EventEditorView(mode: .create, initialEvent: draftEvent(on: date), onSave: { event in
+                    repository.save(event: event)
+                    stampStore.markStampUsed(event.stampId)
+                })
+                .environmentObject(stampStore)
+            }
+            .onAppear {
+                if openEditorImmediately {
+                    creatingEvent = true
                 }
             }
-            Button("以降すべて\n今日以降の予定をまとめて変える") {
-                if let editingOccurrence {
-                    editorContext = EventEditorContext(occurrence: editingOccurrence, target: .fromThisDate)
-                }
-            }
-            Button("全体\nシリーズ全体（開始〜終了）を変える") {
-                if let editingOccurrence {
-                    editorContext = EventEditorContext(occurrence: editingOccurrence, target: .wholeSeries)
-                }
-            }
-            Button("キャンセル", role: .cancel) {}
-        } message: {
-            Text("編集・削除の影響範囲を選んでください。")
-        }
-        .confirmationDialog("どこまで削除しますか？", isPresented: $showingRecurrenceDeleteTargetDialog, titleVisibility: .visible) {
-            Button("この日だけ削除") {
-                guard let occurrence = deletingOccurrence else { return }
-                deleteSingleOccurrence(occurrence)
-            }
-            Button("以降すべて削除") {
-                guard let occurrence = deletingOccurrence else { return }
-                splitAndDeleteFromThisDate(occurrence)
-            }
-            Button("全体を削除", role: .destructive) {
-                guard let occurrence = deletingOccurrence else { return }
-                deleteWholeSeries(occurrence)
-            }
-            Button("キャンセル", role: .cancel) {
-                deletingOccurrence = nil
-            }
-        } message: {
-            Text("削除の影響範囲を選んでください。")
-        }
-        .sheet(item: $selectedOccurrence) { occ in
-            TimerRingView(targetDate: occ.displayStart)
-                .padding()
-        }
-        .sheet(isPresented: $creatingEvent) {
-            EventEditorView(mode: .create, initialEvent: draftEvent(on: date), onSave: { event in
-                repository.save(event: event)
-                stampStore.markStampUsed(event.stampId)
-            })
-            .environmentObject(stampStore)
-        }
-        .onAppear {
-            if openEditorImmediately {
+            .onChange(of: appVM.quickAddRequestID) {
+                guard appVM.parentModeUnlocked else { return }
                 creatingEvent = true
             }
+            .sheet(item: $editorContext) { context in
+                EventEditSheetView(context: context, repository: repository) {
+                    editingOccurrence = context.occurrence
+                    showingRecurrenceEditTargetDialog = true
+                }
+            }
+    }
+
+    @ViewBuilder
+    private var contentView: some View {
+        let occurrences = calendarVM.dayOccurrences(on: date, childFilter: appVM.filter, includeDraft: appVM.parentModeUnlocked)
+        if occurrences.isEmpty {
+            emptyView
+        } else {
+            occurrenceList(occurrences)
         }
-        .onChange(of: appVM.quickAddRequestID) {
-            guard appVM.parentModeUnlocked else { return }
-            creatingEvent = true
+    }
+
+    private var emptyView: some View {
+        Text("この日の予定はありません")
+            .font(theme.fonts.supporting)
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(theme.spacing.cardPadding)
+            .cardStyle(background: theme.colors.emptyCard)
+            .padding(.horizontal, theme.spacing.screenPadding)
+    }
+
+    private func occurrenceList(_ occurrences: [EventOccurrence]) -> some View {
+        List(occurrences, id: \.id) { occurrence in
+            occurrenceRow(occurrence)
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
         }
-        .sheet(item: $editorContext) { context in
-            EventEditSheetView(context: context, repository: repository) {
-                editingOccurrence = context.occurrence
-                showingRecurrenceEditTargetDialog = true
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+    }
+
+    private func occurrenceRow(_ occurrence: EventOccurrence) -> some View {
+        HStack(spacing: 12) {
+            occurrenceSpeakButton(occurrence)
+            Spacer()
+            if appVM.parentModeUnlocked {
+                Button("編集") { startEdit(occurrence) }
+                    .buttonStyle(.bordered)
+                Button(role: .destructive) { startDelete(occurrence) } label: {
+                    Image(systemName: "trash")
+                }
+                .buttonStyle(.borderless)
             }
         }
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            if appVM.parentModeUnlocked {
+                Button(role: .destructive) {
+                    startDelete(occurrence)
+                } label: {
+                    Label("削除", systemImage: "trash")
+                }
+            }
+        }
+    }
+
+    private func occurrenceSpeakButton(_ occurrence: EventOccurrence) -> some View {
+        Button {
+            speechService.speak(occurrence.baseEvent.title)
+            selectedOccurrence = occurrence
+        } label: {
+            HStack(spacing: 12) {
+                EventTokenRenderer(event: occurrence.baseEvent, showTitle: false, iconSize: 42, occurrenceDate: occurrence.occurrenceDate)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(occurrence.baseEvent.title)
+                        .font(theme.fonts.dayTitle)
+                    Text(timeText(occurrence.displayStart, allDay: occurrence.baseEvent.isAllDay))
+                        .font(theme.fonts.supporting)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.vertical, 10)
+            .padding(.horizontal, 8)
+            .cardStyle(background: theme.colors.emptyCard)
+        }
+        .buttonStyle(.plain)
+        .minTapTarget()
     }
 
     private func startEdit(_ occurrence: EventOccurrence) {

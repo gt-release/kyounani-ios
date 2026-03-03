@@ -390,7 +390,7 @@ public struct EventEditorView: View {
 
     private func previewEvent(stampId: UUID) -> Event {
         let durationMinutes = max(5, Int(endDateTime.timeIntervalSince(startDateTime) / 60))
-        Event(
+        return Event(
             id: eventID,
             title: title,
             stampId: stampId,

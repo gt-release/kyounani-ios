@@ -21,16 +21,16 @@ public struct MonthView: View {
         let dates = calendarVM.monthGridDates(for: monthDate)
         let summaries = calendarVM.monthSummaries(for: monthDate, childFilter: appVM.filter, includeDraft: appVM.parentModeUnlocked)
 
-        VStack(spacing: 8) {
+        VStack(spacing: 12) {
             HStack {
                 ForEach(["日", "月", "火", "水", "木", "金", "土"], id: \.self) { day in
                     Text(day)
-                        .font(.caption.bold())
+                        .font(.headline.weight(.bold))
                         .frame(maxWidth: .infinity)
                 }
             }
 
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 7), spacing: 8) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 7), spacing: 10) {
                 ForEach(dates, id: \.self) { date in
                     let dayStart = calendarVM.startOfDay(for: date)
                     let summary = summaries[dayStart] ?? DayEventSummary(topOccurrences: [], remainingCount: 0)
@@ -40,20 +40,20 @@ public struct MonthView: View {
                     } label: {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("\(calendarVM.dayNumber(date))")
-                                .font(.footnote.bold())
+                                .font(theme.fonts.supporting)
                                 .foregroundStyle(theme.dayTextColor(for: dayKind))
 
                             DayCellEventTokensView(summary: summary)
                             Spacer(minLength: 0)
                         }
-                        .padding(6)
-                        .frame(maxWidth: .infinity, minHeight: 92, alignment: .topLeading)
+                         .padding(10)
+                        .frame(maxWidth: .infinity, minHeight: 112, alignment: .topLeading)
                         .background(theme.dayBackgroundColor(for: dayKind))
                         .overlay(
-                            RoundedRectangle(cornerRadius: 10)
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
                                 .stroke(dayKind == .today ? theme.colors.accent : Color.clear, lineWidth: 2)
                         )
-                        .cornerRadius(10)
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                         .opacity(calendarVM.isSameMonth(date, monthDate) ? 1.0 : 0.45)
                     }
                     .buttonStyle(.plain)

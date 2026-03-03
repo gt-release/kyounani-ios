@@ -11,6 +11,15 @@
 - スタンプ管理（初期スタンプ + Files/Photos 追加）
 - ローカル保存（SwiftData優先、障害時のみFileBacked保険）と暗号化バックアップ（`.kybk`）
 
+## UI刷新（2026-03 / iPad 12.9" 横置き最適化）
+- 子どもモードUIを全面刷新し、**スタンプ中心・大カード・広い余白**のレイアウトへ再設計。
+- Todayは「大きな日付ヘッダー + 子どもフィルタ（大型ピル） + きょう/つぎ/あしたの島カード」構成に変更。
+- 予定カードはカード全体タップで TTS + TimerRing を維持しつつ、タップ対象を拡大（最小60pt）。
+- Calendarは月/週トグル・前後移動・日セルサイズを拡大し、土日/祝日/今日/選択状態の色判別を強化。
+- DayDetailは背景トーンとカード表現をToday/Calendarに揃えて視覚統一。
+- 親ゲート右上ホットエリアを `120x120` に拡張し、2本指2秒長押し導線を維持。
+- Themeトークンを拡張し、Kid / High Contrast の両プリセットで背景グラデーション・フォント・余白を統一管理。
+
 ## 使い方
 ### 子どもモード
 - 起動直後は「Today」タブ。
@@ -117,6 +126,8 @@
 - CIは `Kyounani.swiftpm` 直下Manifestの `dump-package` を必須チェックにせず、同梱 `KyounaniEmbeddedApp` 側で継続監視する。
 
 ## 追加修正（2026-03）
+- Playgroundsで `DayDetailView` が「The compiler is unable to type-check this expression in reasonable time」で起動失敗するケースに対し、行UIを小さなSubviewへ分割して式推論負荷を削減。
+- `EventEditorView` のスタンププレビュー用 `Event(...)` 生成で `return` が欠けていた警告を修正（`Result of 'Event' initializer is unused`）。
 - Todayタブ「あした」セクションの抽出範囲を翌日のみに限定し、明後日以降の予定が混ざらないよう修正。
 - 予定入力UIを「開始 + 所要時間」から「開始 + 終了時刻」へ変更（終了が開始以前にならないよう最小5分を維持）。
 - カレンダーでクイック追加を閉じた後に再訪すると再表示される問題を修正（画面遷移終了時にフラグをリセット）。

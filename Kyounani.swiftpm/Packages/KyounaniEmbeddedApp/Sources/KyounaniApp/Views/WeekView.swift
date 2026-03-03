@@ -21,7 +21,7 @@ public struct WeekView: View {
         let weekDates = calendarVM.weekDates(for: weekStartDate)
         let summaries = calendarVM.weekSummaries(for: weekStartDate, childFilter: appVM.filter, includeDraft: appVM.parentModeUnlocked)
 
-        HStack(alignment: .top, spacing: 8) {
+        HStack(alignment: .top, spacing: 10) {
             ForEach(weekDates, id: \.self) { date in
                 let dayStart = calendarVM.startOfDay(for: date)
                 let summary = summaries[dayStart] ?? DayEventSummary(topOccurrences: [], remainingCount: 0)
@@ -29,22 +29,22 @@ public struct WeekView: View {
                 Button {
                     onSelectDate(date)
                 } label: {
-                    VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .leading, spacing: 8) {
                         Text(weekdayAndDay(date))
-                            .font(.footnote.bold())
+                            .font(theme.fonts.supporting)
                             .foregroundStyle(theme.dayTextColor(for: dayKind))
 
                         DayCellEventTokensView(summary: summary)
                         Spacer(minLength: 0)
                     }
-                    .padding(8)
-                    .frame(maxWidth: .infinity, minHeight: 140, alignment: .topLeading)
+                    .padding(10)
+                    .frame(maxWidth: .infinity, minHeight: 160, alignment: .topLeading)
                     .background(theme.dayBackgroundColor(for: dayKind))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 10)
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
                             .stroke(dayKind == .today ? theme.colors.accent : Color.clear, lineWidth: 2)
                     )
-                    .cornerRadius(10)
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                 }
                 .buttonStyle(.plain)
                 .minTapTarget()

@@ -52,6 +52,8 @@ public struct ParentModeView: View {
     private var parentBaseView: some View {
         NavigationStack {
             parentList
+                .scrollContentBackground(.hidden)
+                .background(KidSoftBackground())
         }
         .navigationTitle("親モード")
         .toolbar {
