@@ -403,7 +403,7 @@ public struct DayDetailView: View {
             }
             .padding(.vertical, 10)
             .padding(.horizontal, 8)
-            .cardStyle(background: .white.opacity(0.78))
+            .cardStyle(background: theme.colors.emptyCard)
         }
         .buttonStyle(.plain)
         .minTapTarget()

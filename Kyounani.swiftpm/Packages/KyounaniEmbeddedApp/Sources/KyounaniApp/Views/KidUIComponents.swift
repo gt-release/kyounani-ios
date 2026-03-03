@@ -31,7 +31,7 @@ public struct KidSectionIsland<Content: View>: View {
         }
         .padding(theme.spacing.cardPadding)
         .background(
-            LinearGradient(colors: [tint.opacity(0.22), .white.opacity(0.84)], startPoint: .topLeading, endPoint: .bottomTrailing)
+            LinearGradient(colors: [tint.opacity(0.22), theme.colors.tabBackground.opacity(0.84)], startPoint: .topLeading, endPoint: .bottomTrailing)
         )
         .cardStyle(background: .clear)
     }
