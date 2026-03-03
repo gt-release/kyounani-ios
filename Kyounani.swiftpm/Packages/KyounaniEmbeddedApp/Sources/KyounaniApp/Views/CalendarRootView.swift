@@ -47,7 +47,7 @@ public struct CalendarRootView: View {
                 .minTapTarget()
             }
             .padding(theme.spacing.cardPadding)
-            .cardStyle(background: .white.opacity(0.8))
+            .cardStyle(background: theme.colors.tabBackground)
 
             HStack {
                 Button("きょう") { anchorDate = .now }
@@ -66,7 +66,7 @@ public struct CalendarRootView: View {
                 }
             }
             .padding(theme.spacing.cardPadding)
-            .cardStyle(background: .white.opacity(0.75))
+            .cardStyle(background: theme.colors.tabBackground)
 
             Spacer(minLength: 0)
         }

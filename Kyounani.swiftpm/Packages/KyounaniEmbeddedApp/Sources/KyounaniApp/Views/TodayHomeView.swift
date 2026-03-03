@@ -80,7 +80,7 @@ public struct TodayHomeView: View {
             .padding(.vertical, 12)
             .background(
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(isSelected ? color.opacity(0.2) : .white.opacity(0.75))
+                    .fill(isSelected ? color.opacity(0.2) : theme.colors.tabBackground)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
@@ -226,18 +226,26 @@ public struct TodayHomeView: View {
         }
     }
 
+    private static let timeFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "ja_JP")
+        f.dateFormat = "HH:mm"
+        return f
+    }()
+
+    private static let headerFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "ja_JP")
+        f.dateFormat = "M/d E"
+        return f
+    }()
+
     private func timeText(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ja_JP")
-        formatter.dateFormat = "HH:mm"
-        return formatter.string(from: date)
+        TodayHomeView.timeFormatter.string(from: date)
     }
 
     private func todayHeader() -> String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ja_JP")
-        formatter.dateFormat = "M/d E"
-        return formatter.string(from: .now)
+        TodayHomeView.headerFormatter.string(from: .now)
     }
 }
 
