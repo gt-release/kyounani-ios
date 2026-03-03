@@ -126,6 +126,8 @@
 - CIは `Kyounani.swiftpm` 直下Manifestの `dump-package` を必須チェックにせず、同梱 `KyounaniEmbeddedApp` 側で継続監視する。
 
 ## 追加修正（2026-03）
+- Playgroundsで `DayDetailView` が「The compiler is unable to type-check this expression in reasonable time」で起動失敗するケースに対し、行UIを小さなSubviewへ分割して式推論負荷を削減。
+- `EventEditorView` のスタンププレビュー用 `Event(...)` 生成で `return` が欠けていた警告を修正（`Result of 'Event' initializer is unused`）。
 - Todayタブ「あした」セクションの抽出範囲を翌日のみに限定し、明後日以降の予定が混ざらないよう修正。
 - 予定入力UIを「開始 + 所要時間」から「開始 + 終了時刻」へ変更（終了が開始以前にならないよう最小5分を維持）。
 - カレンダーでクイック追加を閉じた後に再訪すると再表示される問題を修正（画面遷移終了時にフラグをリセット）。
